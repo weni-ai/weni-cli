@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "weni-cli"
+version = "0.1.0"
+description = ""
+authors = ["Paulo Bernardo <paulo.bernardo@weni.ai>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+click = "^8.1.8"
+requests = "^2.32.3"
+flask = "^3.1.0"
+waitress = "^3.0.2"
+pyyaml = "^6.0.2"
+python-slugify = "^8.0.4"
+setuptools = "^75.7.0"
+
+[tool.poetry.scripts]
+weni = "weni_cli.cli:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

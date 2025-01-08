@@ -31,3 +31,23 @@ def list_projects(org):
 
     ProjectListHandler().execute(org_uuid=org)
 
+
+@project.command("use")
+@click.argument("project_uuid", required=True)
+def use_project(project_uuid):
+    """Set the project to be used in the CLI
+
+    PROJECT_UUID: The UUID of the project to be used
+    """
+    from weni_cli.commands.project_use import ProjectUseHandler
+
+    ProjectUseHandler().execute(project_uuid=project_uuid)
+
+
+@project.command("current")
+def current_project():
+    """Show current selected project"""
+    from weni_cli.commands.project_current import ProjectCurrentHandler
+
+    ProjectCurrentHandler().execute()
+

@@ -29,7 +29,7 @@ class Auth:
         return f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/auth?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type={self.response_type}"
 
     def exchange_code(self, code) -> str:
-        tokenURL = (
+        token_url = (
             f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/token"
         )
 
@@ -41,7 +41,7 @@ class Auth:
         }
 
         response = requests.post(
-            tokenURL,
+            token_url,
             data=data,
             headers={"Content-Type": "application/x-www-form-urlencoded"},
         )

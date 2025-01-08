@@ -15,7 +15,7 @@ setup(
     ],
     entry_points={
         "console_scripts": [
-            "weni = weni-cli.cli:cli",
+            "weni = weni_cli.cli:cli",
         ],
     },
 )

@@ -6,6 +6,7 @@ from pathlib import Path
 
 STORE_TOKEN_KEY = "token"
 STORE_PROJECT_UUID_KEY = "project_uuid"
+STORE_WENI_BASE_URL = "weni_base_url"
 STORE_NEXUS_BASE_URL = "nexus_base_url"
 STORE_KEYCLOAK_URL = "keycloak_url"
 STORE_KEYCLOAK_REALM = "keycloak_realm"

@@ -1,5 +1,7 @@
-from weni_cli.store import STORE_TOKEN_KEY, Store
+import click
 import requests
+
+from weni_cli.store import STORE_TOKEN_KEY, STORE_WENI_BASE_URL, Store
 
 DEFAULT_BASE_URL = "https://api.weni.ai"
 
@@ -11,7 +13,7 @@ class WeniClient:
     def __init__(self):
         store = Store()
         self.headers = {"Authorization": f"Bearer {store.get(STORE_TOKEN_KEY)}"}
-        self.base_url = store.get("weni_base_url", DEFAULT_BASE_URL)
+        self.base_url = store.get(STORE_WENI_BASE_URL, DEFAULT_BASE_URL)
 
     def get_org(self, org_uuid):
         url = f"{self.base_url}/v2/organizations/{org_uuid}/"
@@ -19,7 +21,7 @@ class WeniClient:
         response = requests.get(url, headers=self.headers)
 
         if response.status_code != 200:
-            print("Failed to get organization")
+            click.echo("Failed to get organization")
             return
 
         return response.json()
@@ -30,7 +32,7 @@ class WeniClient:
         response = requests.get(url, headers=self.headers)
 
         if response.status_code != 200:
-            print("Failed to list organizations")
+            click.echo("Failed to list organizations")
             return
 
         return response.json().get("results", [])
@@ -48,7 +50,7 @@ class WeniClient:
             orgs = self.list_orgs()
 
         if not orgs:
-            print("No orgs found")
+            click.echo("No orgs found")
             return {}
 
         org_project_map = {}
@@ -62,7 +64,7 @@ class WeniClient:
             response = requests.get(url, headers=self.headers)
 
             if response.status_code != 200:
-                print("Failed to list projects")
+                click.echo("Failed to list projects")
                 return {}
 
             projects = response.json().get("results", [])

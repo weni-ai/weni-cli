@@ -51,3 +51,24 @@ def current_project():
 
     ProjectCurrentHandler().execute()
 
+
+@project.command("push")
+@click.argument(
+    "definition", required=True, type=click.Path(exists=True, dir_okay=False)
+)
+@click.option("--force-update", is_flag=True, help="Force update to the project")
+def push_project(definition, force_update):
+    """Push an Agent definition to the current project
+
+    DEFINITION: The path to the YAML agent definition file
+    """
+    from weni_cli.commands.project_push import ProjectPushHandler
+
+    try:
+        ProjectPushHandler().execute(definition=definition, force_update=force_update)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+if __name__ == "__main__":
+    cli()

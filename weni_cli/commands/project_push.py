@@ -95,6 +95,6 @@ class ProjectPushHandler(Handler):
         )
 
         if response.status_code != 200:
-            click.echo("Failed to push definition, error:", response.text)
+            click.echo(f"Failed to push definition, error: {response.text}")
 
         click.echo("Definition pushed successfully")

@@ -6,6 +6,8 @@ from weni_cli.store import (
     STORE_KEYCLOAK_URL,
     Store,
 )
+from weni_cli.wsgi import DEFAULT_PORT
+
 
 DEFAULT_KEYCLOAK_URL = "https://accounts.weni.ai/auth"
 DEFAULT_KEYCLOAK_REALM = "weni"
@@ -17,7 +19,7 @@ class Auth:
     realm = None
     client_id = None
     response_type = "code"
-    redirect_uri = "http://localhost:8081/sso-callback"
+    redirect_uri = f"http://localhost:{DEFAULT_PORT}/sso-callback"
 
     def __init__(self):
         store = Store()

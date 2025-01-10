@@ -5,6 +5,8 @@ from threading import Thread
 from waitress import serve as waitress_serve
 import queue
 
+DEFAULT_PORT = 50051
+
 app = Flask(__name__)
 server_thread = None
 auth_queue = queue.Queue()
@@ -21,7 +23,7 @@ def serve():
     global server_thread
     server_thread = Thread(
         target=waitress_serve,
-        kwargs={"app": app, "host": "0.0.0.0", "port": 50051, "_quiet": True},
+        kwargs={"app": app, "host": "0.0.0.0", "port": DEFAULT_PORT, "_quiet": True},
         daemon=True,
     )
     server_thread.start()

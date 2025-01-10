@@ -73,9 +73,11 @@ class ProjectPushHandler(Handler):
                     skill_slug = slugify(skill_data.get("name"))
                     agent_skills.append(
                         {
+                            "slug": skill_slug,
                             "name": skill_data.get("name"),
                             "path": skill_data.get("path"),
-                            "slug": skill_slug,
+                            "description": skill_data.get("description"),
+                            "parameters": skill_data.get("parameters"),
                         }
                     )
 
@@ -88,6 +90,11 @@ class ProjectPushHandler(Handler):
 
         client = NexusClient()
 
-        client.push_agents(project_uuid, formatted_definition, skill_files_map)
+        response = client.push_agents(
+            project_uuid, formatted_definition, skill_files_map
+        )
+
+        if response.status_code != 200:
+            click.echo("Failed to push definition, error:", response.text)
 
         click.echo("Definition pushed successfully")

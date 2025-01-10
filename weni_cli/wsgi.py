@@ -21,7 +21,7 @@ def serve():
     global server_thread
     server_thread = Thread(
         target=waitress_serve,
-        kwargs={"app": app, "host": "0.0.0.0", "port": 8081, "_quiet": True},
+        kwargs={"app": app, "host": "0.0.0.0", "port": 50051, "_quiet": True},
         daemon=True,
     )
     server_thread.start()

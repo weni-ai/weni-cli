@@ -18,12 +18,11 @@ def serve():
     from waitress import serve
 
     global server_process
-    if __name__ == "__main__":
-        server_process = Process(
-            target=serve,
-            kwargs={"app": app, "host": "0.0.0.0", "port": 8081, "_quiet": True},
-        )
-        server_process.start()
+    server_process = Process(
+        target=serve,
+        kwargs={"app": app, "host": "0.0.0.0", "port": 8081, "_quiet": True},
+    )
+    server_process.start()
 
 
 def shutdown():

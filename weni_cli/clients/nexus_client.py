@@ -23,4 +23,4 @@ class NexusClient:
             "agents": json.dumps(agents_definition),
         }
 
-        requests.post(url, headers=self.headers, data=data, files=skill_files)
+        return requests.post(url, headers=self.headers, data=data, files=skill_files)

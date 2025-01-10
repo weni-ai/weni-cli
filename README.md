@@ -88,6 +88,43 @@ weni project push <definition_file.yaml>
   weni project push definition.yaml
   ```
 
+## Agent definition file example
+
+```yaml
+agents:
+  my_agent:
+    name: James
+    description: "An agent to help users with orders status"
+    instructions:
+      - "Always be polite with the user, even if they are not polite"
+      - "If the user asks for help, always try to help"
+    guardrails:
+      - "Do not talk about gambling"
+    skills:
+      - get_status:
+          name: "Get status"
+          path: "get_status.zip"
+          description: "Get the status of an order"
+          parameters:
+            - arg1:
+                description: "Argument 1 description"
+                type: "string"
+                required: true
+  another_agent:
+    name: Bond
+    description: "An agent to help users with orders general information"
+    skills:
+      - get_order:
+          name: "Get Order"
+          path: "get_order.zip"
+          description: "Get the order information"
+          parameters:
+            - arg1:
+                description: "Argument 1 description"
+                type: "string"
+                required: false
+```
+
 ## Contributing
 
 Contributions are welcome! Follow the steps below to contribute:

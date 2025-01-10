@@ -1,32 +1,34 @@
 import click
 
 from flask import Flask, request
-from multiprocessing import Process, Pipe
+from threading import Thread
+from waitress import serve as waitress_serve
+import queue
 
 app = Flask(__name__)
-server_process = None
-auth_parent_conn, auth_child_conn = Pipe()
+server_thread = None
+auth_queue = queue.Queue()
 
 
 @app.route("/sso-callback", methods=["GET"])
 def sso_callback():
-    auth_child_conn.send(request.args.get("code"))
+    global auth_queue
+    auth_queue.put(request.args.get("code"))
     return "Successfully logged in, you can close this window now"
 
 
 def serve():
-    from waitress import serve
-
-    global server_process
-    server_process = Process(
-        target=serve,
+    global server_thread
+    server_thread = Thread(
+        target=waitress_serve,
         kwargs={"app": app, "host": "0.0.0.0", "port": 8081, "_quiet": True},
+        daemon=True,
     )
-    server_process.start()
+    server_thread.start()
 
 
 def shutdown():
-    global server_process
-    if server_process is not None:
-        server_process.terminate()
-        server_process = None
+    global server_thread
+    if server_thread is not None:
+        server_thread.join(timeout=1)
+        server_thread = None

@@ -4,7 +4,7 @@ import time
 from weni_cli.auth import Auth
 from weni_cli.handler import Handler
 from weni_cli.store import STORE_TOKEN_KEY, Store
-from weni_cli.wsgi import serve, shutdown, auth_parent_conn
+from weni_cli.wsgi import serve, shutdown, auth_queue
 
 
 class LoginHandler(Handler):
@@ -22,8 +22,8 @@ class LoginHandler(Handler):
         code = None
 
         while True:
-            if auth_parent_conn.poll(1):
-                code = auth_parent_conn.recv()
+            code = auth_queue.get()
+            if code:
                 break
 
         if not code:
@@ -39,7 +39,7 @@ class LoginHandler(Handler):
         store.set(STORE_TOKEN_KEY, token)
 
         click.echo("Login successful")
-        time.sleep(2)
+        time.sleep(1)
         shutdown()
 
     def exit(self, error=None):

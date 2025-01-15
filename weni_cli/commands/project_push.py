@@ -24,9 +24,7 @@ class ProjectPushHandler(Handler):
 
         skills_files_map = self.load_skills(definition_data)
 
-        self.push_definition(
-            force_update, project_uuid, definition_data, skills_files_map
-        )
+        self.push_definition(force_update, project_uuid, definition_data, skills_files_map)
 
     def load_param(self, params, key, default=None, required=False):
         value = params.get(key, default)
@@ -90,9 +88,7 @@ class ProjectPushHandler(Handler):
 
         client = NexusClient()
 
-        response = client.push_agents(
-            project_uuid, formatted_definition, skill_files_map
-        )
+        response = client.push_agents(project_uuid, formatted_definition, skill_files_map)
 
         if response.status_code != 200:
             click.echo(f"Failed to push definition, error: {response.text}")

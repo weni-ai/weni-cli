@@ -26,32 +26,37 @@ class WeniClient:
 
         return response.json()
 
-    def list_orgs(self) -> list:
-        url = f"{self.base_url}/v2/organizations/"
+    def list_orgs(self, url=None) -> tuple[str, list]:
+        url = f"{self.base_url}/v2/organizations/" if not url else url
+        orgs = []
 
         response = requests.get(url, headers=self.headers)
 
         if response.status_code != 200:
             click.echo("Failed to list organizations")
-            return
+            return None, []
 
-        return response.json().get("results", [])
+        orgs += response.json().get("results", [])
+        next_url = response.json().get("next", None)
 
-    def list_projects(self, org_uuid=None) -> dict:
+        return next_url, orgs
+
+    def list_projects(self, org_uuid=None, next_orgs_page_url=None) -> tuple[str, dict]:
         orgs = []
+        next_url = None
         if org_uuid:
             org = self.get_org(org_uuid)
 
             if not org:
-                return {}
+                return None, {}
 
             orgs.append(org)
         else:
-            orgs = self.list_orgs()
+            next_url, orgs = self.list_orgs(next_orgs_page_url)
 
         if not orgs:
             click.echo("No orgs found")
-            return {}
+            return None, {}
 
         org_project_map = {}
 
@@ -59,17 +64,20 @@ class WeniClient:
             if org["name"] not in org_project_map:
                 org_project_map[org["name"]] = []
 
+            projects = []
             url = f"{self.base_url}/v2/organizations/{org['uuid']}/projects"
 
-            response = requests.get(url, headers=self.headers)
+            while url:
+                response = requests.get(url, headers=self.headers)
 
-            if response.status_code != 200:
-                click.echo("Failed to list projects")
-                return {}
+                if response.status_code != 200:
+                    click.echo("Failed to list projects")
+                    return None, {}
 
-            projects = response.json().get("results", [])
+                projects += response.json().get("results", [])
+                url = response.json().get("next", None)
 
             for project in projects:
                 org_project_map[org["name"]].append((project["name"], project["uuid"]))
 
-        return org_project_map
+        return next_url, org_project_map

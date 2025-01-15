@@ -1,4 +1,5 @@
 import click
+import click_spinner
 
 from weni_cli.clients.weni_client import WeniClient
 from weni_cli.handler import Handler
@@ -15,13 +16,28 @@ class ProjectListHandler(Handler):
 
         org_uuid = kwargs.get("org_uuid", None)
 
+        click.echo("Fetching projects... Please wait ", nl=False)
+
         client = WeniClient()
-        org_projects_map = client.list_projects(org_uuid)
+        next_orgs_page_url = None
 
-        if not org_projects_map:
-            return self.exit("Failed to list projects")
+        while True:
+            org_projects_map = {}
+            with click_spinner.spinner():
+                next_orgs_page_url, org_projects_map = client.list_projects(org_uuid, next_orgs_page_url)
 
-        self.log_orgs(org_projects_map)
+            if not org_projects_map:
+                return self.exit("Failed to list projects")
+
+            self.log_orgs(org_projects_map)
+
+            if not next_orgs_page_url:
+                break
+
+            value = click.prompt('Press "q" to quit or press "p" to load more projects', type=str, default="p")
+
+            if value == "q":
+                break
 
     def log_orgs(self, org_projects_map):
         # Finds the longest organization name to format the output
@@ -35,5 +51,5 @@ class ProjectListHandler(Handler):
             click.echo(f"Org {org}")
             for project in projects:
                 click.echo(click.style("- ", fg="red"), nl=False)
-                click.echo(f" {project[0].ljust(max_len + 2)}{project[1].ljust(38)}")
+                click.echo(f" {project[0].ljust(max_len + 4)}{project[1].ljust(38)}")
             click.echo("")

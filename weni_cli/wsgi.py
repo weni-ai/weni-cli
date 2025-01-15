@@ -1,9 +1,8 @@
-import click
+import queue
 
 from flask import Flask, request
 from threading import Thread
 from waitress import serve as waitress_serve
-import queue
 
 DEFAULT_PORT = 50051
 

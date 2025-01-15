@@ -92,37 +92,33 @@ weni project push <definition_file.yaml>
 
 ```yaml
 agents:
-  my_agent:
-    name: James
-    description: "An agent to help users with orders status"
+  sample_agent:
+    name: "Sample Agent"                                                                      # Maximum of 128 characters
+    description: "Weni's sample agent"
     instructions:
-      - "Always be polite with the user, even if they are not polite"
-      - "If the user asks for help, always try to help"
+      - "You should always be polite, respectful and helpful, even if the user is not."       # Minimum of 40 characters
+      - "If you don't know the answer, don't lie. Tell the user you don't know."              # Minimum of 40 characters
     guardrails:
-      - "Do not talk about gambling"
+      - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."  # Minimum of 40 characters
     skills:
-      - get_status:
-          name: "Get status"
-          path: "get_status.zip"
-          description: "Get the status of an order"
+      - get_order_status:
+          name: "Get Order Status"                                                            # Maximum of 53 characters
+          path: "skills/order_status.zip"
+          description: "Function to get the order status"
           parameters:
-            - arg1:
-                description: "Argument 1 description"
+            - order_id:
+                description: "Order ID"
                 type: "string"
                 required: true
-  another_agent:
-    name: Bond
-    description: "An agent to help users with orders general information"
-    skills:
-      - get_order:
-          name: "Get Order"
-          path: "get_order.zip"
-          description: "Get the order information"
+      - get_order_details:
+          name: "Get Order Details"                                                           # Maximum of 53 characters
+          path: "skills/order_details.zip"
+          description: "Function to get the order details"
           parameters:
-            - arg1:
-                description: "Argument 1 description"
+            - order_id:
+                description: "Order ID"
                 type: "string"
-                required: false
+                required: true
 ```
 
 ## Contributing

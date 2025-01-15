@@ -18,6 +18,10 @@ twine = "^6.0.1"
 click-spinner = "^0.1.10"
 flake8 = "^7.1.1"
 black = "^24.10.0"
+pytest = "^8.3.4"
+pytest-mock = "^3.14.0"
+requests-mock = "^1.12.1"
+pytest-cov = "^6.0.0"
 
 [tool.poetry.scripts]
 weni = "weni_cli.cli:cli"

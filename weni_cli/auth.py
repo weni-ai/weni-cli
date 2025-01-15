@@ -31,9 +31,7 @@ class Auth:
         return f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/auth?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type={self.response_type}"
 
     def exchange_code(self, code) -> str:
-        token_url = (
-            f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/token"
-        )
+        token_url = f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/token"
 
         data = {
             "client_id": self.client_id,

@@ -53,9 +53,7 @@ def current_project():
 
 
 @project.command("push")
-@click.argument(
-    "definition", required=True, type=click.Path(exists=True, dir_okay=False)
-)
+@click.argument("definition", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option("--force-update", is_flag=True, help="Force update to the project")
 def push_project(definition, force_update):
     """Push an Agent definition to the current project

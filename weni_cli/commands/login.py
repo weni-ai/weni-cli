@@ -15,9 +15,7 @@ class LoginHandler(Handler):
         auth = Auth()
 
         click.echo("Opening browser for login, please wait...")
-        click.echo(
-            f"If the browser does not open, please open the following URL manually: {auth.get_login_url()}"
-        )
+        click.echo(f"If the browser does not open, please open the following URL manually: {auth.get_login_url()}")
         click.launch(auth.get_login_url())
         code = None
 

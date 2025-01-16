@@ -16,6 +16,15 @@ def login():
     LoginHandler().execute()
 
 
+# Init Command
+@cli.command("init")
+def init():
+    """Create a sample agent definition file and skills directory"""
+    from weni_cli.commands.init import InitHandler
+
+    InitHandler().execute()
+
+
 # Nested CLI Project Group
 @cli.group()
 def project():

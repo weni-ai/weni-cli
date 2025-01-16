@@ -21,7 +21,7 @@ class LoginHandler(Handler):
 
         while True:
             code = auth_queue.get()
-            if code:
+            if code is not None:
                 break
 
         if not code:

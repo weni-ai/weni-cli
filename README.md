@@ -29,72 +29,6 @@ pip install weni-cli
    poetry install
    ```
 
-## Initial Setup
-
-### Creating a Staging Account
-Before starting, you'll need a Weni staging account:
-1. Visit [http://dash.stg.cloud.weni.ai/](http://dash.stg.cloud.weni.ai/)
-2. Create your account and verify your email
-
-### Configuring for Staging Environment
-By default, the CLI points to the production environment. To use staging:
-
-1. Login first to create the configuration file:
-   ```bash
-   weni login
-   ```
-
-2. Locate the hidden `.weni_cli` file in your home directory
-   - On Linux/MacOS: The file is located at `~/.weni_cli`
-   - On Windows: The file is located at `C:\Users\YourUsername\.weni_cli`
-   - Note: The file starts with a dot (.) which means it's hidden by default
-
-3. Edit the file based on your operating system:
-
-   **Linux:**
-   ```bash
-   # Using nano
-   nano ~/.weni_cli
-   
-   # Or using vim
-   vim ~/.weni_cli
-   ```
-
-   **MacOS:**
-   ```bash
-   # Using nano
-   nano ~/.weni_cli
-   
-   # Or using TextEdit (will open in GUI)
-   open -a TextEdit ~/.weni_cli
-   ```
-
-   **Windows:**
-   ```bash
-   # Using Notepad (Command Prompt)
-   notepad "%USERPROFILE%\.weni_cli"
-   
-   # Or using PowerShell
-   notepad "$env:USERPROFILE\.weni_cli"
-   ```
-
-4. Replace the file contents with the following configuration:
-   ```json
-   {
-     "keycloak_url": "https://accounts.weni.ai/auth",
-     "keycloak_realm": "weni-staging",
-     "keycloak_client_id": "weni-cli",
-     "weni_base_url": "https://api.stg.cloud.weni.ai",
-     "nexus_base_url": "https://nexus.stg.cloud.weni.ai"
-   }
-   ```
-
-5. Save the file and run `weni login` again
-
-**Note:** If you can't see the file:
-- Linux/MacOS: Use `ls -la ~` in terminal to show hidden files
-- Windows: In File Explorer, click on "View" and check "Hidden items"
-
 ## Quick Start [Step by Step]
 
 After setting up your environment, follow these steps to create your first agent:
@@ -223,7 +157,7 @@ Make sure the ZIP file name matches the `path` specified in your `agents.yaml` f
 weni project push agents.yaml
 ```
 
-That's it! You've just created your first agent with a custom skill using Weni-CLI. 🎉
+That's it! You've just created your first agent with a custom skill using Weni-CLI. 
 
 The agent will now be able to:
 1. Receive a CEP (postal code) from the user

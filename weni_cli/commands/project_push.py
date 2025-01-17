@@ -19,10 +19,15 @@ class ProjectPushHandler(Handler):
         if not project_uuid:
             click.echo("No project selected, please select a project first")
             return
-
         definition_data = self.load_definition(definition_path)
 
+        if not definition_data:
+            return
+
         skills_files_map = self.load_skills(definition_data)
+
+        if not skills_files_map:
+            return
 
         self.push_definition(force_update, project_uuid, definition_data, skills_files_map)
 
@@ -34,11 +39,15 @@ class ProjectPushHandler(Handler):
 
     def load_definition(self, path):
         with open(path, "r") as file:
-            data = yaml.safe_load(file)
+            try:
+                data = yaml.safe_load(file)
+            except Exception as error:
+                click.echo(f"Failed to parse definition file: {error}")
+                return None
 
             if not data:
-                click.echo("Failed to load definition file")
-                return
+                click.echo("Error: Empty definition file")
+                return None
 
             return data
 
@@ -53,11 +62,21 @@ class ProjectPushHandler(Handler):
                 for _, skill_data in skill.items():
                     agent_name_slug = slugify(agent_data.get("name"))
                     skill_slug = slugify(skill_data.get("name"))
-                    skill_file = open(skill_data.get("path"), "rb")
+                    skill_file = self.open_skill_file(skill_data.get("path"))
+                    if not skill_file:
+                        return None
 
                     skills_map[f"{agent_name_slug}:{skill_slug}"] = skill_file
 
         return skills_map
+
+    def open_skill_file(self, path):
+        try:
+            skill_file = open(path, "rb")
+            return skill_file
+        except FileNotFoundError:
+            click.echo(f"Failed to load skill file: File {path} not found")
+            return None
 
     # Updates the skills in the definition to be an array of objects containing name, path and slug
     def format_definition(self, definition):
@@ -92,5 +111,6 @@ class ProjectPushHandler(Handler):
 
         if response.status_code != 200:
             click.echo(f"Failed to push definition, error: {response.text}")
+            return
 
         click.echo("Definition pushed successfully")

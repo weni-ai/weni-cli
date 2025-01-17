@@ -1,0 +1,91 @@
+:root {
+  --md-primary-fg-color: rgb(247, 25, 99);
+  --md-primary-fg-color--light: rgb(247, 25, 99, 0.8);
+  --md-primary-fg-color--dark: rgb(247, 25, 99);
+  --md-accent-fg-color: rgb(247, 25, 99);
+}
+
+/* Customizando links */
+.md-content a:not(.headerlink) {
+  color: rgb(247, 25, 99);
+}
+
+.md-content a:not(.headerlink):hover {
+  text-decoration: underline;
+}
+
+/* Customizando botões */
+.md-button {
+  background-color: rgb(247, 25, 99) !important;
+  border-color: rgb(247, 25, 99) !important;
+  color: white !important;
+}
+
+.md-button:hover {
+  background-color: rgb(247, 25, 99, 0.8) !important;
+}
+
+/* Customizando código */
+.highlight .hll {
+  background-color: rgba(247, 25, 99, 0.1);
+}
+
+/* Customizando admonitions */
+.md-typeset .admonition,
+.md-typeset details {
+  border-left: 4px solid rgb(247, 25, 99);
+}
+
+/* Customizando tabs */
+.md-tabs__link--active {
+  color: rgb(247, 25, 99) !important;
+}
+
+.md-tabs__link:hover {
+  color: rgb(247, 25, 99, 0.8) !important;
+}
+
+/* Customizando navegação */
+.md-nav__item .md-nav__link--active {
+  color: rgb(247, 25, 99);
+}
+
+.md-nav__link:hover {
+  color: rgb(247, 25, 99, 0.8);
+}
+
+/* Customizando pesquisa */
+.md-search-result__link:hover {
+  background-color: rgba(247, 25, 99, 0.1);
+}
+
+/* Customizando scrollbar */
+::-webkit-scrollbar-thumb {
+  background-color: rgba(247, 25, 99, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(247, 25, 99, 0.5);
+}
+
+/* Customizando seleção de texto */
+::selection {
+  background-color: rgba(247, 25, 99, 0.2);
+}
+
+/* Customizando tabelas */
+.md-typeset table:not([class]) th {
+  background-color: rgb(247, 25, 99);
+  color: white;
+}
+
+.md-typeset table:not([class]) tr:hover {
+  background-color: rgba(247, 25, 99, 0.1);
+}
+
+/* Customizando código em linha */
+.md-typeset code {
+  background-color: rgba(247, 25, 99, 0.1);
+  border-radius: 4px;
+  padding: 2px 6px;
+}

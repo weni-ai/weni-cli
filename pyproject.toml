@@ -23,6 +23,14 @@ pytest-mock = "^3.14.0"
 requests-mock = "^1.12.1"
 pytest-cov = "^6.0.0"
 
+[tool.poetry.group.docs]
+optional = true
+
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.3"
+mkdocstrings = {extras = ["python"], version = "^0.24.0"}
+
 [tool.poetry.scripts]
 weni = "weni_cli.cli:cli"
 

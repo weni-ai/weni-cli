@@ -4,11 +4,9 @@ import pytest
 
 from threading import Timer
 from click.testing import CliRunner
-from unittest.mock import ANY
 
 from weni_cli.cli import login
 from weni_cli.wsgi import auth_queue
-from weni_cli.store import Store
 
 
 @pytest.fixture(autouse=True)
@@ -31,7 +29,7 @@ def test_login(mocker, **kwargs):
     runner = CliRunner()
     with runner.isolated_filesystem():
         mocker.patch("click.launch", return_value=None)
-        store_spy = mocker.spy(Store, "set")
+        store_set_patch = mocker.patch("weni_cli.store.Store.set")
 
         t = Timer(0.1, fake_login_callback)
         t.start()
@@ -41,8 +39,8 @@ def test_login(mocker, **kwargs):
             "https://accounts.weni.ai/auth/realms/weni/protocol/openid-connect/auth?client_id=weni-cli&redirect_uri=http://localhost:50051/sso-callback&response_type=code"
         )
 
-        assert store_spy.call_count == 1
-        store_spy.assert_called_once_with(ANY, "token", "654321")
+        assert store_set_patch.call_count == 1
+        store_set_patch.assert_called_once_with("token", "654321")
 
         assert result.exit_code == 0
         assert (
@@ -58,13 +56,13 @@ def test_login_callback_error(mocker):
     runner = CliRunner()
     with runner.isolated_filesystem():
         mocker.patch("click.launch", return_value=None)
-        store_spy = mocker.spy(Store, "set")
+        store_set_patch = mocker.patch("weni_cli.store.Store.set")
 
         t = Timer(0.1, fake_login_callback)
         t.start()
         result = runner.invoke(login)
 
-        assert store_spy.call_count == 0
+        assert store_set_patch.call_count == 0
 
         assert result.exit_code == 0
         assert (
@@ -88,13 +86,13 @@ def test_login_exchange_token_error(mocker, **kwargs):
     runner = CliRunner()
     with runner.isolated_filesystem():
         mocker.patch("click.launch", return_value=None)
-        store_spy = mocker.spy(Store, "set")
+        store_set_patch = mocker.patch("weni_cli.store.Store.set")
 
         t = Timer(0.1, fake_login_callback)
         t.start()
         result = runner.invoke(login)
 
-        assert store_spy.call_count == 0
+        assert store_set_patch.call_count == 0
 
         assert result.exit_code == 0
         assert (

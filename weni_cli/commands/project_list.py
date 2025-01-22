@@ -16,7 +16,7 @@ class ProjectListHandler(Handler):
 
         org_uuid = kwargs.get("org_uuid", None)
 
-        click.echo("Fetching projects... Please wait ", nl=False)
+        click.echo("Fetching projects... Please wait")
 
         client = WeniClient()
         next_orgs_page_url = None
@@ -40,16 +40,17 @@ class ProjectListHandler(Handler):
                 break
 
     def log_orgs(self, org_projects_map):
-        # Finds the longest organization name to format the output
+        # Finds the longest project name to format the output
         max_len = 0
-        for org in org_projects_map.keys():
-            if len(org) > max_len:
-                max_len = len(org)
+        for org, projects in org_projects_map.items():
+            for project in projects:
+                if len(project[0]) > max_len:
+                    max_len = len(project[0])
 
-        click.echo("")
+        click.echo("\n", nl=False)
         for org, projects in org_projects_map.items():
             click.echo(f"Org {org}")
             for project in projects:
                 click.echo(click.style("- ", fg="red"), nl=False)
-                click.echo(f" {project[0].ljust(max_len + 4)}{project[1].ljust(38)}")
+                click.echo(f"{project[0].ljust(max_len + 2)}{project[1].ljust(len(project[1]) + 2)}")
             click.echo("")

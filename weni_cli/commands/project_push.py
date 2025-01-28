@@ -1,4 +1,5 @@
 import click
+import regex
 import yaml
 
 from slugify import slugify
@@ -6,6 +7,8 @@ from slugify import slugify
 from weni_cli.clients.nexus_client import NexusClient
 from weni_cli.handler import Handler
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
+
+CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_]*$"
 
 
 class ProjectPushHandler(Handler):
@@ -19,6 +22,7 @@ class ProjectPushHandler(Handler):
         if not project_uuid:
             click.echo("No project selected, please select a project first")
             return
+
         definition_data = self.load_definition(definition_path)
 
         if not definition_data:
@@ -29,7 +33,12 @@ class ProjectPushHandler(Handler):
         if not skills_files_map:
             return
 
-        self.push_definition(force_update, project_uuid, definition_data, skills_files_map)
+        definition = self.format_definition(definition_data)
+
+        if not definition:
+            return
+
+        self.push_definition(force_update, project_uuid, definition, skills_files_map)
 
     def load_param(self, params, key, default=None, required=False):
         value = params.get(key, default)
@@ -86,7 +95,14 @@ class ProjectPushHandler(Handler):
             skills = agents[agent].get("skills", {})
             agent_skills = []
             for skill in skills:
-                for _, skill_data in skill.items():
+                for skill_name, skill_data in skill.items():
+
+                    parameters, err = self.validate_parameters(skill_data.get("parameters"))
+
+                    if err:
+                        click.echo(f"Error in skill {skill_name}: {err}")
+                        return None
+
                     skill_slug = slugify(skill_data.get("name"))
                     agent_skills.append(
                         {
@@ -94,7 +110,7 @@ class ProjectPushHandler(Handler):
                             "name": skill_data.get("name"),
                             "path": skill_data.get("path"),
                             "description": skill_data.get("description"),
-                            "parameters": skill_data.get("parameters"),
+                            "parameters": parameters,
                         }
                     )
 
@@ -102,12 +118,59 @@ class ProjectPushHandler(Handler):
 
         return definition
 
-    def push_definition(self, force_update, project_uuid, definition, skill_files_map):
-        formatted_definition = self.format_definition(definition)
+    def validate_parameters(self, parameters: dict) -> tuple[any, str]:
+        if not parameters:
+            return None, None
 
+        def error(name, message):
+            return f"parameter {name}: {message}"
+
+        for parameter in parameters:
+            for parameter_name, parameter_data in parameter.items():
+                if not isinstance(parameter_data, dict):
+                    return None, error(parameter_name, "must be an object")
+
+                if not parameter_data.get("description"):
+                    return None, error(parameter_name, "description is required")
+
+                if type(parameter_data.get("description")) != str:
+                    return None, error(parameter_name, "description must be a string")
+
+                if not parameter_data.get("type"):
+                    return None, error(parameter_name, "type is required")
+
+                if parameter_data.get("type") not in ["string", "number", "integer", "boolean", "array"]:
+                    return (
+                        None,
+                        error(parameter_name, "type must be one of: string, number, integer, boolean, array"),
+                    )
+
+                if type(parameter_data.get("required", None)) != bool:
+                    return None, error(parameter_name, "'required' field must be a boolean")
+
+                if parameter_data.get("contact_field", None) and type(parameter_data.get("contact_field")) != bool:
+                    return None, error(parameter_name, "contact_field must be a boolean")
+
+                if parameter_data.get("contact_field", None) and not self.is_valid_contact_field_name(parameter_name):
+                    return (
+                        None,
+                        error(
+                            parameter_name,
+                            f"parameter name must match the regex of a valid contact field: {CONTACT_FIELD_NAME_REGEX}",
+                        ),
+                    )
+
+        return parameters, None
+
+    def is_valid_contact_field_name(self, parameter_name):
+        if not regex.match(CONTACT_FIELD_NAME_REGEX, parameter_name, regex.V0):
+            return False
+        return True
+
+    def push_definition(self, force_update, project_uuid, definition, skill_files_map):
         client = NexusClient()
 
-        response = client.push_agents(project_uuid, formatted_definition, skill_files_map)
+        response = client.push_agents(project_uuid, definition, skill_files_map)
 
         if response.status_code != 200:
             click.echo(f"Failed to push definition, error: {response.text}")

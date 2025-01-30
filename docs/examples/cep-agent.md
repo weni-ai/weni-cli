@@ -19,7 +19,9 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "skills/cep_agent"
+          source: 
+            path: "skills/cep_agent"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:

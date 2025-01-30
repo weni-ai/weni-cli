@@ -72,7 +72,9 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "path/to/agent_skill_folder"
+          source: 
+            path: "path/to/agent_skill_folder"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -231,7 +233,9 @@ agents:
     skills:
       - get_order_status:
           name: "Get Order Status"                                                            # Maximum of 53 characters
-          path: "skills/order_status"
+          source: 
+            path: "skills/order_status"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the order status"
           parameters:
             - order_id:
@@ -240,7 +244,9 @@ agents:
                 required: true
       - get_order_details:
           name: "Get Order Details"                                                           # Maximum of 53 characters
-          path: "skills/order_details"
+          source: 
+            path: "skills/order_details"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the order details"
           parameters:
             - order_id:

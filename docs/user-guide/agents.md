@@ -146,6 +146,7 @@ Your skills should:
    - Confirm project selection
 
 2. **Skill Errors**
+   - Verify skill entrypoint
    - Test Lambda function locally
    - Check parameter handling
    - Verify API endpoints

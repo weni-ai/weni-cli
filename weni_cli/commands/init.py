@@ -1,7 +1,6 @@
 import click
 import os
 
-from zipfile import ZipFile
 from weni_cli.handler import Handler
 
 SKILLS_FOLDER = "skills"
@@ -19,7 +18,9 @@ SAMPLE_AGENT_DEFINITION_YAML = """agents:
     skills:
       - get_order_status:
           name: "Get Order Status"                                                            # Maximum of 53 characters
-          path: "skills/order_status.zip"
+          source:
+            path: "skills/order_status"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the order status"
           parameters:
             - order_id:
@@ -28,7 +29,9 @@ SAMPLE_AGENT_DEFINITION_YAML = """agents:
                 required: true
       - get_order_details:
           name: "Get Order Details"                                                           # Maximum of 53 characters
-          path: "skills/order_details.zip"
+          source:
+            path: "skills/order_details"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the order details"
           parameters:
             - order_id:
@@ -38,15 +41,71 @@ SAMPLE_AGENT_DEFINITION_YAML = """agents:
 """
 
 SAMPLE_ORDER_STATUS_SKILL_PY = """def lambda_handler(event, context):
-    order_id = event.get("order_id")
 
-    return {"id": order_id,"status": "SHIPPED"}
+    agent = event['agent']
+    actionGroup = event['actionGroup']
+    function = event['function']
+    parameters = event.get('parameters', [])
+
+    response_body = {
+        'TEXT': {
+            'body': "Your order status is 'Shipped'"
+        }
+    }
+
+    function_response = {
+        'actionGroup': event['actionGroup'],
+        'function': event['function'],
+        'functionResponse': {
+            'responseBody': response_body
+        }
+    }
+
+    session_attributes = event['sessionAttributes']
+    prompt_session_attributes = event['promptSessionAttributes']
+
+    action_response = {
+        'messageVersion': '1.0',
+        'response': function_response,
+        'sessionAttributes': session_attributes,
+        'promptSessionAttributes': prompt_session_attributes
+    }
+
+    return action_response
 """
 
 SAMPLE_ORDER_DETAILS_SKILL_PY = """def lambda_handler(event, context):
-    order_id = event.get("order_id")
 
-    return {"id": order_id, "details": {"name": "Product A", "quantity": 1}}
+    agent = event['agent']
+    actionGroup = event['actionGroup']
+    function = event['function']
+    parameters = event.get('parameters', [])
+
+    response_body = {
+        'TEXT': {
+            'body': "Your order contains 2 items, a t-shirt and a pair of shoes."
+        }
+    }
+
+    function_response = {
+        'actionGroup': event['actionGroup'],
+        'function': event['function'],
+        'functionResponse': {
+            'responseBody': response_body
+        }
+    }
+
+    session_attributes = event['sessionAttributes']
+    prompt_session_attributes = event['promptSessionAttributes']
+
+    action_response = {
+        'messageVersion': '1.0',
+        'response': function_response,
+        'sessionAttributes': session_attributes,
+        'promptSessionAttributes': prompt_session_attributes
+    }
+
+    return action_response
 """
 
 
@@ -65,16 +124,22 @@ class InitHandler(Handler):
         self.create_sample_skill("order_status", SAMPLE_ORDER_STATUS_SKILL_PY)
         self.create_sample_skill("order_details", SAMPLE_ORDER_STATUS_SKILL_PY)
 
-    def create_sample_skill(self, filename, code):
-        # create the skills folder if it does not exist
+    def create_sample_skill(self, skill_name, code):
+        # create the base skills folder if it does not exist
         try:
             os.mkdir(SKILLS_FOLDER)
         except FileExistsError:
             pass
 
-        skill_path = f"{SKILLS_FOLDER}/{filename}.zip"
+        # create the specific skill folder if it does not exist
+        try:
+            os.mkdir(f"{SKILLS_FOLDER}/{skill_name}")
+        except FileExistsError:
+            pass
 
-        with ZipFile(skill_path, "w") as z:
-            z.writestr(f"{filename}.py", code)
+        skill_path = f"{SKILLS_FOLDER}/{skill_name}/lambda_function.py"
 
-        click.echo(f"Sample skill {filename} created in: {skill_path}")
+        with open(skill_path, "w") as f:
+            f.write(code)
+
+        click.echo(f"Sample skill {skill_name} created in: {skill_path}")

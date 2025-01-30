@@ -26,7 +26,7 @@ agents:
                 description: "postal code of a place"
                 type: "string"
                 required: true
-                custom_field: true
+                contact_field: true
 ```
 
 ## Lambda Function

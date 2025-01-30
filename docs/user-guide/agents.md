@@ -26,7 +26,7 @@ agents:
                 description: "Parameter Description"
                 type: "string"
                 required: true
-                custom_field: true
+                contact_field: true
 ```
 
 ### Key Components

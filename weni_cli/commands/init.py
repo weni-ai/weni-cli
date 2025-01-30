@@ -133,7 +133,7 @@ class InitHandler(Handler):
         except FileExistsError:
             pass
 
-        skill_path = f"{SKILLS_FOLDER}/{skill_name}/lambda_handler.py"
+        skill_path = f"{SKILLS_FOLDER}/{skill_name}/lambda_function.py"
 
         with open(skill_path, "w") as f:
             f.write(code)

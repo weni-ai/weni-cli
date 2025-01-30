@@ -67,7 +67,7 @@ class ProjectPushHandler(Handler):
                 for _, skill_data in skill.items():
                     agent_name_slug = slugify(agent_data.get("name"))
                     skill_slug = slugify(skill_data.get("name"))
-                    skill_file = self.generate_skill_file(skill_slug, skill_data.get("path"))
+                    skill_file = self.generate_skill_file(skill_slug, skill_data.get("source").get("path"))
                     if not skill_file:
                         return None
 
@@ -186,7 +186,7 @@ class ProjectPushHandler(Handler):
                         {
                             "slug": skill_slug,
                             "name": skill_data.get("name"),
-                            "path": skill_data.get("path"),
+                            "source": skill_data.get("source"),
                             "description": skill_data.get("description"),
                             "parameters": skill_data.get("parameters"),
                         }

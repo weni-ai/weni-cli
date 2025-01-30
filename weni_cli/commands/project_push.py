@@ -164,8 +164,8 @@ class ProjectPushHandler(Handler):
                                 os.path.relpath(os.path.join(root, file), package_folder_path),
                             )
 
-            # clear all the temporary files and folders created during the process
-            shutil.rmtree(package_folder_path)
+                    # clear all the temporary package folder
+                    shutil.rmtree(package_folder_path)
 
             return open(zip_file_path, "rb")
         except Exception as error:

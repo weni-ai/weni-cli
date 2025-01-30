@@ -83,10 +83,6 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/weni-ai
-    - icon: fontawesome/brands/twitter
-      link: https://twitter.com/weni_ai
-    - icon: fontawesome/brands/linkedin
-      link: https://www.linkedin.com/company/weni-ai
   generator: false
 
 nav:

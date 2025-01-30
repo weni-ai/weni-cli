@@ -60,7 +60,7 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "cep_agent"
+          path: "skills/cep_agent"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -71,16 +71,17 @@ agents:
 
 ### 6. Create Agent skill folder
 
-Create a folder named `cep_agent`:
+Create a folder named `skills/cep_agent`:
 
 ```bash
-mkdir cep_agent
-cd cep_agent
+mkdir skills
+mkdir skills/cep_agent
+cd skills/cep_agent
 ```
 
-### 7. Create Lambda Function inside cep_agent folder
+### 7. Create Lambda Function inside skills/cep_agent folder
 
-Create a file `cep_agent/lambda_function.py`:
+Create a file `skills/cep_agent/lambda_function.py`:
 
 ```python
 import urllib.request

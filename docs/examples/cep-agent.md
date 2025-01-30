@@ -19,7 +19,7 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "cep_agent"
+          path: "skills/cep_agent"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -31,7 +31,7 @@ agents:
 
 ## Lambda Function
 
-Create a file `cep_agent/lambda_function.py`:
+Create a file `skills/cep_agent/lambda_function.py`:
 
 ```python
 import urllib.request

@@ -72,17 +72,26 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "get_address.zip"
+          source: 
+            path: "path/to/agent_skill_folder"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
                 description: "postal code of a place"
                 type: "string"
                 required: true
+                contact_field: true
 ```
 
-### 6. Create the Lambda Function for Your Skill
-Create a file named `lambda_function.py` (this is the standard name for Lambda functions, but you can use any name) with this content:
+### 6. Create Your Skill Folder
+Create a folder named `path/to/agent_skill_folder` (you can use any name you prefer) to add your Lambda function file to it.
+```bash
+mkdir path/to/agent_skill_folder
+```
+
+### 7. Create the Lambda Function for Your Skill
+Create a file in `path/to/agent_skill_folder` named `lambda_function.py` (this is the standard name for Lambda functions, but you can use any name) with this content:
 ```python
 import urllib.request
 
@@ -141,18 +150,18 @@ def lambda_handler(event, context):
     return action_response
 ```
 
-Now, create a ZIP file containing your Lambda function:
-```bash
-# On Linux/MacOS
-zip get_address.zip lambda_function.py
+Make sure the file folder matches the `path` specified in your `agents.yaml` file.
 
-# On Windows (PowerShell)
-Compress-Archive -Path lambda_function.py -DestinationPath get_address.zip
+### 7.1 Create the requirements.txt file (optional)
+
+If your Lambda function requires any external libraries, create a `requirements.txt` file in the same folder as your Lambda function with the necessary dependencies.
+
+Example:
+```txt
+urllib3==2.3.0
 ```
 
-Make sure the ZIP file name matches the `path` specified in your `agents.yaml` file and that it's in the same directory.
-
-### 7. Upload Your Agent
+### 8. Upload Your Agent
 ```bash
 weni project push agents.yaml
 ```
@@ -224,7 +233,9 @@ agents:
     skills:
       - get_order_status:
           name: "Get Order Status"                                                            # Maximum of 53 characters
-          path: "skills/order_status.zip"
+          source: 
+            path: "skills/order_status"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the order status"
           parameters:
             - order_id:
@@ -233,7 +244,9 @@ agents:
                 required: true
       - get_order_details:
           name: "Get Order Details"                                                           # Maximum of 53 characters
-          path: "skills/order_details.zip"
+          source: 
+            path: "skills/order_details"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the order details"
           parameters:
             - order_id:

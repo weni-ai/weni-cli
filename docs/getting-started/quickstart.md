@@ -45,11 +45,13 @@ This ensures you're working with the correct project.
 
 Create a file named `agents.yaml`:
 
+#### Note that the `path` field in the `skills` section should point to the folder where the Lambda function for that skill is located.
+
 ```yaml
 agents:
   sample_agent:
     name: "CEP Agent"
-    description: "Weni's sample agent"
+    description: "Weni's CEP agent"
     instructions:
       - "You are an expert in providing addresses to the user based on a postal code provided by the user"
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
@@ -58,7 +60,9 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "get_address.zip"
+          source: 
+            path: "skills/cep_agent"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -67,9 +71,19 @@ agents:
                 required: true
 ```
 
-### 6. Create Lambda Function
+### 6. Create Agent skill folder
 
-Create `lambda_function.py`:
+Create a folder named `skills/cep_agent`:
+
+```bash
+mkdir skills
+mkdir skills/cep_agent
+cd skills/cep_agent
+```
+
+### 7. Create Lambda Function inside skills/cep_agent folder
+
+Create a file `skills/cep_agent/lambda_function.py`:
 
 ```python
 import urllib.request
@@ -104,14 +118,13 @@ def lambda_handler(event, context):
     }
 ```
 
-### 7. Create ZIP File
+### 7.1. Create the requirements.txt file (optional)
 
-```bash
-# On Linux/MacOS
-zip get_address.zip lambda_function.py
+If you are using any external libraries, you must create a `requirements.txt` file with the dependencies versions:
 
-# On Windows (PowerShell)
-Compress-Archive -Path lambda_function.py -DestinationPath get_address.zip
+Example:
+```txt
+urllib3==2.3.0
 ```
 
 ### 8. Deploy Agent

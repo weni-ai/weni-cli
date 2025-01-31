@@ -2,11 +2,15 @@ import os
 import requests_mock
 import pytest
 
-from zipfile import ZipFile
 from click.testing import CliRunner
 
 from weni_cli.cli import project
-from weni_cli.commands.init import SAMPLE_AGENT_DEFINITION_YAML, SAMPLE_ORDER_STATUS_SKILL_PY, SKILLS_FOLDER
+from weni_cli.commands.init import (
+    SAMPLE_AGENT_DEFINITION_YAML,
+    SAMPLE_ORDER_STATUS_SKILL_PY,
+    SAMPLE_ORDER_DETAILS_SKILL_PY,
+    SKILLS_FOLDER,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -20,14 +24,19 @@ def create_mocked_files():
 
     try:
         os.mkdir(SKILLS_FOLDER)
+        os.mkdir(f"{SKILLS_FOLDER}/order_status")
+        os.mkdir(f"{SKILLS_FOLDER}/order_details")
     except FileExistsError:
         pass
 
-    with ZipFile(f"{SKILLS_FOLDER}/order_status.zip", "w") as z:
-        z.writestr("order_status.py", SAMPLE_ORDER_STATUS_SKILL_PY)
+    with open(f"{SKILLS_FOLDER}/order_status/lambda_function.py", "w") as f:
+        f.write(SAMPLE_ORDER_STATUS_SKILL_PY)
 
-    with ZipFile(f"{SKILLS_FOLDER}/order_details.zip", "w") as z:
-        z.writestr("order_details.py", SAMPLE_ORDER_STATUS_SKILL_PY)
+    with open(f"{SKILLS_FOLDER}/order_details/lambda_function.py", "w") as f:
+        f.write(SAMPLE_ORDER_DETAILS_SKILL_PY)
+
+    with open(f"{SKILLS_FOLDER}/order_details/requirements.txt", "w") as f:
+        f.write("")
 
 
 @requests_mock.Mocker(kw="requests_mock")
@@ -150,4 +159,4 @@ def test_project_push_missing_skill_file(mocker, **kwargs):
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
         assert result.exit_code == 0
-        assert result.output == "Failed to load skill file: File skills/order_status.zip not found\n"
+        assert result.output == "Failed to load skill file: Folder skills/order_status not found\n"

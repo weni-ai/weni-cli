@@ -107,6 +107,7 @@ def test_project_list_stop(mocker, **kwargs):
 def test_project_list_no_token(mocker):
     runner = CliRunner()
     with runner.isolated_filesystem():
+        mocker.patch("weni_cli.store.Store.get", side_effect=[""])
         result = runner.invoke(project, ["list"], terminal_width=80)
 
         assert result.exit_code == 0

@@ -1,8 +1,13 @@
+import os
+import shutil
+import subprocess
 import click
 import regex
 import yaml
+import sys
 
 from slugify import slugify
+from zipfile import ZipFile
 
 from weni_cli.clients.nexus_client import NexusClient
 from weni_cli.handler import Handler
@@ -71,7 +76,7 @@ class ProjectPushHandler(Handler):
                 for _, skill_data in skill.items():
                     agent_name_slug = slugify(agent_data.get("name"))
                     skill_slug = slugify(skill_data.get("name"))
-                    skill_file = self.open_skill_file(skill_data.get("path"))
+                    skill_file = self.generate_skill_file(skill_slug, skill_data.get("source").get("path"))
                     if not skill_file:
                         return None
 
@@ -79,12 +84,105 @@ class ProjectPushHandler(Handler):
 
         return skills_map
 
-    def open_skill_file(self, path):
+    def generate_skill_file(self, skill_name, skill_path):
+        # install the requirements in the package folder
+        self.install_requirements(skill_path)
+
+        # create the zip file with packages and the skill file to be sent as a lambda zip function
+        return self.create_skill_zip_file(skill_name, skill_path)
+
+    def install_requirements(self, skill_path):
+        requirements_file = f"{skill_path}{os.sep}requirements.txt"
+
+        # check if the requirements file exists
+        if not os.path.exists(requirements_file):
+            return
+
+        # generate the package folder
+        self.create_package_folder(skill_path)
+
         try:
-            skill_file = open(path, "rb")
-            return skill_file
-        except FileNotFoundError:
-            click.echo(f"Failed to load skill file: File {path} not found")
+            subprocess.run(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "--target",
+                    f"{skill_path}{os.sep}package",
+                    "-r",
+                    requirements_file,
+                ]
+            )
+        except Exception as error:
+            click.echo(f"Failed to install requirements for skill path {skill_path}: {error}")
+
+    def create_package_folder(self, skill_path):
+        try:
+            os.makedirs(f"{skill_path}{os.sep}package")
+        except Exception as error:
+            click.echo(f"Failed to create package folder for skill path {skill_path}: {error}")
+            return None
+
+    def create_skill_zip_file(self, skill_name, skill_path):
+        zip_file_name = f"{skill_name}.zip"
+        zip_file_path = f"{skill_path}{os.sep}{zip_file_name}"
+        package_folder_path = f"{skill_path}{os.sep}package"
+
+        if not os.path.exists(skill_path):
+            click.echo(f"Failed to load skill file: Folder {skill_path} not found")
+            return None
+
+        # delete the existing zip file if it exists
+        if os.path.exists(zip_file_path):
+            os.remove(zip_file_path)
+
+        try:
+            with ZipFile(zip_file_path, "w") as z:
+                for root, _, files in os.walk(skill_path):
+                    # skip the package folder since we need to add its content directly to the root of the zip file
+                    if "package" in root:
+                        continue
+
+                    # skip the newly created zip file to avoid adding it to itself
+                    if zip_file_name in files:
+                        files.remove(zip_file_name)
+
+                    # skip the requirements.txt file to avoid adding it to the zip file
+                    if "requirements.txt" in files:
+                        files.remove("requirements.txt")
+
+                    # skip __pycache__ folders, as recommended by AWS
+                    if "__pycache__" in root:
+                        continue
+
+                    # add the remaining files to the zip file
+                    for file in files:
+                        z.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), skill_path))
+
+                # add the package folder content to the zip file root if it exists
+                if os.path.exists(package_folder_path):
+                    for root, _, files in os.walk(package_folder_path):
+                        # skip __pycache__ folders, as recommended by AWS
+                        if "__pycache__" in root:
+                            continue
+
+                        # skip dist-info folders
+                        if ".dist-info" in root:
+                            continue
+
+                        for file in files:
+                            z.write(
+                                os.path.join(root, file),
+                                os.path.relpath(os.path.join(root, file), package_folder_path),
+                            )
+
+                    # clear all the temporary package folder
+                    shutil.rmtree(package_folder_path)
+
+            return open(zip_file_path, "rb")
+        except Exception as error:
+            click.echo(f"Failed to create skill zip file for skill path {skill_path}: {error}")
             return None
 
     # Updates the skills in the definition to be an array of objects containing name, path and slug
@@ -108,7 +206,7 @@ class ProjectPushHandler(Handler):
                         {
                             "slug": skill_slug,
                             "name": skill_data.get("name"),
-                            "path": skill_data.get("path"),
+                            "source": skill_data.get("source"),
                             "description": skill_data.get("description"),
                             "parameters": parameters,
                         }

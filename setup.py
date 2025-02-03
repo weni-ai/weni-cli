@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="weni-cli",
-    version="0.2.0",
+    version="0.3.0a2",
     packages=find_packages(where="weni_cli", include=["weni_cli", "weni_cli.*"]),
     include_package_data=True,
     install_requires=[

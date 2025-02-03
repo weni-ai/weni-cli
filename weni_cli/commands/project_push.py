@@ -129,6 +129,10 @@ class ProjectPushHandler(Handler):
         zip_file_path = f"{skill_path}{os.sep}{zip_file_name}"
         package_folder_path = f"{skill_path}{os.sep}package"
 
+        if not os.path.exists(skill_path):
+            click.echo(f"Failed to load skill file: Folder {skill_path} not found")
+            return None
+
         # delete the existing zip file if it exists
         if os.path.exists(zip_file_path):
             os.remove(zip_file_path)

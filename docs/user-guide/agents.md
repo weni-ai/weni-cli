@@ -19,13 +19,14 @@ agents:
     skills:
       - skill_name:
           name: "Skill Name"
-          path: "skill.zip"
+          path: "path/to/agent_skill_folder"
           description: "Skill Description"
           parameters:
             - param_name:
                 description: "Parameter Description"
                 type: "string"
                 required: true
+                contact_field: true
 ```
 
 ### Key Components
@@ -50,7 +51,6 @@ agents:
 5. **Skills**
    - Custom functionalities
    - Implemented as Lambda functions
-   - Packaged in ZIP files
 
 ## Creating Skills
 
@@ -80,20 +80,6 @@ def lambda_handler(event, context):
         'promptSessionAttributes': event.get('promptSessionAttributes', {})
     }
 ```
-
-### Packaging Skills
-
-1. Create ZIP file:
-   ```bash
-   # Linux/MacOS
-   zip skill.zip lambda_function.py
-
-   # Windows PowerShell
-   Compress-Archive -Path lambda_function.py -DestinationPath skill.zip
-   ```
-
-2. Ensure ZIP name matches the path in your agent definition
-
 ## Deploying Agents
 
 ### Push Command
@@ -156,10 +142,11 @@ Your skills should:
 
 1. **Deployment Failures**
    - Check YAML syntax
-   - Verify ZIP file names
+   - Verify skill paths
    - Confirm project selection
 
 2. **Skill Errors**
+   - Verify skill entrypoint
    - Test Lambda function locally
    - Check parameter handling
    - Verify API endpoints

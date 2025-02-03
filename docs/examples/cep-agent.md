@@ -10,7 +10,7 @@ Create a file named `agents.yaml`:
 agents:
   sample_agent:
     name: "CEP Agent"
-    description: "Weni's sample agent"
+    description: "Weni's CEP agent"
     instructions:
       - "You are an expert in providing addresses to the user based on a postal code provided by the user"
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
@@ -19,18 +19,21 @@ agents:
     skills:
       - get_address:
           name: "Get Address"
-          path: "get_address.zip"
+          source: 
+            path: "skills/cep_agent"
+            entrypoint: "lambda_function.lambda_handler"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
                 description: "postal code of a place"
                 type: "string"
                 required: true
+                contact_field: true
 ```
 
 ## Lambda Function
 
-Create a file named `lambda_function.py`:
+Create a file `skills/cep_agent/lambda_function.py`:
 
 ```python
 import urllib.request
@@ -92,16 +95,7 @@ def lambda_handler(event, context):
 
 ## Deployment Steps
 
-1. Create the ZIP file:
-   ```bash
-   # On Linux/MacOS
-   zip get_address.zip lambda_function.py
-
-   # On Windows (PowerShell)
-   Compress-Archive -Path lambda_function.py -DestinationPath get_address.zip
-   ```
-
-2. Deploy the agent:
+1. Deploy the agent:
    ```bash
    weni project push agents.yaml
    ```

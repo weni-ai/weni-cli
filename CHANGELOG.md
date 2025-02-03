@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0] - 2025-01-22
+
+### Changed
+
+- Update documentation with skill folder structure ([#29](https://github.com/weni-ai/weni-cli/pull/29)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Make project push use the new agent skill folder structure ([#28](https://github.com/weni-ai/weni-cli/pull/28)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
+### Added
+
+- New folder structure tests ([#30](https://github.com/weni-ai/weni-cli/pull/30)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Add skill parameters validation ([#27](https://github.com/weni-ai/weni-cli/pull/27)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [0.2.0] - 2025-01-22
 
 ### Added

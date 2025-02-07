@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1] - 2025-02-07
+
+### Changed
+
+- Improved dependencies ([#32](https://github.com/weni-ai/weni-cli/pull/32)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
+### Added
+
+- Add CI and CD workflows ([#33](https://github.com/weni-ai/weni-cli/pull/33)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [1.0.0] - 2025-02-03
 
 ### Changed

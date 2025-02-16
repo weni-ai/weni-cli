@@ -6,50 +6,41 @@ repo_name: weni-ai/weni-cli
 
 theme:
   name: material
-  palette:
-    # Palette toggle for light mode
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/brightness-7
-        name: Switch to dark mode
-    # Palette toggle for dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: custom
-      accent: custom
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
   features:
-    - navigation.instant
-    - navigation.tracking
-    - navigation.tabs
     - navigation.sections
-    - navigation.expand
     - navigation.indexes
     - navigation.top
-    - toc.follow
+    - navigation.instant
     - search.suggest
     - search.highlight
-    - content.tabs.link
-    - content.code.annotation
     - content.code.copy
+    - content.code.select
+    - content.code.annotate
+  palette:
+    # Modo claro
+    - scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to dark mode
+    # Modo escuro
+    - scheme: slate
+      primary: black
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to light mode
   font:
-    text: Roboto
-    code: Roboto Mono
-  icon:
-    repo: fontawesome/brands/github
-  logo: assets/logo.png
-  favicon: assets/favicon.png
+    text: Inter
+    code: JetBrains Mono
 
+# Customização adicional
 extra_css:
   - stylesheets/extra.css
 
 plugins:
   - search
+  - blog
   - mkdocstrings:
       default_handler: python
       handlers:
@@ -62,6 +53,8 @@ markdown_extensions:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
@@ -86,15 +79,18 @@ extra:
   generator: false
 
 nav:
-  - Home: index.md
+  - Home:  index.md
+  - Community: community/community.md
   - Getting Started:
     - Installation: getting-started/installation.md
     - Quick Start: getting-started/quickstart.md
-    - Configuration: getting-started/configuration.md
-  - User Guide:
-    - Authentication: user-guide/authentication.md
-    - Projects: user-guide/projects.md
-    - Agents: user-guide/agents.md
+    - Authentication: getting-started/authentication.md
+  - Core Concepts:
+    - Agents: core-concepts/agents.md
+    - Skills: core-concepts/skills.md
+    - Credentials: core-concepts/credentials.md
+    - Contact Fields: core-concepts/contact-fields.md
+  - Commands:
+    - Project: commands/project.md
   - Examples:
-    - CEP Agent: examples/cep-agent.md
-  - Contributing: contributing.md
+    - Example Gallery: examples/gallery.md

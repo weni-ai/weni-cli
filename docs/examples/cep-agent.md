@@ -1,4 +1,4 @@
-# CEP Agent Example
+# CEP Agent Example :fontawesome-regular-face-laugh-wink:
 
 This example shows how to create an agent that can provide address information based on Brazilian postal codes (CEP).
 

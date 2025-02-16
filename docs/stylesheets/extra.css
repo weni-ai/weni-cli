@@ -536,3 +536,16 @@
     transform: none !important;
     transition: none !important;
 }
+
+/* Remove cor azul no dark mode */
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-nav__title {
+    color: var(--md-default-fg-color) !important;
+    text-decoration: none !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__title:hover,
+[data-md-color-scheme="slate"] .md-nav__title:hover {
+    color: var(--md-default-fg-color) !important;
+    text-decoration: none !important;
+}

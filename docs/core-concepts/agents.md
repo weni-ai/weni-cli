@@ -60,54 +60,41 @@ agents:
 
     `Name`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   The name of your agent that will be displayed in the Weni Platform.
 
     `Credentials`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   The credentials used in the skills you define for your agent.
 
     `Description`
 
-    :   Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
-        ut eros sed sapien ullamcorper consequat. Nunc ligula ante.
-
-        Duis mollis est eget nibh volutpat, fermentum aliquet dui mollis.
-        Nam vulputate tincidunt fringilla.
-        Nullam dignissim ultrices urna non auctor.
+    :   Important information about your agent, where you can describe its purpose, capabilities, and other relevant details.
 
     `Instructions`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   Here you can define rules and guidelines that your agent should follow.
 
     `Guardrails`
 
-    :   Aliquam metus eros, pretium sed nulla venenatis, faucibus auctor ex. Proin
-        ut eros sed sapien ullamcorper consequat. Nunc ligula ante.
+    :   You can list boundaries and limitations for your agent, such as topics it should not discuss.
 
 === "Skill"
 
     `Name`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   The name of the skill that will be associated with the agent in the Weni Platform.
 
     `Source`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   The location or path where the skill can be found.
 
     `Description`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   Information about the skill, including its purpose and objectives.
 
     `Parameters`
 
-    :   Sed sagittis eleifend rutrum. Donec vitae suscipit est. Nullam tempus
-        tellus non sem sollicitudin, quis rutrum leo facilisis.
+    :   The parameters or variables used in your agent's skill.
 
 
 
@@ -160,28 +147,3 @@ your-project-name/
 │   ├── get_order_details/
 └── agent_definition.yaml
 ```
-
-## Publishing Agents
-- Requirements
-- Publishing process
-- Version management
-- Access control
-
-## Agents Association
-
-## Testing
-- Local testing
-- Test scenarios
-- Debugging
-- Performance evaluation
-
-## Updating Agents
-- Version updates
-- Backward compatibility
-- Migration guide
-- Changelog management
-
-## Troubleshooting
-- Common issues
-- Solutions
-- Support resources

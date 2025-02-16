@@ -40,7 +40,6 @@ extra_css:
 
 plugins:
   - search
-  - blog
   - mkdocstrings:
       default_handler: python
       handlers:

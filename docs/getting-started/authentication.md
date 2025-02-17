@@ -7,7 +7,7 @@ Authentication is one of the most important steps to start developing your agent
 Once you have your Weni account, it's time to authenticate using the CLI. Run the following command:
 
 ```bash
-weni-login
+weni login
 ```
 
 This command will open a browser window where you can login with your Weni account.

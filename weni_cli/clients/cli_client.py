@@ -7,12 +7,9 @@ from weni_cli.store import STORE_CLI_BASE_URL, STORE_TOKEN_KEY, Store
 
 # Check installed version of weni-agents-toolkit in pyproject.toml file
 def get_toolkit_version():
-    with open("pyproject.toml", "r") as file:
-        content = file.read()
-        click.echo(
-            f"Using toolkit version: {content.split('weni-agents-toolkit = ')[1].split('\n')[0].strip('"').replace('^', '')}"
-        )
-        return content.split("weni-agents-toolkit = ")[1].split("\n")[0].strip('"').replace("^", "")
+    version = importlib.metadata.version("weni-agents-toolkit")
+    click.echo(f"Using toolkit version: {version}")
+    return version
 
 
 class CLIClient:

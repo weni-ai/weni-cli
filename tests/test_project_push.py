@@ -4,7 +4,7 @@ import pytest
 import json
 import zipfile
 import io
-
+import importlib
 from click.testing import CliRunner
 
 from weni_cli.cli import project
@@ -15,6 +15,10 @@ from weni_cli.commands.init import (
     SKILLS_FOLDER,
 )
 from weni_cli.commands.project_push import ProjectPushHandler
+
+
+def get_toolkit_version():
+    return importlib.metadata.version("weni-agents-toolkit")
 
 
 @pytest.fixture(autouse=True)
@@ -64,7 +68,10 @@ def test_project_push(mocker, **kwargs):
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
         assert result.exit_code == 0
-        assert result.output == "Pushing agents\nDefinition pushed successfully\n"
+        assert (
+            result.output
+            == f"Using toolkit version: {get_toolkit_version()}\nPushing agents\nDefinition pushed successfully\n"
+        )
 
 
 @requests_mock.Mocker(kw="requests_mock")
@@ -88,7 +95,10 @@ def test_project_push_with_force_update(mocker, **kwargs):
         result = runner.invoke(project, ["push", "--force-update", "agents.json"], terminal_width=80)
 
         assert result.exit_code == 0
-        assert result.output == "Pushing agents\nDefinition pushed successfully\n"
+        assert (
+            result.output
+            == f"Using toolkit version: {get_toolkit_version()}\nPushing agents\nDefinition pushed successfully\n"
+        )
 
 
 @requests_mock.Mocker(kw="requests_mock")
@@ -136,7 +146,7 @@ def test_project_push_error(mocker, **kwargs):
         assert result.exit_code == 0
         assert (
             result.output
-            == 'Error: Failed to push agents: {"success": false, "message": "Failed to push agents", "request_id": "12345"}\n\n'
+            == f"Using toolkit version: {get_toolkit_version()}\nError: Failed to push agents: {{\"success\": false, \"message\": \"Failed to push agents\", \"request_id\": \"12345\"}}\n\n"
         )
 
 

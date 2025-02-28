@@ -4,6 +4,10 @@ import requests
 import json
 
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_TOKEN_KEY, Store
+import importlib.metadata
+
+DEFAULT_BASE_URL = "https://cli.cloud.weni.ai"
+
 
 # Check installed version of weni-agents-toolkit in pyproject.toml file
 def get_toolkit_version():

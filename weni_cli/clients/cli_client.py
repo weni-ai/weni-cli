@@ -40,7 +40,7 @@ class CLIClient:
 
         with click_spinner.spinner():
             with s.post(
-                url, headers=self.headers, data=data, files=skill_folders, stream=True, timeout=10
+                url, headers=self.headers, data=data, files=skill_folders, stream=True, timeout=(10, None)
             ) as response:
                 if response.status_code != 200:
                     raise Exception(f"Failed to push agents: {response.text}")

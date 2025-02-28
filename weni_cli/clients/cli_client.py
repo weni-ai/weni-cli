@@ -61,4 +61,6 @@ class CLIClient:
                                 if not resp.get("message"):
                                     raise Exception(f"Failed to push agents: {response.text}")
 
-                                raise Exception(f"{resp.get('message')} - Request ID: {resp.get('request_id')}")
+                                raise Exception(
+                                    f"{resp.get('message')} - Data: {resp.get('data', None)} - Request ID: {resp.get('request_id')}"
+                                )

@@ -5,7 +5,14 @@ import json
 
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_TOKEN_KEY, Store
 
-DEFAULT_BASE_URL = "https://cli.cloud.weni.ai"
+# Check installed version of weni-agents-toolkit in pyproject.toml file
+def get_toolkit_version():
+    with open("pyproject.toml", "r") as file:
+        content = file.read()
+        click.echo(
+            f"Using toolkit version: {content.split('weni-agents-toolkit = ')[1].split('\n')[0].strip('"').replace('^', '')}"
+        )
+        return content.split("weni-agents-toolkit = ")[1].split("\n")[0].strip('"').replace("^", "")
 
 
 class CLIClient:
@@ -34,6 +41,7 @@ class CLIClient:
         data = {
             "project_uuid": project_uuid,
             "definition": json.dumps(agents_definition),
+            "toolkit_version": get_toolkit_version(),
         }
 
         s = requests.Session()

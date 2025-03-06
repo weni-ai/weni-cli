@@ -126,8 +126,8 @@ class CLIClient:
         data["test_definition"] = json.dumps(test_definition)
         data["skill_name"] = skill_name
         data["agent_name"] = agent_name
-        data["credentials"] = credentials
-        data["globals"] = skill_globals
+        data["skill_credentials"] = json.dumps(credentials)
+        data["skill_globals"] = json.dumps(skill_globals)
 
         files = {"skill": skill_folder}
 

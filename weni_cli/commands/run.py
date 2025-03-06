@@ -85,9 +85,8 @@ class RunHandler(Handler):
         for _, data in definition.get("agents", {}).items():
             if data.get("name") == agent_name:
                 for skill in data.get("skills", []):
-                    for _, skill_data in skill.items():
-                        if skill_data.get("name") == skill_name:
-                            return skill_data.get("source", {}).get("path")
+                    if skill.get("name") == skill_name:
+                        return skill.get("source", {}).get("path")
         return None
 
     def load_skill_credentials(self, skill_source_path: str) -> dict | None:

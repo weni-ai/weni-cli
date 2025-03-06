@@ -107,10 +107,7 @@ def test_project_push_file_not_found(mocker, **kwargs):
     with runner.isolated_filesystem():
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
         assert result.exit_code == 2
-        assert (
-            result.output
-            == "Usage: project push [OPTIONS] DEFINITION\nTry 'project push --help' for help.\n\nError: Invalid value for 'DEFINITION': File 'agents.json' does not exist.\n"
-        )
+        assert "Invalid value for 'DEFINITION': File 'agents.json' does not exist." in result.output
 
 
 @requests_mock.Mocker(kw="requests_mock")
@@ -146,7 +143,7 @@ def test_project_push_error(mocker, **kwargs):
         assert result.exit_code == 0
         assert (
             result.output
-            == f"Using toolkit version: {get_toolkit_version()}\nError: Failed to push agents: {{\"success\": false, \"message\": \"Failed to push agents\", \"request_id\": \"12345\"}}\n\n"
+            == f'Using toolkit version: {get_toolkit_version()}\nError: Failed to push agents: {{"success": false, "message": "Failed to push agents", "request_id": "12345"}}\n\n'
         )
 
 

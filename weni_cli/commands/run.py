@@ -2,6 +2,12 @@ import rich_click as click
 
 from slugify import slugify
 
+from rich.console import Console
+from rich.table import Table
+from rich.live import Live
+from rich.panel import Panel
+from rich.console import group
+
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.handler import Handler
 from weni_cli.packager.packager import create_skill_folder_zip
@@ -91,18 +97,26 @@ class RunHandler(Handler):
 
     def load_skill_credentials(self, skill_source_path: str) -> dict | None:
         credentials = {}
-        with open(f"{skill_source_path}/.env", "r") as file:
-            for line in file:
-                key, value = line.strip().split("=")
-                credentials[key] = value
+        try:
+            with open(f"{skill_source_path}/.env", "r") as file:
+                for line in file:
+                    key, value = line.strip().split("=")
+                    credentials[key] = value
+        except Exception:
+            return {}
+
         return credentials
 
     def load_skill_globals(self, skill_source_path: str) -> dict | None:
         globals = {}
-        with open(f"{skill_source_path}/.globals", "r") as file:
-            for line in file:
-                key, value = line.strip().split("=")
-                globals[key] = value
+        try:
+            with open(f"{skill_source_path}/.globals", "r") as file:
+                for line in file:
+                    key, value = line.strip().split("=")
+                    globals[key] = value
+        except Exception:
+            return {}
+
         return globals
 
     def load_default_test_definition(self, definition, agent_name, skill_name) -> str | None:
@@ -162,6 +176,74 @@ class RunHandler(Handler):
 
         return skill_folder
 
+    def format_response_for_display(self, test_result):
+        """Format response for better display"""
+
+        if not test_result:
+            return "waiting..."
+
+        if isinstance(test_result, dict) and "response" in test_result:
+            response = test_result.get("response")
+
+            function_response = response.get("functionResponse")
+
+            if not function_response:
+                return str(response)
+
+            response_body = function_response.get("responseBody")
+
+            if not response_body:
+                return str(function_response)
+
+            response_body_text = response_body.get("TEXT")
+
+            if not response_body_text:
+                return str(response_body)
+
+            return response_body_text.get("body", "")
+        else:
+            return str(test_result)
+
+    def get_status_icon(self, status_code):
+        if status_code == 200:
+            return "✅"
+
+        return "❌"
+
+    def render_logs(self, logs):
+        console = Console()
+
+        @group()
+        def get_panels():
+            if log.get("test_response"):
+                yield Panel(
+                    self.format_response_for_display(log.get("test_response")),
+                    title="[bold yellow]Response[/bold yellow]",
+                    title_align="left",
+                )
+
+            if log.get("test_logs"):
+
+                def format_logs(logs):
+                    return "\n".join([f"{log_item}" for log_item in logs])
+
+                yield Panel(
+                    format_logs(log.get("test_logs")),
+                    title="[bold blue]Logs[/bold blue]",
+                    title_align="left",
+                )
+
+        console.print("\n")
+        for log in logs:
+            console.print(
+                Panel(
+                    get_panels(),
+                    title=f"[bold green]Test Results for {log.get('test_name')}[/bold green]",
+                    title_align="left",
+                )
+            )
+            console.print("\n")
+
     def run_test(
         self,
         project_uuid,
@@ -174,18 +256,51 @@ class RunHandler(Handler):
         skill_globals,
         verbose=False,
     ):
-        client = CLIClient()
+        def display_test_results(rows, verbose):
+            if not rows:
+                return None
 
-        client.run_test(
-            project_uuid,
-            definition,
-            skill_folder,
-            skill_name,
-            agent_name,
-            test_definition,
-            credentials,
-            skill_globals,
-            verbose,
-        )
+            table = Table(title=f"Test Results for {skill_name}", expand=True)
+            table.add_column("Test Name", justify="left")
+            table.add_column("Status", justify="center")
+            table.add_column("Response", ratio=2, no_wrap=True)
 
-        click.echo(click.style("Test completed", fg="green"))
+            for row in rows:
+                status = self.get_status_icon(row.get("status")) if row.get("code") == "TEST_CASE_COMPLETED" else "⏳"
+                response_display = self.format_response_for_display(row.get("response"))
+                table.add_row(row.get("name"), status, response_display)
+
+            return table
+
+        with Live(display_test_results([], verbose), refresh_per_second=4) as live:
+
+            test_rows = []
+
+            def update_live(test_name, test_result, status_code, code, verbose):
+                # check if test_name is already in test_rows, if not, add it
+                row_index = next((i for i, row in enumerate(test_rows) if row.get("name") == test_name), None)
+                if row_index is None:
+                    test_rows.append({"name": test_name, "status": status_code, "response": test_result, "code": code})
+                else:
+                    test_rows[row_index]["status"] = status_code
+                    test_rows[row_index]["response"] = test_result
+                    test_rows[row_index]["code"] = code
+
+                live.update(display_test_results(test_rows, verbose), refresh=True)
+
+            client = CLIClient()
+            test_logs = client.run_test(
+                project_uuid,
+                definition,
+                skill_folder,
+                skill_name,
+                agent_name,
+                test_definition,
+                credentials,
+                skill_globals,
+                update_live,
+                verbose,
+            )
+
+        if verbose:
+            self.render_logs(test_logs)

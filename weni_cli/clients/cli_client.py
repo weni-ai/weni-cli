@@ -16,6 +16,14 @@ def get_toolkit_version():
     return version
 
 
+def create_default_payload(project_uuid, definition):
+    return {
+        "project_uuid": project_uuid,
+        "definition": json.dumps(definition),
+        "toolkit_version": get_toolkit_version(),
+    }
+
+
 class CLIClient:
     base_url = None
     headers = None
@@ -39,11 +47,7 @@ class CLIClient:
 
         url = f"{self.base_url}/api/v1/agents"
 
-        data = {
-            "project_uuid": project_uuid,
-            "definition": json.dumps(agents_definition),
-            "toolkit_version": get_toolkit_version(),
-        }
+        data = create_default_payload(project_uuid, agents_definition)
 
         s = requests.Session()
 

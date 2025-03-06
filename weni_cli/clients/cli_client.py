@@ -1,8 +1,8 @@
 import click
-import click_spinner
 import requests
 import json
 
+from weni_cli.spinner import spinner
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_TOKEN_KEY, Store
 import importlib.metadata
 
@@ -51,7 +51,7 @@ class CLIClient:
 
         s = requests.Session()
 
-        with click_spinner.spinner():
+        with spinner():
             with s.post(
                 url, headers=self.headers, data=data, files=skill_folders, stream=True, timeout=(10, None)
             ) as response:

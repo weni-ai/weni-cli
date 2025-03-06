@@ -1,8 +1,8 @@
 import click
-import click_spinner
 
 from weni_cli.clients.weni_client import WeniClient
 from weni_cli.handler import Handler
+from weni_cli.spinner import spinner
 from weni_cli.store import STORE_TOKEN_KEY, Store
 
 
@@ -23,7 +23,7 @@ class ProjectListHandler(Handler):
 
         while True:
             org_projects_map = {}
-            with click_spinner.spinner():
+            with spinner():
                 next_orgs_page_url, org_projects_map = client.list_projects(org_uuid, next_orgs_page_url)
 
             if not org_projects_map:

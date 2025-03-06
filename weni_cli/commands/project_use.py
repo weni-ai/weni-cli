@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 
 from weni_cli.handler import Handler
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store

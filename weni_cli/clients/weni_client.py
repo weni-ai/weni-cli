@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 import requests
 
 from weni_cli.store import STORE_TOKEN_KEY, STORE_WENI_BASE_URL, Store

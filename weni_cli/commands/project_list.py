@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 
 from weni_cli.clients.weni_client import WeniClient
 from weni_cli.handler import Handler

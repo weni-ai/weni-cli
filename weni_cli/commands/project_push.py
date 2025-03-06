@@ -1,5 +1,5 @@
 import os
-import click
+import rich_click as click
 import regex
 import yaml
 

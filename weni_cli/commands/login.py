@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 import time
 
 from weni_cli.auth import Auth

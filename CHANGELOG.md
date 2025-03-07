@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.1] - 2025-03-08
+
+### Changed
+
+- refactor: improve parameter validation type checking ([#50](https://github.com/weni-ai/weni-cli/pull/50)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [2.0.0] - 2025-03-08
 
 ### Added

@@ -3,7 +3,7 @@ import threading
 from types import TracebackType
 from typing import Literal, Optional
 
-import click
+import rich_click as click
 from .spinners import snake_clockwise
 
 

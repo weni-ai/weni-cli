@@ -1,10 +1,10 @@
-import click
+import rich_click as click
 import requests
 import json
+import importlib.metadata
 
 from weni_cli.spinner import spinner
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_TOKEN_KEY, Store
-import importlib.metadata
 
 DEFAULT_BASE_URL = "https://cli.cloud.weni.ai"
 
@@ -88,8 +88,10 @@ class CLIClient:
         test_definition,
         credentials,
         skill_globals,
+        result_callback,
         verbose=False,
-    ):
+    ) -> list[dict]:
+        test_logs = []
 
         def display_test_progress(resp, verbose):
             if not resp:
@@ -101,24 +103,28 @@ class CLIClient:
 
             if not resp.get("success"):
                 click.echo(resp.get("message"))
+                click.echo(f"Request ID: {resp.get('request_id')}")
                 return
 
-            if resp.get("code") == "TEST_CASE_RUNNING":
-                click.echo(f"{resp.get('message')}...", nl=False)
-                return
+            if resp.get("code") == "TEST_CASE_RUNNING" or resp.get("code") == "TEST_CASE_COMPLETED":
+                data = resp.get("data", {})
+                test_name = data.get("test_case")
+                test_status_code = data.get("test_status_code")
+                test_response = data.get("test_response")
 
-            if resp.get("code") == "TEST_CASE_COMPLETED":
-                if resp.get("data", {}).get("test_status_code") == 200:
-                    click.echo(click.style("PASS", fg="green"))
-                else:
-                    click.echo(click.style("FAILED", fg="red"))
+                if verbose and data.get("logs"):
+                    test_logs.append(
+                        {
+                            "test_name": test_name,
+                            "test_status_code": test_status_code,
+                            "test_response": test_response,
+                            "test_logs": data.get("logs"),
+                        }
+                    )
 
-                if verbose:
-                    click.echo(click.style(f"{resp.get('data', {}).get('test_case')} Logs:", fg="yellow"))
-                    click.echo(resp.get("data", {}).get("test_response", {}))
-                    click.echo("\n")
-
-                return
+                result_callback(test_name, test_response, test_status_code, resp.get("code"), verbose)
+            else:
+                click.echo(resp.get("message"))
 
         url = f"{self.base_url}/api/v1/runs"
 
@@ -133,7 +139,7 @@ class CLIClient:
 
         s = requests.Session()
 
-        with spinner() as spin:
+        try:
             with s.post(
                 url, headers=self.headers, data=data, files=files, timeout=(10, None), stream=True
             ) as response:
@@ -142,6 +148,8 @@ class CLIClient:
 
                 for line in response.iter_lines():
                     if line:
-                        spin.stop()
                         display_test_progress(json.loads(line), verbose)
-                        spin.start()
+        except Exception as e:
+            raise e
+
+        return test_logs

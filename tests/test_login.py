@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 import requests_mock
 import pytest
 
@@ -28,7 +28,7 @@ def test_login(mocker, **kwargs):
 
     runner = CliRunner()
     with runner.isolated_filesystem():
-        mocker.patch("click.launch", return_value=None)
+        mocker.patch("rich_click.launch", return_value=None)
         store_set_patch = mocker.patch("weni_cli.store.Store.set")
 
         t = Timer(0.1, fake_login_callback)
@@ -55,7 +55,7 @@ def test_login_callback_error(mocker):
 
     runner = CliRunner()
     with runner.isolated_filesystem():
-        mocker.patch("click.launch", return_value=None)
+        mocker.patch("rich_click.launch", return_value=None)
         store_set_patch = mocker.patch("weni_cli.store.Store.set")
 
         t = Timer(0.1, fake_login_callback)
@@ -85,7 +85,7 @@ def test_login_exchange_token_error(mocker, **kwargs):
 
     runner = CliRunner()
     with runner.isolated_filesystem():
-        mocker.patch("click.launch", return_value=None)
+        mocker.patch("rich_click.launch", return_value=None)
         store_set_patch = mocker.patch("weni_cli.store.Store.set")
 
         t = Timer(0.1, fake_login_callback)

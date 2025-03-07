@@ -1,4 +1,4 @@
-import click
+import rich_click as click
 
 
 class Handler:

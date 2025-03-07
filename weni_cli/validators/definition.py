@@ -64,31 +64,36 @@ def validate_parameters(parameters: dict) -> tuple[any, str]:
 
     for parameter in parameters:
         for parameter_name, parameter_data in parameter.items():
+            description = parameter_data.get("description")
+            parameter_type = parameter_data.get("type")
+            required = parameter_data.get("required", None)
+            contact_field = parameter_data.get("contact_field", None)
+
             if not isinstance(parameter_data, dict):
                 return None, error(parameter_name, "must be an object")
 
-            if not parameter_data.get("description"):
+            if not description:
                 return None, error(parameter_name, "description is required")
 
-            if type(parameter_data.get("description")) != str:
+            if type(description) is str:
                 return None, error(parameter_name, "description must be a string")
 
-            if not parameter_data.get("type"):
+            if not parameter_type:
                 return None, error(parameter_name, "type is required")
 
-            if parameter_data.get("type") not in ["string", "number", "integer", "boolean", "array"]:
+            if parameter_type not in ["string", "number", "integer", "boolean", "array"]:
                 return (
                     None,
                     error(parameter_name, "type must be one of: string, number, integer, boolean, array"),
                 )
 
-            if type(parameter_data.get("required", None)) != bool:
+            if type(required) is bool:
                 return None, error(parameter_name, "'required' field must be a boolean")
 
-            if parameter_data.get("contact_field", None) and type(parameter_data.get("contact_field")) != bool:
+            if contact_field and type(contact_field) is bool:
                 return None, error(parameter_name, "contact_field must be a boolean")
 
-            if parameter_data.get("contact_field", None) and not is_valid_contact_field_name(parameter_name):
+            if contact_field and not is_valid_contact_field_name(parameter_name):
                 return (
                     None,
                     error(

@@ -5,7 +5,7 @@ This guide will help you get started with Weni CLI by creating your first agent.
 ## Prerequisites
 
 1. [Install Weni CLI](installation.md)
-2. Have a Weni account (staging or production)
+2. Have a [Weni account](https://weni.ai/)
 
 ## Step-by-Step Guide
 

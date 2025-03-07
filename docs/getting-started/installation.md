@@ -1,44 +1,35 @@
 # Installation Guide
 
-There are multiple ways to install the Weni CLI. Choose the method that best suits your needs.
+This guide will help you install the Weni CLI tool on your system. We provide two installation methods: a quick installation via pip and a manual installation using Poetry for development purposes.
 
 ## Requirements
 
-Before installing, ensure you have:
-
 - Python >= 3.12
-- pip (Python package installer)
-- Git (optional, for development installation)
+- Poetry >= 1.8.5
 
-## Installation Methods
+## Installation
 
-### 1. Using pip (Recommended)
+### Install via PIP
 
-The simplest way to install Weni CLI is using pip:
+You can install the CLI directly using pip:
 
 ```bash
 pip install weni-cli
 ```
 
-### 2. Development Installation
-
-If you want to contribute or need the latest development version:
+### Manual Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/weni-ai/weni-cli.git
-   cd weni-cli
-   ```
+```bash
+git clone https://github.com/weni-ai/weni-cli.git
+cd weni-cli
+```
 
-2. Install using Poetry:
-   ```bash
-   poetry install
-   ```
-
-   Or using pip:
-   ```bash
-   pip install -e .
-   ```
+2. Install dependencies and make the CLI executable:
+```bash
+poetry shell
+poetry install
+```
 
 ## Verifying Installation
 
@@ -48,31 +39,7 @@ After installation, verify that Weni CLI is properly installed:
 weni --version
 ```
 
-## Upgrading
-
-To upgrade to the latest version:
-
-```bash
-pip install --upgrade weni-cli
-```
-
 ## Troubleshooting
-
-### Common Issues
-
-1. **Command not found**
-   - Ensure Python's bin directory is in your PATH
-   - Try using `python -m weni` instead
-
-2. **Permission errors**
-   - On Unix-like systems, you might need to use `sudo`
-   - Or install in user space: `pip install --user weni-cli`
-
-3. **Python version conflicts**
-   - Use a virtual environment
-   - Ensure you have Python 3.12 or newer
-
-### Getting Help
 
 If you encounter any issues:
 

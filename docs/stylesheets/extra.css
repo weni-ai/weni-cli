@@ -1,57 +1,39 @@
 :root {
-  --md-primary-fg-color: rgb(247, 25, 99);
-  --md-primary-fg-color--light: rgb(247, 25, 99, 0.8);
-  --md-primary-fg-color--dark: rgb(247, 25, 99);
-  --md-accent-fg-color: rgb(247, 25, 99);
-}
-
-/* Customizando links */
-.md-content a:not(.headerlink) {
-  color: rgb(247, 25, 99);
-}
-
-.md-content a:not(.headerlink):hover {
-  text-decoration: underline;
-}
-
-/* Customizando botões */
-.md-button {
-  background-color: rgb(247, 25, 99) !important;
-  border-color: rgb(247, 25, 99) !important;
-  color: white !important;
-}
-
-.md-button:hover {
-  background-color: rgb(247, 25, 99, 0.8) !important;
+  --md-primary-fg-color: teal;
+  --md-primary-fg-color--light: teal;
+  --md-primary-fg-color--dark: teal;
+  --md-accent-fg-color: teal;
 }
 
 /* Customizando código */
+.highlight {
+  background-color: rgba(0, 128, 128, 0.1) !important;
+}
+
+.highlight pre {
+  background-color: rgba(0, 128, 128, 0.1) !important;
+}
+
+/* Mantendo a estilização original também, por garantia */
 .highlight .hll {
-  background-color: rgba(247, 25, 99, 0.1);
-}
-
-/* Customizando admonitions */
-.md-typeset .admonition,
-.md-typeset details {
-  border-left: 4px solid rgb(247, 25, 99);
-}
-
-/* Customizando tabs */
-.md-tabs__link--active {
-  color: rgb(247, 25, 99) !important;
-}
-
-.md-tabs__link:hover {
-  color: rgb(247, 25, 99, 0.8) !important;
+  background-color: rgba(0, 128, 128, 0.1) !important;
 }
 
 /* Customizando navegação */
 .md-nav__item .md-nav__link--active {
-  color: rgb(247, 25, 99);
+  color: teal;
+  font-weight: 500;
+  background-color: #eff6ff;
+  border-radius: 6px;
+  padding: 6px 12px !important;
+  margin: 2px 0;
 }
 
 .md-nav__link:hover {
-  color: rgb(247, 25, 99, 0.8);
+  color: teal;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  padding: 6px 12px;
 }
 
 /* Customizando pesquisa */
@@ -65,17 +47,17 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(247, 25, 99, 0.5);
+  background-color: teal;
 }
 
 /* Customizando seleção de texto */
 ::selection {
-  background-color: rgba(247, 25, 99, 0.2);
+  background-color: rgba(0, 128, 128, 0.2); /* Teal com 20% de opacidade */
 }
 
 /* Customizando tabelas */
 .md-typeset table:not([class]) th {
-  background-color: rgb(247, 25, 99);
+  background-color: teal;
   color: white;
 }
 
@@ -85,7 +67,485 @@
 
 /* Customizando código em linha */
 .md-typeset code {
-  background-color: rgba(247, 25, 99, 0.1);
+  background-color: rgba(0, 128, 128, 0.1); /* Teal com 10% de opacidade */
   border-radius: 4px;
   padding: 2px 6px;
+}
+
+/* Estilização da navegação */
+.md-nav__item {
+    padding: 2px 0;
+}
+
+/* Separação entre seções principais */
+.md-nav__item--section {
+    margin: 16px 0 8px;
+}
+
+/* Estilo para títulos das seções */
+.md-nav__item--section > .md-nav__link {
+    font-weight: 700;
+    color: var(--md-text-color) !important;
+    font-size: 0.9em;
+    text-transform: capitalize;
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+}
+
+/* Estilo para os nomes das seções principais */
+.md-nav__title {
+    font-size: 0.9em !important;
+    text-transform: capitalize !important;
+    font-weight: 600;
+}
+
+/* Reset de todos os comportamentos de hover e active */
+.md-nav__link,
+.md-nav__link:hover,
+.md-nav__link--active {
+    padding: 6px 12px !important;
+    margin: 2px 0 !important;
+    background-color: transparent !important;
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Apenas mudar a cor no hover e active, sem mover */
+.md-nav__link:hover {
+    color: var(--md-accent-fg-color) !important;
+}
+
+.md-nav__link--active {
+    color: var(--md-accent-fg-color) !important;
+    font-weight: 500;
+}
+
+/* Garantir que subitens também fiquem alinhados */
+.md-nav__item .md-nav__item {
+    padding-left: 12px !important;
+    margin-left: 0 !important;
+}
+
+/* Espaçamento para subitens */
+.md-nav__list .md-nav__list {
+    margin-top: 4px;
+    padding-bottom: 8px;
+}
+
+/* Customização da barra de pesquisa */
+.md-search__form {
+    border-radius: 8px;
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+}
+
+/* Aumenta a largura da barra de pesquisa */
+.md-search__inner {
+    width: 100%;
+    max-width: 600px;  /* Você pode ajustar este valor */
+    margin: 0 auto;
+}
+
+/* Estilo do input */
+.md-search__input {
+    border-radius: 8px !important;
+    font-size: 16px;
+}
+
+/* Hover effect */
+.md-search__form:hover {
+    background-color: #ffffff;
+    border-color: #d1d5db;
+}
+
+/* Estilo quando focado */
+.md-search__form:focus-within {
+    background-color: #ffffff;
+    border-color: var(--md-accent-fg-color);
+    box-shadow: 0 0 0 3px rgba(var(--md-accent-fg-color), 0.1);
+}
+
+/* Estilo da barra lateral */
+.md-nav {
+    padding: 24px 0;
+}
+
+/* Estilo para as seções principais */
+.md-nav__item--section {
+    margin: 16px 0 8px;
+}
+
+.md-nav__item--section > .md-nav__link {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a1a !important;
+    margin-bottom: 12px;
+}
+
+/* Estilo para os itens da navegação */
+.md-nav__item {
+    padding: 4px 0;
+    position: relative;
+}
+
+/* Links da navegação */
+.md-nav__link {
+    color: #4a5568 !important;
+    font-size: 14px;
+    padding: 6px 0;
+    display: block;
+}
+
+/* Item ativo */
+.md-nav__link--active {
+    color: teal;
+    font-weight: 500;
+    background-color: #f8f9fc;
+}
+
+/* Números para itens específicos */
+.md-nav__item--numbered {
+    counter-increment: nav-counter;
+}
+
+.md-nav__item--numbered .md-nav__link::before {
+    content: counter(nav-counter);
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    text-align: center;
+    margin-right: 8px;
+    background-color: #f3f4f6;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Subitens com indentação */
+.md-nav__item .md-nav__item {
+    padding-left: 16px;
+}
+
+/* Remover linha à esquerda do item ativo (se existir) */
+.md-nav__link--active {
+    border-left: none;
+    padding-left: 0;
+}
+
+/* Estilo do container da sidebar */
+.md-sidebar--primary {
+    background-color: #ffffff;
+    border-right: 0px solid #e5e7eb;
+    position: fixed;
+    padding-right: 0;
+}
+
+/* Ajuste do conteúdo principal para não sobrepor a sidebar */
+.md-content {
+    margin-left: 242px; /* Ajuste conforme necessário */
+    background-color: #ffffff;
+    padding: 1rem 1.5rem;
+}
+
+/* Garante que a barra de rolagem da sidebar funcione corretamente */
+.md-sidebar__scrollwrap {
+    background-color: #ffffff;
+    padding-right: 0;
+    margin-right: 0;
+}
+
+/* Remove sombras indesejadas */
+.md-sidebar[data-md-state=lock] {
+    box-shadow: none;
+}
+
+/* Ajuste do container principal */
+.md-main__inner {
+    margin-top: 0;
+}
+
+/* Ajuste para telas menores */
+@media screen and (max-width: 76.1875em) {
+    .md-content {
+        margin-left: 0;
+    }
+}
+
+/* Estilo do "On this page" */
+.md-nav__title {
+    font-size: 14px;
+    font-weight: 500;
+    color: #6b7280;
+    padding: 16px 0;
+    margin-bottom: 8px;
+}
+
+/* Estilo dos links do índice */
+.md-nav--secondary .md-nav__link {
+    color: #4b5563 !important;
+    font-size: 14px;
+    padding: 4px 0;
+    margin: 2px 0;
+}
+
+/* Link ativo no índice */
+.md-nav--secondary .md-nav__link--active {
+    color: teal; /* Cor de destaque - ajuste conforme necessário */
+    font-weight: normal;
+    background: none;
+    padding: 4px 0 !important;
+}
+
+/* Hover nos links do índice */
+.md-nav--secondary .md-nav__link:hover {
+    color: teal;
+    background: none;
+    padding: 4px 0;
+}
+
+/* Subitens do índice */
+.md-nav--secondary .md-nav__item {
+    padding: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Indentação para subitens */
+.md-nav--secondary .md-nav__item .md-nav__item {
+    padding-left: 12px;
+}
+
+/* Container do índice */
+.md-sidebar--secondary {
+    padding-left: 24px;
+}
+
+/* Remove backgrounds e bordas dos items ativos */
+.md-nav--secondary .md-nav__link--active,
+.md-nav--secondary .md-nav__link:hover {
+    background-color: transparent;
+    border: none;
+}
+
+/* Variáveis de cores para modo claro/escuro */
+[data-md-color-scheme="default"] {
+    --md-sidebar-bg: #ffffff;
+    --md-sidebar-border: #e5e7eb;
+    --md-text-color: #1a1a1a;
+    --md-text-secondary: #4a5568;
+    --md-accent-color: teal;
+    --md-hover-bg: #f8fafc;
+    --md-active-bg: #eff6ff;
+}
+
+[data-md-color-scheme="default"] .md-search__input {
+    background-color: rgb(209, 206, 206) !important;
+    color: black !important;
+}
+
+[data-md-color-scheme="slate"] {
+    --md-sidebar-bg: #1e1e1e;  /* Cor de fundo mais neutra */
+    --md-sidebar-border: #2e2e2e;  /* Borda mais sutil */
+    --md-text-color: #e2e8f0;
+    --md-text-secondary: #a0aec0;
+    --md-accent-color: teal;
+    --md-hover-bg: #2e2e2e;  /* Hover mais sutil */
+    --md-active-bg: #333333;  /* Item ativo mais sutil */
+}
+
+/* Força o background do conteúdo principal no modo escuro */
+[data-md-color-scheme="slate"] .md-main {
+    background-color: #1e1e1e;
+}
+
+[data-md-color-scheme="slate"] .md-content {
+    background-color: #1e1e1e;
+}
+
+/* Estilo da barra lateral */
+.md-sidebar--primary {
+    background-color: var(--md-sidebar-bg);
+    border-right: 1px solid var(--md-sidebar-border);
+}
+
+/* Links da navegação */
+.md-nav__link {
+    color: var(--md-text-secondary) !important;
+}
+
+/* Item ativo */
+.md-nav__link--active {
+    color: var(--md-accent-color) !important;
+    background-color: var(--md-active-bg);
+}
+
+/* Hover nos links */
+.md-nav__link:hover {
+    color: var(--md-accent-color) !important;
+    background-color: var(--md-hover-bg);
+}
+
+/* Títulos das seções */
+.md-nav__item--section > .md-nav__link {
+    color: var(--md-text-color) !important;
+}
+
+/* Table of Contents */
+.md-nav--secondary .md-nav__title {
+    color: var(--md-text-secondary);
+}
+
+.md-nav--secondary .md-nav__link {
+    color: var(--md-text-secondary) !important;
+}
+
+.md-nav--secondary .md-nav__link--active,
+.md-nav--secondary .md-nav__link:hover {
+    color: var(--md-accent-color) !important;
+    background-color: transparent;
+}
+
+/* Ajustes gerais */
+.md-sidebar__scrollwrap {
+    background-color: var(--md-sidebar-bg);
+}
+
+.md-content {
+    background-color: var(--md-sidebar-bg);
+}
+
+/* Ajustes específicos para modo escuro */
+[data-md-color-scheme="slate"] {
+    /* Ajuste do contraste do texto */
+    --md-typeset-color: #e2e8f0;
+    --md-default-fg-color: #e2e8f0;
+    --md-default-fg-color--light: #a0aec0;
+    
+    /* Ajuste dos links */
+    --md-typeset-a-color: teal;
+    
+    /* Ajuste dos blocos de código */
+    --md-code-bg-color: #2d3748;
+    --md-code-fg-color: #e2e8f0;
+}
+
+/* Força cores específicas no modo escuro */
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__title[for="__drawer"] {
+    background-color: #1e1e1e !important;
+    color: #e2e8f0 !important;
+}
+
+[data-md-color-scheme="slate"] .md-nav--primary .md-nav__title {
+    background-color: #1e1e1e !important;
+    color: #e2e8f0 !important;
+}
+
+[data-md-color-scheme="slate"] .md-search {
+    background-color: #1e1e1e;
+}
+
+[data-md-color-scheme="slate"] .md-search__input {
+    background-color: #2e2e2e !important;
+    color: #e2e8f0 !important;
+}
+
+[data-md-color-scheme="slate"] .md-search__input::placeholder {
+    color: #a0aec0;
+}
+
+[data-md-color-scheme="slate"] .md-search__input:hover {
+    background-color: #333333 !important;
+}
+
+/* Remove backgrounds indesejados */
+[data-md-color-scheme="slate"] .md-nav {
+    background-color: #1e1e1e !important;
+}
+
+[data-md-color-scheme="slate"] .md-nav__title {
+    background-color: #1e1e1e !important;
+    color: #e2e8f0 !important;
+}
+
+/* Força o background em todos os elementos necessários */
+[data-md-color-scheme="slate"] .md-header,
+[data-md-color-scheme="slate"] .md-tabs,
+[data-md-color-scheme="slate"] .md-sidebar--primary,
+[data-md-color-scheme="slate"] .md-sidebar--secondary,
+[data-md-color-scheme="slate"] .md-main {
+    background-color: #1e1e1e !important;
+}
+
+/* Ajuste para links ativos no modo escuro */
+[data-md-color-scheme="slate"] .md-nav__link--active {
+    color: #60a5fa !important;
+}
+
+/* Ajuste para títulos no modo escuro */
+[data-md-color-scheme="slate"] .md-header__title {
+    color: #e2e8f0 !important;
+}
+
+/* Remove as barras de progresso/loading */
+.md-progress,
+.md-progress::before,
+.md-progress::after {
+    display: none !important;
+}
+
+/* Remove qualquer barra de transição */
+.md-nav--primary .md-nav__title::before,
+.md-nav--secondary .md-nav__title::before {
+    display: none !important;
+}
+
+/* Remove qualquer borda animada */
+.md-nav--primary .md-nav__title,
+.md-nav--secondary .md-nav__title {
+    transition: none !important;
+}
+
+/* Remove qualquer borda lateral animada */
+.md-sidebar::before,
+.md-sidebar::after {
+    display: none !important;
+}
+
+/* Remover recuo dos itens ativos */
+.md-nav__link--active {
+    margin: 2px 0 !important;
+    padding: 6px 12px !important;
+    transform: none !important;
+    margin-left: 0 !important;
+}
+
+.md-nav__item .md-nav__link--active {
+    margin-left: 0 !important;
+    padding-left: 12px !important;
+}
+
+/* Garantir que os subitens mantenham o padding correto */
+.md-nav__item .md-nav__item {
+    padding-left: 12px;
+    margin-left: 0 !important;
+}
+
+/* Remover qualquer transformação ou transição */
+.md-nav__link {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* Remove cor azul no dark mode */
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-nav__title {
+    color: var(--md-default-fg-color) !important;
+    text-decoration: none !important;
+}
+
+[data-md-color-scheme="slate"] .md-header__title:hover,
+[data-md-color-scheme="slate"] .md-nav__title:hover {
+    color: var(--md-default-fg-color) !important;
+    text-decoration: none !important;
 }

@@ -1,4 +1,4 @@
-# CEP Agent Example
+# CEP Agent Example :material-map-marker:
 
 This example shows how to create an agent that can provide address information based on Brazilian postal codes (CEP).
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## [2.0.0] - 2025-03-08
+
+### Added
+
+- Feat: update init command with CEP agent and address skill ([#48](https://github.com/weni-ai/weni-cli/pull/48)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor: simplify skill source path retrieval ([#47](https://github.com/weni-ai/weni-cli/pull/47)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor: simplify log formatting in run command ([#46](https://github.com/weni-ai/weni-cli/pull/46)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: update run command to use agent and skill keys ([#45](https://github.com/weni-ai/weni-cli/pull/45)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: add project UUID header to CLI client requests ([#44](https://github.com/weni-ai/weni-cli/pull/44)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: integrate rich-click for enhanced CLI help and formatting ([#43](https://github.com/weni-ai/weni-cli/pull/43)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: add run command for testing agent skills ([#42](https://github.com/weni-ai/weni-cli/pull/42)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: implement custom spinner with enhanced functionality ([#41](https://github.com/weni-ai/weni-cli/pull/41)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: add validators module for definition parsing and validation ([#40](https://github.com/weni-ai/weni-cli/pull/40)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: add skill packaging utility for creating zip archives ([#39](https://github.com/weni-ai/weni-cli/pull/39)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: Use CLI Backend instead of Nexus ([#38](https://github.com/weni-ai/weni-cli/pull/38)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Update authentication.md ([#37](https://github.com/weni-ai/weni-cli/pull/37)) ([**@johncordeiro**](https://github.com/johncordeiro))
+- Content adjustments ([#36](https://github.com/weni-ai/weni-cli/pull/36)) ([**@hugocarvalhopc**](https://github.com/hugocarvalhopc))
+- Design, structure and content update ([#35](https://github.com/weni-ai/weni-cli/pull/35)) ([**@hugocarvalhopc**](https://github.com/hugocarvalhopc))
+
 ## [1.0.1] - 2025-02-07
 
 ### Changed

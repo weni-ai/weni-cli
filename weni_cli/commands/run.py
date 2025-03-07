@@ -245,12 +245,8 @@ class RunHandler(Handler):
                 )
 
             if log.get("test_logs"):
-
-                def format_logs(logs):
-                    return "\n".join([f"{log_item}" for log_item in logs])
-
                 yield Panel(
-                    format_logs(log.get("test_logs")),
+                    log.get("test_logs").strip("\n"),
                     title="[bold blue]Logs[/bold blue]",
                     title_align="left",
                 )
@@ -264,7 +260,6 @@ class RunHandler(Handler):
                     title_align="left",
                 )
             )
-            console.print("\n")
 
     def run_test(
         self,

@@ -76,7 +76,7 @@ def validate_parameters(parameters: dict) -> tuple[any, str]:
             if not description:
                 return None, error(parameter_name, "description is required")
 
-            if type(description) is str:
+            if not isinstance(description, str):
                 return None, error(parameter_name, "description must be a string")
 
             if not parameter_type:
@@ -88,10 +88,10 @@ def validate_parameters(parameters: dict) -> tuple[any, str]:
                     error(parameter_name, "type must be one of: string, number, integer, boolean, array"),
                 )
 
-            if type(required) is bool:
+            if required is not None and not isinstance(required, bool):
                 return None, error(parameter_name, "'required' field must be a boolean")
 
-            if contact_field and type(contact_field) is bool:
+            if contact_field is not None and not isinstance(contact_field, bool):
                 return None, error(parameter_name, "contact_field must be a boolean")
 
             if contact_field and not is_valid_contact_field_name(parameter_name):

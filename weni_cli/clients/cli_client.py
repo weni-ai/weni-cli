@@ -4,7 +4,7 @@ import json
 import importlib.metadata
 
 from weni_cli.spinner import spinner
-from weni_cli.store import STORE_CLI_BASE_URL, STORE_TOKEN_KEY, Store
+from weni_cli.store import STORE_CLI_BASE_URL, STORE_PROJECT_UUID_KEY, STORE_TOKEN_KEY, Store
 
 DEFAULT_BASE_URL = "https://cli.cloud.weni.ai"
 
@@ -30,7 +30,10 @@ class CLIClient:
 
     def __init__(self):
         store = Store()
-        self.headers = {"Authorization": f"Bearer {store.get(STORE_TOKEN_KEY)}"}
+        self.headers = {
+            "Authorization": f"Bearer {store.get(STORE_TOKEN_KEY)}",
+            "X-Project-Uuid": store.get(STORE_PROJECT_UUID_KEY),
+        }
         self.base_url = store.get(STORE_CLI_BASE_URL, DEFAULT_BASE_URL)
 
     def push_agents(self, project_uuid, agents_definition, skill_folders):

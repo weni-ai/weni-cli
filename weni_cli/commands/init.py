@@ -1,145 +1,164 @@
 import rich_click as click
 import os
 
+from weni_cli.commands.run import DEFAULT_TEST_DEFINITION_FILE
 from weni_cli.handler import Handler
 
 SKILLS_FOLDER = "skills"
 SAMPLE_AGENT_DEFINITION_FILE_NAME = "agent_definition.yaml"
 
+SAMPLE_GET_ADDRESS_SKILL_NAME = "get_address"
+
 SAMPLE_AGENT_DEFINITION_YAML = """agents:
-  sample_agent:
-    name: "Sample Agent"                                                                      # Maximum of 128 characters
-    description: "Weni's sample agent"
-    instructions:
-      - "You should always be polite, respectful and helpful, even if the user is not."       # Minimum of 40 characters
-      - "If you don't know the answer, don't lie. Tell the user you don't know."              # Minimum of 40 characters
-    guardrails:
-      - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."  # Minimum of 40 characters
-    skills:
-      - get_order_status:
-          name: "Get Order Status"                                                            # Maximum of 53 characters
-          source:
-            path: "skills/order_status"
-            entrypoint: "lambda_function.lambda_handler"
-          description: "Function to get the order status"
-          parameters:
-            - order_id:
-                description: "Order ID"
-                type: "string"
-                required: true
-      - get_order_details:
-          name: "Get Order Details"                                                           # Maximum of 53 characters
-          source:
-            path: "skills/order_details"
-            entrypoint: "lambda_function.lambda_handler"
-          description: "Function to get the order details"
-          parameters:
-            - order_id:
-                description: "Order ID"
-                type: "string"
-                required: true
+    cep_agent:
+        name: "CEP Agent"
+        description: "Weni's CEP agent with components"
+        instructions:
+        - "You are an expert in providing addresses to the user based on a postal code provided by the user"
+        - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
+        guardrails:
+        - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
+        skills:
+        - get_address:
+            name: "Get Address"
+            source:
+                path: "skills/get_address"
+                entrypoint: "main.GetAddress"
+                path_test: "tests.yaml"
+            description: "Function to get the address from the postal code"
+            parameters:
+                - cep:
+                    description: "postal code of a place"
+                    type: "string"
+                    required: true
 """
 
-SAMPLE_ORDER_STATUS_SKILL_PY = """def lambda_handler(event, context):
+SAMPLE_GET_ADDRESS_SKILL_PY = """from weni import Skill
+from weni.context import Context
+from weni.responses import TextResponse
+import requests
 
-    agent = event['agent']
-    actionGroup = event['actionGroup']
-    function = event['function']
-    parameters = event.get('parameters', [])
 
-    response_body = {
-        'TEXT': {
-            'body': "Your order status is 'Shipped'"
-        }
-    }
+class GetAddress(Skill):
+    def execute(self, context: Context) -> TextResponse:
+        cep = context.parameters.get("cep", "")
+        print(cep)
+        address_response = self.get_address_by_cep(cep=cep)
+        print(address_response)
+        return TextResponse(data=address_response)
 
-    function_response = {
-        'actionGroup': event['actionGroup'],
-        'function': event['function'],
-        'functionResponse': {
-            'responseBody': response_body
-        }
-    }
-
-    session_attributes = event['sessionAttributes']
-    prompt_session_attributes = event['promptSessionAttributes']
-
-    action_response = {
-        'messageVersion': '1.0',
-        'response': function_response,
-        'sessionAttributes': session_attributes,
-        'promptSessionAttributes': prompt_session_attributes
-    }
-
-    return action_response
+    def get_address_by_cep(self, cep):
+        url = f"https://viacep.com.br/ws/{cep}/json/"
+        response = requests.get(url)
+        return response.json()
 """
 
-SAMPLE_ORDER_DETAILS_SKILL_PY = """def lambda_handler(event, context):
+SAMPLE_TESTS_YAML = """tests:
+    test_1:
+        parameters:
+            cep: "57160000"
+    test_2:
+        parameters:
+            cep: "57038-635"
+    test_3:
+        parameters:
+            cep: "57160-000"
+"""
 
-    agent = event['agent']
-    actionGroup = event['actionGroup']
-    function = event['function']
-    parameters = event.get('parameters', [])
-
-    response_body = {
-        'TEXT': {
-            'body': "Your order contains 2 items, a t-shirt and a pair of shoes."
-        }
-    }
-
-    function_response = {
-        'actionGroup': event['actionGroup'],
-        'function': event['function'],
-        'functionResponse': {
-            'responseBody': response_body
-        }
-    }
-
-    session_attributes = event['sessionAttributes']
-    prompt_session_attributes = event['promptSessionAttributes']
-
-    action_response = {
-        'messageVersion': '1.0',
-        'response': function_response,
-        'sessionAttributes': session_attributes,
-        'promptSessionAttributes': prompt_session_attributes
-    }
-
-    return action_response
+SAMPLE_GET_ADDRESS_REQUIREMENTS_TXT = """requests==2.32.3
 """
 
 
 class InitHandler(Handler):
+    """Handles initialization of sample agent definition, skills, and tests."""
+
     def execute(self):
+        """Execute the initialization process by creating sample files and folders."""
         self.create_sample_agent_definition_file()
         self.create_sample_skills()
+        self.create_sample_tests()
 
     def create_sample_agent_definition_file(self):
-        with open(SAMPLE_AGENT_DEFINITION_FILE_NAME, "w") as f:
-            f.write(SAMPLE_AGENT_DEFINITION_YAML)
-
-        click.echo(f"Sample agent definition file created in: {SAMPLE_AGENT_DEFINITION_FILE_NAME}")
+        """Create a sample agent definition file in the current directory."""
+        self._write_file(
+            filename=SAMPLE_AGENT_DEFINITION_FILE_NAME,
+            content=SAMPLE_AGENT_DEFINITION_YAML,
+            description="Sample agent definition file",
+        )
 
     def create_sample_skills(self):
-        self.create_sample_skill("order_status", SAMPLE_ORDER_STATUS_SKILL_PY)
-        self.create_sample_skill("order_details", SAMPLE_ORDER_STATUS_SKILL_PY)
+        """Create sample skills with their respective files."""
+        self.create_sample_skill(
+            skill_name=SAMPLE_GET_ADDRESS_SKILL_NAME,
+            code=SAMPLE_GET_ADDRESS_SKILL_PY,
+            requirements=SAMPLE_GET_ADDRESS_REQUIREMENTS_TXT,
+        )
 
-    def create_sample_skill(self, skill_name, code):
-        # create the base skills folder if it does not exist
+    def create_sample_skill(self, skill_name, code, requirements):
+        """
+        Create a sample skill with its main code file and requirements.
+
+        Args:
+            skill_name: Name of the skill
+            code: Python code content for the skill
+            requirements: Requirements content for pip
+        """
+        # Ensure the skills folder structure exists
+        self._ensure_directory(SKILLS_FOLDER)
+        self._ensure_directory(f"{SKILLS_FOLDER}/{skill_name}")
+
+        # Create the main skill file
+        skill_path = f"{SKILLS_FOLDER}/{skill_name}/main.py"
+        self._write_file(filename=skill_path, content=code, description=f"Sample skill {skill_name}")
+
+        # Create the requirements file
+        self._write_file(
+            filename=f"{SKILLS_FOLDER}/{skill_name}/requirements.txt",
+            content=requirements,
+            description=f"Sample requirements file for {skill_name}",
+        )
+
+    def create_sample_tests(self):
+        """Create sample test files for the skills."""
+        self.create_sample_test(skill_name=SAMPLE_GET_ADDRESS_SKILL_NAME, test_content=SAMPLE_TESTS_YAML)
+
+    def create_sample_test(self, skill_name, test_content):
+        """
+        Create a sample test file for a skill.
+
+        Args:
+            skill_name: Name of the skill to create tests for
+            test_content: YAML content for the test file
+        """
+        test_path = f"{SKILLS_FOLDER}/{skill_name}/{DEFAULT_TEST_DEFINITION_FILE}"
+        self._write_file(filename=test_path, content=test_content, description=f"Sample tests file for {skill_name}")
+
+    def _ensure_directory(self, directory_path):
+        """
+        Ensure a directory exists, creating it if necessary.
+
+        Args:
+            directory_path: Path of the directory to ensure
+        """
         try:
-            os.mkdir(SKILLS_FOLDER)
+            os.mkdir(directory_path)
         except FileExistsError:
-            pass
+            pass  # Directory already exists, which is fine
+        except Exception as e:
+            click.echo(f"Error creating directory {directory_path}: {str(e)}")
 
-        # create the specific skill folder if it does not exist
+    def _write_file(self, filename, content, description):
+        """
+        Write content to a file and display a message.
+
+        Args:
+            filename: Path of the file to write
+            content: Content to write to the file
+            description: Description for the success message
+        """
         try:
-            os.mkdir(f"{SKILLS_FOLDER}/{skill_name}")
-        except FileExistsError:
-            pass
-
-        skill_path = f"{SKILLS_FOLDER}/{skill_name}/lambda_function.py"
-
-        with open(skill_path, "w") as f:
-            f.write(code)
-
-        click.echo(f"Sample skill {skill_name} created in: {skill_path}")
+            with open(filename, "w") as f:
+                f.write(content)
+            click.echo(f"{description} created in: {filename}")
+        except Exception as e:
+            click.echo(f"Error creating {description} at {filename}: {str(e)}")

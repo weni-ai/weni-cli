@@ -25,6 +25,31 @@ def init():
     InitHandler().execute()
 
 
+# Run Command
+@cli.command("run")
+@click.argument("definition", required=True, type=click.Path(exists=True, dir_okay=False))
+@click.argument("agent", required=True, type=str)
+@click.argument("skill", required=True, type=str)
+@click.option(
+    "--file", "-f", help="The path to the test definition file", type=click.Path(exists=True, dir_okay=False)
+)
+@click.option("--verbose", "-v", is_flag=True, help="Verbose output")
+def run_test(definition, agent, skill, file, verbose):
+    """Run tests for a specific agent skill
+
+    DEFINITION: The path to the YAML agent definition file
+    AGENT: The agent name to be tested
+    SKILL: The skill name to be tested
+    FILE: The path to the test definition file
+    """
+    from weni_cli.commands.run import RunHandler
+
+    try:
+        RunHandler().execute(definition=definition, agent=agent, skill=skill, test_definition=file, verbose=verbose)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
 # Nested CLI Project Group
 @cli.group()
 def project():

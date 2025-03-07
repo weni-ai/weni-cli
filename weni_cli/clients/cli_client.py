@@ -77,3 +77,71 @@ class CLIClient:
                                 raise Exception(
                                     f"{resp.get('message')} - Data: {resp.get('data', None)} - Request ID: {resp.get('request_id')}"
                                 )
+
+    def run_test(
+        self,
+        project_uuid,
+        definition,
+        skill_folder,
+        skill_name,
+        agent_name,
+        test_definition,
+        credentials,
+        skill_globals,
+        verbose=False,
+    ):
+
+        def display_test_progress(resp, verbose):
+            if not resp:
+                return
+
+            if not resp.get("success") and not resp.get("message"):
+                click.echo("Unknown error while running test")
+                return
+
+            if not resp.get("success"):
+                click.echo(resp.get("message"))
+                return
+
+            if resp.get("code") == "TEST_CASE_RUNNING":
+                click.echo(f"{resp.get('message')}...", nl=False)
+                return
+
+            if resp.get("code") == "TEST_CASE_COMPLETED":
+                if resp.get("data", {}).get("test_status_code") == 200:
+                    click.echo(click.style("PASS", fg="green"))
+                else:
+                    click.echo(click.style("FAILED", fg="red"))
+
+                if verbose:
+                    click.echo(click.style(f"{resp.get('data', {}).get('test_case')} Logs:", fg="yellow"))
+                    click.echo(resp.get("data", {}).get("test_response", {}))
+                    click.echo("\n")
+
+                return
+
+        url = f"{self.base_url}/api/v1/runs"
+
+        data = create_default_payload(project_uuid, definition)
+        data["test_definition"] = json.dumps(test_definition)
+        data["skill_name"] = skill_name
+        data["agent_name"] = agent_name
+        data["skill_credentials"] = json.dumps(credentials)
+        data["skill_globals"] = json.dumps(skill_globals)
+
+        files = {"skill": skill_folder}
+
+        s = requests.Session()
+
+        with spinner() as spin:
+            with s.post(
+                url, headers=self.headers, data=data, files=files, timeout=(10, None), stream=True
+            ) as response:
+                if response.status_code != 200:
+                    raise Exception(f"Failed to run test: {response.text}")
+
+                for line in response.iter_lines():
+                    if line:
+                        spin.stop()
+                        display_test_progress(json.loads(line), verbose)
+                        spin.start()

@@ -21,8 +21,8 @@ DEFAULT_TEST_DEFINITION_FILE = "test_definition.yaml"
 class RunHandler(Handler):
     def execute(self, **kwargs):
         definition_path = kwargs.get("definition")
-        agent_name = kwargs.get("agent")
-        skill_name = kwargs.get("skill")
+        agent_key = kwargs.get("agent_key")
+        skill_key = kwargs.get("skill_key")
         test_definition_path = kwargs.get("test_definition")
         verbose = kwargs.get("verbose", False)
         store = Store()
@@ -38,7 +38,7 @@ class RunHandler(Handler):
             return
 
         if not test_definition_path:
-            test_definition_path = self.load_default_test_definition(definition_data, agent_name, skill_name)
+            test_definition_path = self.load_default_test_definition(definition_data, agent_key, skill_key)
 
             if not test_definition_path:
                 click.echo(
@@ -47,7 +47,7 @@ class RunHandler(Handler):
                 click.echo("You can use the --file option to specify a different file.")
                 return
 
-        skill_folder = self.load_skill_folder(definition_data, agent_name, skill_name)
+        skill_folder = self.load_skill_folder(definition_data, agent_key, skill_key)
 
         if not skill_folder:
             click.echo("Error: Failed to load skill folder")
@@ -63,11 +63,17 @@ class RunHandler(Handler):
         if not test_definition:
             return
 
-        skill_source_path = self.get_skill_source_path(definition_data, agent_name, skill_name)
+        skill_source_path = self.get_skill_source_path(definition, agent_key, skill_key)
 
         credentials = self.load_skill_credentials(skill_source_path)
 
         skill_globals = self.load_skill_globals(skill_source_path)
+
+        agent_name, skill_name = self.get_skill_and_agent_name(definition, agent_key, skill_key)
+
+        if not skill_name or not agent_name:
+            click.echo("Error: Failed to get skill or agent name")
+            return
 
         self.run_test(
             project_uuid,
@@ -87,12 +93,29 @@ class RunHandler(Handler):
         except Exception:
             return None, None
 
-    def get_skill_source_path(self, definition, agent_name, skill_name) -> str | None:
-        for _, data in definition.get("agents", {}).items():
-            if data.get("name") == agent_name:
-                for skill in data.get("skills", []):
-                    if skill.get("name") == skill_name:
-                        return skill.get("source", {}).get("path")
+    def get_skill_and_agent_name(self, definition, agent_key, skill_key) -> tuple[str, str]:
+        agent_data = definition.get("agents", {}).get(agent_key)
+
+        if not agent_data:
+            return None, None
+
+        skill_name = None
+        for skill in agent_data.get("skills", []):
+            if skill.get("key") == skill_key:
+                skill_name = skill.get("name")
+
+        return agent_data.get("name"), skill_name
+
+    def get_skill_source_path(self, definition, agent_key, skill_key) -> str | None:
+        agent_data = definition.get("agents", {}).get(agent_key)
+
+        if not agent_data:
+            return None
+
+        for skill in agent_data.get("skills", []):
+            for key, skill_data in skill.items():
+                if key == skill_key:
+                    return skill_data.get("source", {}).get("path")
         return None
 
     def load_skill_credentials(self, skill_source_path: str) -> dict | None:
@@ -119,21 +142,24 @@ class RunHandler(Handler):
 
         return globals
 
-    def load_default_test_definition(self, definition, agent_name, skill_name) -> str | None:
+    def load_default_test_definition(self, definition, agent_key, skill_key) -> str | None:
         try:
             definition_path = None
 
-            for _, data in definition.get("agents", {}).items():
-                if data.get("name") == agent_name:
-                    for skill in data.get("skills", []):
-                        for _, skill_data in skill.items():
-                            if skill_data.get("name") == skill_name:
-                                path_test = skill_data.get("source", {}).get("path_test")
-                                skill_path = skill_data.get("source", {}).get("path")
-                                if skill_data.get("source", {}).get("path_test"):
-                                    definition_path = f"{skill_path}/{path_test}"
-                                else:
-                                    definition_path = f"{skill_path}/{DEFAULT_TEST_DEFINITION_FILE}"
+            agent_data = definition.get("agents", {}).get(agent_key)
+
+            if not agent_data:
+                return None
+
+            for skill in agent_data.get("skills", []):
+                for key, skill_data in skill.items():
+                    if key == skill_key:
+                        path_test = skill_data.get("source", {}).get("path_test")
+                        skill_path = skill_data.get("source", {}).get("path")
+                        if skill_data.get("source", {}).get("path_test"):
+                            definition_path = f"{skill_path}/{path_test}"
+                        else:
+                            definition_path = f"{skill_path}/{DEFAULT_TEST_DEFINITION_FILE}"
 
             if not definition_path:
                 return None
@@ -143,35 +169,31 @@ class RunHandler(Handler):
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
 
-    def load_skill_folder(self, definition, agent_name, skill_name) -> bytes:
-        agent_data = None
-        for _, data in definition.get("agents", {}).items():
-            if data.get("name") == agent_name:
-                agent_data = data
-                break
+    def load_skill_folder(self, definition, agent_key, skill_key) -> bytes:
+        agent_data = definition.get("agents", {}).get(agent_key)
 
         if not agent_data:
-            click.echo(f"Error: Agent {agent_name} not found in definition")
+            click.echo(f"Error: Agent {agent_key} not found in definition")
             return None
 
         skills = agent_data.get("skills", [])
 
         skill_data = None
         for skill in skills:
-            for _, data in skill.items():
-                if data.get("name") == skill_name:
+            for key, data in skill.items():
+                if key == skill_key:
                     skill_data = data
                     break
 
         if not skill_data:
-            click.echo(f"Error: Skill {skill_name} not found in agent {agent_name}")
+            click.echo(f"Error: Skill {skill_key} not found in agent {agent_key}")
             return None
 
         skill_slug = slugify(skill_data.get("name"))
         skill_folder = create_skill_folder_zip(skill_slug, skill_data.get("source").get("path"))
 
         if not skill_folder:
-            click.echo(f"Error: Failed to create skill folder for skill {skill_name} in agent {agent_name}")
+            click.echo(f"Error: Failed to create skill folder for skill {skill_key} in agent {agent_key}")
             return None
 
         return skill_folder

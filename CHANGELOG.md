@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.3] - 2025-03-08
+
+### Changed
+
+- fix: conditionally render test result panels only when logs exist ([#54](https://github.com/weni-ai/weni-cli/pull/54)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [2.0.2] - 2025-03-08
 
 ### Changed

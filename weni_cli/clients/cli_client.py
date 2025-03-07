@@ -49,10 +49,10 @@ class CLIClient:
 
         data = create_default_payload(project_uuid, agents_definition)
 
-        s = requests.Session()
+        session = requests.Session()
 
         with click_spinner.spinner():
-            with s.post(
+            with session.post(
                 url, headers=self.headers, data=data, files=skill_folders, stream=True, timeout=(10, None)
             ) as response:
                 if response.status_code != 200:

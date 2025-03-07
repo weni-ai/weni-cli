@@ -1,5 +1,11 @@
 # Changelog
 
+## [2.0.2] - 2025-03-08
+
+### Changed
+
+- refactor: improve log rendering and verbose output handling ([#52](https://github.com/weni-ai/weni-cli/pull/52)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [2.0.1] - 2025-03-08
 
 ### Changed

@@ -252,13 +252,14 @@ class RunHandler(Handler):
 
         console.print("\n")
         for log in logs:
-            console.print(
-                Panel(
-                    get_panels(),
-                    title=f"[bold green]Test Results for {log.get('test_name')}[/bold green]",
-                    title_align="left",
+            if log.get("test_response") or log.get("test_logs"):
+                console.print(
+                    Panel(
+                        get_panels(),
+                        title=f"[bold green]Test Results for {log.get('test_name')}[/bold green]",
+                        title_align="left",
+                    )
                 )
-            )
 
     def run_test(
         self,

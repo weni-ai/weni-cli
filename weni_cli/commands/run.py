@@ -113,9 +113,8 @@ class RunHandler(Handler):
             return None
 
         for skill in agent_data.get("skills", []):
-            for key, skill_data in skill.items():
-                if key == skill_key:
-                    return skill_data.get("source", {}).get("path")
+            if skill.get("key") == skill_key:
+                return skill.get("source", {}).get("path")
         return None
 
     def load_skill_credentials(self, skill_source_path: str) -> dict | None:

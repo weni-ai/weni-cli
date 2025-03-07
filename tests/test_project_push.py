@@ -63,7 +63,9 @@ def test_project_push(mocker, **kwargs):
         create_mocked_files()
 
         # Mock the store values - project_uuid, token, and base_url
-        mocker.patch("weni_cli.store.Store.get", side_effect=["123456", "456789", "https://cli.cloud.weni.ai"])
+        mocker.patch(
+            "weni_cli.store.Store.get", side_effect=["123456", "456789", "token", "https://cli.cloud.weni.ai"]
+        )
 
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
@@ -90,7 +92,9 @@ def test_project_push_with_force_update(mocker, **kwargs):
         create_mocked_files()
 
         # Mock the store values - project_uuid, token, and base_url
-        mocker.patch("weni_cli.store.Store.get", side_effect=["123456", "456789", "https://cli.cloud.weni.ai"])
+        mocker.patch(
+            "weni_cli.store.Store.get", side_effect=["123456", "456789", "token", "https://cli.cloud.weni.ai"]
+        )
 
         result = runner.invoke(project, ["push", "--force-update", "agents.json"], terminal_width=80)
 
@@ -136,7 +140,9 @@ def test_project_push_error(mocker, **kwargs):
     with runner.isolated_filesystem():
         create_mocked_files()
 
-        mocker.patch("weni_cli.store.Store.get", side_effect=["123456", "456789", "https://cli.cloud.weni.ai"])
+        mocker.patch(
+            "weni_cli.store.Store.get", side_effect=["123456", "456789", "token", "https://cli.cloud.weni.ai"]
+        )
 
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
@@ -154,7 +160,9 @@ def test_project_push_invalid_definition(mocker, **kwargs):
         with open("agents.json", "w") as f:
             f.write('agents:\ntest: -123\n  name: "Jon Snow"')
 
-        mocker.patch("weni_cli.store.Store.get", side_effect=["123456", "456789", "https://cli.cloud.weni.ai"])
+        mocker.patch(
+            "weni_cli.store.Store.get", side_effect=["123456", "456789", "token", "https://cli.cloud.weni.ai"]
+        )
 
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
@@ -172,7 +180,9 @@ def test_project_push_empty_definition(mocker, **kwargs):
         with open("agents.json", "w") as f:
             f.write("")
 
-        mocker.patch("weni_cli.store.Store.get", side_effect=["123456", "456789", "https://cli.cloud.weni.ai"])
+        mocker.patch(
+            "weni_cli.store.Store.get", side_effect=["123456", "456789", "token", "https://cli.cloud.weni.ai"]
+        )
 
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
@@ -187,7 +197,9 @@ def test_project_push_missing_skill_file(mocker, **kwargs):
         with open("agents.json", "w") as f:
             f.write(SAMPLE_AGENT_DEFINITION_YAML)
 
-        mocker.patch("weni_cli.store.Store.get", side_effect=["123456", "456789", "https://cli.cloud.weni.ai"])
+        mocker.patch(
+            "weni_cli.store.Store.get", side_effect=["123456", "456789", "token", "https://cli.cloud.weni.ai"]
+        )
 
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 

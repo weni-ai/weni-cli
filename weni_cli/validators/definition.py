@@ -41,6 +41,7 @@ def format_definition(definition):
                 skill_slug = slugify(skill_data.get("name"))
                 agent_skills.append(
                     {
+                        "key": skill_name,
                         "slug": skill_slug,
                         "name": skill_data.get("name"),
                         "source": skill_data.get("source"),

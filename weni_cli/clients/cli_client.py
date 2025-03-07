@@ -115,7 +115,7 @@ class CLIClient:
                 test_status_code = data.get("test_status_code")
                 test_response = data.get("test_response")
 
-                if verbose and data.get("logs"):
+                if verbose:
                     test_logs.append(
                         {
                             "test_name": test_name,

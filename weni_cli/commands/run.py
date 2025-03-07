@@ -231,7 +231,7 @@ class RunHandler(Handler):
 
         return "❌"
 
-    def render_logs(self, logs):
+    def render_reponse_and_logs(self, logs):
         console = Console()
 
         @group()
@@ -319,4 +319,4 @@ class RunHandler(Handler):
             )
 
         if verbose:
-            self.render_logs(test_logs)
+            self.render_reponse_and_logs(test_logs)

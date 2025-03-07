@@ -13,7 +13,6 @@ flask = "^3.1.0"
 waitress = "^3.0.2"
 pyyaml = "^6.0.2"
 python-slugify = "^8.0.4"
-click-spinner = "^0.1.10"
 regex = "^2024.11.6"
 weni-agents-toolkit = "0.3.0a0"
 

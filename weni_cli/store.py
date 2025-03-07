@@ -11,6 +11,7 @@ STORE_NEXUS_BASE_URL = "nexus_base_url"
 STORE_KEYCLOAK_URL = "keycloak_url"
 STORE_KEYCLOAK_REALM = "keycloak_realm"
 STORE_KEYCLOAK_CLIENT_ID = "keycloak_client_id"
+STORE_CLI_BASE_URL = "cli_base_url"
 
 
 class Store:

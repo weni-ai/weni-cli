@@ -107,10 +107,26 @@ def mock_cli_response():
 
 @pytest.fixture
 def mock_store_values():
-    """Mock the store values."""
+    """Mock the store values.
 
-    def _mock(mocker, project_uuid="123456", token="token", base_url="https://cli.cloud.weni.ai"):
-        mocker.patch(
+    IMPORTANT: Always use this fixture instead of directly mocking Store.get
+    to maintain consistency across test functions and improve maintainability.
+
+    This fixture can be used in three ways:
+    1. Default values: mock_store_values(mocker)
+    2. Custom values: mock_store_values(mocker, project_uuid="custom", token="custom_token")
+    3. Return None for project_uuid: mock_store_values(mocker, project_uuid=None)
+    4. Custom side_effect: mock_store_values(mocker, side_effect=["value1", "value2"])
+    """
+
+    def _mock(mocker, project_uuid="123456", token="token", base_url="https://cli.cloud.weni.ai", side_effect=None):
+        if side_effect is not None:
+            # Use the provided side_effect directly
+            mock = mocker.patch("weni_cli.store.Store.get", side_effect=side_effect)
+            return mock
+
+        # Use the lambda function approach for regular cases
+        mock = mocker.patch(
             "weni_cli.store.Store.get",
             side_effect=lambda key, default=None: {
                 "project_uuid": project_uuid,
@@ -141,7 +157,7 @@ def test_run_command_success(mocker, create_mocked_files, mock_cli_response, moc
     runner = CliRunner()
     with runner.isolated_filesystem():
         agent_file = create_mocked_files()
-        _ = mock_store_values(mocker)  # Project UUID is saved in the mock
+        mock_store_values(mocker)
         mock_skill_folder(mocker)
         mock_cli_response(mocker)
 
@@ -188,13 +204,13 @@ def test_run_command_success(mocker, create_mocked_files, mock_cli_response, moc
         assert mock_client_run.call_count == 1
 
 
-def test_run_command_no_project(mocker, create_mocked_files):
+def test_run_command_no_project(mocker, create_mocked_files, mock_store_values):
     """Test running a command without a selected project."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         create_mocked_files()
-        # Mock the Store.get to return None for project_uuid
-        mocker.patch("weni_cli.store.Store.get", side_effect=[None])
+        # Use the fixture to mock the Store.get to return None for project_uuid
+        mock_store_values(mocker, project_uuid=None)
 
         result = runner.invoke(cli, ["run", "agents.yaml", "get_address", "get_address"])
 
@@ -202,12 +218,12 @@ def test_run_command_no_project(mocker, create_mocked_files):
         assert "No project selected" in result.output
 
 
-def test_run_handler_execute_no_project(mocker):
+def test_run_handler_execute_no_project(mocker, mock_store_values):
     """Test running the handler execute method without a selected project."""
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Mock the Store.get to return None for project_uuid
-        mocker.patch("weni_cli.store.Store.get", return_value=None)
+        # Use the fixture to mock the Store.get to return None for project_uuid
+        mock_store_values(mocker, project_uuid=None)
 
         handler = RunHandler()
         result = handler.execute(
@@ -1029,14 +1045,14 @@ def test_update_live_display_update_existing_row(mocker):
         live_mock.update.assert_called_once_with("Test Table", refresh=True)
 
 
-def test_execute_with_none_test_definition(mocker):
+def test_execute_with_none_test_definition(mocker, mock_store_values):
     """Test the execute method when test_definition fails to load"""
     runner = CliRunner()
     with runner.isolated_filesystem():
         handler = RunHandler()
 
-        # Mock Store.get to return a project UUID
-        mocker.patch("weni_cli.store.Store.get", return_value="mock-project-uuid")
+        # Use the fixture to mock Store.get to return a project UUID
+        mock_store_values(mocker, project_uuid="mock-project-uuid")
 
         # Create a realistic definition with the expected agent and skill structure
         definition_data = {

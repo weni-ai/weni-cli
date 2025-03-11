@@ -9,7 +9,7 @@ SAMPLE_AGENT_DEFINITION_FILE_NAME = "agent_definition.yaml"
 
 SAMPLE_GET_ADDRESS_SKILL_NAME = "get_address"
 
-SAMPLE_AGENT_DEFINITION_YAML = """agents:
+SAMPLE_AGENT_DEFINITION_YAML = f"""agents:
     cep_agent:
         name: "CEP Agent"
         description: "Weni's CEP agent with components"
@@ -24,7 +24,7 @@ SAMPLE_AGENT_DEFINITION_YAML = """agents:
             source:
                 path: "skills/get_address"
                 entrypoint: "main.GetAddress"
-                path_test: "tests.yaml"
+                path_test: "{DEFAULT_TEST_DEFINITION_FILE}"
             description: "Function to get the address from the postal code"
             parameters:
                 - cep:

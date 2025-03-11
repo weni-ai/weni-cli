@@ -65,13 +65,13 @@ def validate_parameters(parameters: dict) -> tuple[any, str]:
 
     for parameter in parameters:
         for parameter_name, parameter_data in parameter.items():
+            if not isinstance(parameter_data, dict):
+                return None, error(parameter_name, "must be an object")
+
             description = parameter_data.get("description")
             parameter_type = parameter_data.get("type")
             required = parameter_data.get("required", None)
             contact_field = parameter_data.get("contact_field", None)
-
-            if not isinstance(parameter_data, dict):
-                return None, error(parameter_name, "must be an object")
 
             if not description:
                 return None, error(parameter_name, "description is required")

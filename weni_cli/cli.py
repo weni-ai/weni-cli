@@ -104,5 +104,5 @@ def push_project(definition, force_update):
         click.echo(f"Error: {e}")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     cli()

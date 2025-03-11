@@ -231,6 +231,60 @@ class RunHandler(Handler):
 
         return "❌"
 
+    def display_test_results(self, rows, skill_name, verbose=False):
+        """
+        Create a table to display test results.
+
+        Args:
+            rows (list): List of row dictionaries containing test results
+            skill_name (str): Name of the skill being tested
+            verbose (bool, optional): Whether to show verbose output. Defaults to False.
+
+        Returns:
+            Table: Rich table object with test results, or None if rows is empty
+        """
+        if not rows:
+            return None
+
+        table = Table(title=f"Test Results for {skill_name}", expand=True)
+        table.add_column("Test Name", justify="left")
+        table.add_column("Status", justify="center")
+        table.add_column("Response", ratio=2, no_wrap=True)
+
+        for row in rows:
+            status = self.get_status_icon(row.get("status")) if row.get("code") == "TEST_CASE_COMPLETED" else "⏳"
+            response_display = self.format_response_for_display(row.get("response"))
+            table.add_row(row.get("name"), status, response_display)
+
+        return table
+
+    def update_live_display(
+        self, test_rows, test_name, test_result, status_code, code, live_display, skill_name, verbose=False
+    ):
+        """
+        Update the live display with test results.
+
+        Args:
+            test_rows (list): List of test result rows to update
+            test_name (str): Name of the test
+            test_result (dict): Test result data
+            status_code (int): HTTP status code of the test result
+            code (str): Test case status code (e.g., TEST_CASE_COMPLETED)
+            live_display (Live): Rich Live object for updating the display
+            skill_name (str): Name of the skill being tested
+            verbose (bool, optional): Whether to show verbose output. Defaults to False.
+        """
+        # Check if test_name is already in test_rows, if not, add it
+        row_index = next((i for i, row in enumerate(test_rows) if row.get("name") == test_name), None)
+        if row_index is None:
+            test_rows.append({"name": test_name, "status": status_code, "response": test_result, "code": code})
+        else:
+            test_rows[row_index]["status"] = status_code
+            test_rows[row_index]["response"] = test_result
+            test_rows[row_index]["code"] = code
+
+        live_display.update(self.display_test_results(test_rows, skill_name, verbose), refresh=True)
+
     def render_reponse_and_logs(self, logs):
         console = Console()
 
@@ -273,37 +327,14 @@ class RunHandler(Handler):
         skill_globals,
         verbose=False,
     ):
-        def display_test_results(rows, verbose):
-            if not rows:
-                return None
-
-            table = Table(title=f"Test Results for {skill_name}", expand=True)
-            table.add_column("Test Name", justify="left")
-            table.add_column("Status", justify="center")
-            table.add_column("Response", ratio=2, no_wrap=True)
-
-            for row in rows:
-                status = self.get_status_icon(row.get("status")) if row.get("code") == "TEST_CASE_COMPLETED" else "⏳"
-                response_display = self.format_response_for_display(row.get("response"))
-                table.add_row(row.get("name"), status, response_display)
-
-            return table
-
-        with Live(display_test_results([], verbose), refresh_per_second=4) as live:
-
-            test_rows = []
-
-            def update_live(test_name, test_result, status_code, code, verbose):
-                # check if test_name is already in test_rows, if not, add it
-                row_index = next((i for i, row in enumerate(test_rows) if row.get("name") == test_name), None)
-                if row_index is None:
-                    test_rows.append({"name": test_name, "status": status_code, "response": test_result, "code": code})
-                else:
-                    test_rows[row_index]["status"] = status_code
-                    test_rows[row_index]["response"] = test_result
-                    test_rows[row_index]["code"] = code
-
-                live.update(display_test_results(test_rows, verbose), refresh=True)
+        test_rows = []
+        # Use the class method instead of a nested function
+        with Live(self.display_test_results([], skill_name, verbose), refresh_per_second=4) as live:
+            # Create a callback function that will be passed to the CLIClient
+            def update_live_callback(test_name, test_result, status_code, code, verbose):
+                self.update_live_display(
+                    test_rows, test_name, test_result, status_code, code, live, skill_name, verbose
+                )
 
             client = CLIClient()
             test_logs = client.run_test(
@@ -315,7 +346,7 @@ class RunHandler(Handler):
                 test_definition,
                 credentials,
                 skill_globals,
-                update_live,
+                update_live_callback,
                 verbose,
             )
 

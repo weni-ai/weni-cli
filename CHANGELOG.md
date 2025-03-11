@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.0.4] - 2025-03-11
+
+### Added
+
+- refactor: update agent definition YAML template with dynamic test path ([#58](https://github.com/weni-ai/weni-cli/pull/58)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- test: add test suite for skill packager module ([#57](https://github.com/weni-ai/weni-cli/pull/57)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: Add run command tests ([#56](https://github.com/weni-ai/weni-cli/pull/56)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
+
 ## [2.0.3] - 2025-03-08
 
 ### Changed

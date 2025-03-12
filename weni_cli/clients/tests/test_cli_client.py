@@ -2,6 +2,7 @@ import io
 import json
 
 import pytest
+import requests
 
 from weni_cli.clients.cli_client import (
     CLIClient,
@@ -625,3 +626,97 @@ def test_run_test_success_false_no_message(client, requests_mock, mocker):
 
     # Verify test logs are empty
     assert test_logs == []
+
+
+def test_check_project_permission_success(client, requests_mock):
+    """Test successful project permission check."""
+    # Mock the response with a success status code
+    project_uuid = "test-project-uuid"
+    requests_mock.post(
+        f"{client.base_url}/api/v1/permissions/verify",
+        status_code=200,
+        json={"status": "success", "message": "User has permission to access this project"},
+    )
+
+    # Call the method - should not raise an exception
+    client.check_project_permission(project_uuid)
+
+    # Verify the request was made with correct data
+    assert requests_mock.last_request is not None
+    assert requests_mock.last_request.headers["Authorization"] == client.headers["Authorization"]
+    assert requests_mock.last_request.headers["X-Project-Uuid"] == client.headers["X-Project-Uuid"]
+
+    # Verify the payload contains the project_uuid
+    # The body might be bytes or string depending on the version of requests_mock
+    body = requests_mock.last_request.body
+    if isinstance(body, bytes):
+        body = body.decode("utf-8")
+    request_payload = json.loads(body)
+    assert request_payload["project_uuid"] == project_uuid
+
+
+def test_check_project_permission_failure(client, requests_mock):
+    """Test failed project permission check."""
+    # Mock the response with a failure status code
+    project_uuid = "test-project-uuid"
+    error_message = "User does not have permission to access this project"
+    requests_mock.post(
+        f"{client.base_url}/api/v1/permissions/verify",
+        status_code=403,
+        json={"status": "error", "message": error_message},
+    )
+
+    # Call the method and expect an exception
+    with pytest.raises(Exception) as exc_info:
+        client.check_project_permission(project_uuid)
+
+    # Verify the exception message
+    assert "Failed to check project permission" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_check_project_permission_no_message(client, requests_mock):
+    """Test project permission check with no message in response."""
+    # Mock the response with a failure status code but no message
+    project_uuid = "test-project-uuid"
+    requests_mock.post(
+        f"{client.base_url}/api/v1/permissions/verify", status_code=500, json={"status": "error"}  # No message field
+    )
+
+    # Call the method and expect an exception
+    with pytest.raises(Exception) as exc_info:
+        client.check_project_permission(project_uuid)
+
+    # Verify the exception message contains a default message
+    assert "Failed to check project permission: None" in str(exc_info.value)
+
+
+def test_check_project_permission_invalid_json(client, requests_mock):
+    """Test project permission check with invalid JSON response."""
+    # Mock the response with a failure status code and invalid JSON
+    project_uuid = "test-project-uuid"
+    requests_mock.post(
+        f"{client.base_url}/api/v1/permissions/verify", status_code=500, text="Not a valid JSON response"
+    )
+
+    # Call the method and expect an exception
+    with pytest.raises(Exception) as exc_info:
+        client.check_project_permission(project_uuid)
+
+    # The error could be a direct JSONDecodeError or wrapped in our custom message
+    error_str = str(exc_info.value)
+    assert "Failed to check project permission" in error_str or "Expecting value" in error_str
+
+
+def test_check_project_permission_network_error(client, mocker):
+    """Test project permission check with network error."""
+    # Mock requests.post to raise a ConnectionError
+    project_uuid = "test-project-uuid"
+    mocker.patch("requests.post", side_effect=requests.ConnectionError("Connection refused"))
+
+    # Call the method and expect an exception
+    with pytest.raises(requests.ConnectionError) as exc_info:
+        client.check_project_permission(project_uuid)
+
+    # Verify the exception message
+    assert "Connection refused" in str(exc_info.value)

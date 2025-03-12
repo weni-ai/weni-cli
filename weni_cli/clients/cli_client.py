@@ -37,6 +37,16 @@ class CLIClient:
         }
         self.base_url = store.get(STORE_CLI_BASE_URL, DEFAULT_BASE_URL)
 
+    def check_project_permission(self, project_uuid):
+        url = f"{self.base_url}/api/v1/permissions/verify"
+
+        payload = {"project_uuid": project_uuid}
+
+        response = requests.post(url, headers=self.headers, data=json.dumps(payload))
+        if response.status_code != 200:
+            message = response.json().get("message")
+            raise Exception(f"Failed to check project permission: {message}")
+
     def push_agents(self, project_uuid, agents_definition, skill_folders):
         url = f"{self.base_url}/api/v1/agents"
 

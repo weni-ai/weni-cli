@@ -1098,3 +1098,57 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
 
         # Verify that get_skill_source_path was NOT called since we should exit early
         assert not get_skill_source_path_spy.called
+
+
+def test_run_command_unhandled_exception(mocker, create_mocked_files, mock_store_values):
+    """Test running a command with an unhandled exception."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        # Mock RunHandler.execute to raise an exception
+        mock_execute = mocker.patch("weni_cli.commands.run.RunHandler.execute")
+        mock_execute.side_effect = Exception("Unhandled test exception")
+
+        # Run the command and expect the exception to be caught and printed
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        # Verify the command output
+        assert result.exit_code == 0  # CLI commands return 0 when error is handled
+        assert "Error: Unhandled test exception" in result.output
+
+        # Verify the execute method was called with the correct arguments
+        mock_execute.assert_called_once()
+        args, kwargs = mock_execute.call_args
+        assert kwargs["definition"] == agent_file
+        assert kwargs["agent_key"] == "get_address"
+        assert kwargs["skill_key"] == "get_address"
+        assert kwargs["test_definition"] is None
+        assert kwargs["verbose"] is False
+
+
+def test_project_push_command_unhandled_exception(mocker):
+    """Test project push command with an unhandled exception."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create a dummy definition file
+        with open("agents.yaml", "w") as f:
+            f.write("agents: {}")
+
+        # Mock ProjectPushHandler.execute to raise an exception
+        mock_execute = mocker.patch("weni_cli.commands.project_push.ProjectPushHandler.execute")
+        mock_execute.side_effect = Exception("Unhandled project push exception")
+
+        # Run the command and expect the exception to be caught and printed
+        result = runner.invoke(cli, ["project", "push", "agents.yaml"])
+
+        # Verify the command output
+        assert result.exit_code == 0  # CLI commands return 0 when error is handled
+        assert "Error: Unhandled project push exception" in result.output
+
+        # Verify the execute method was called with the correct arguments
+        mock_execute.assert_called_once()
+        args, kwargs = mock_execute.call_args
+        assert kwargs["definition"] == "agents.yaml"
+        assert kwargs["force_update"] is False

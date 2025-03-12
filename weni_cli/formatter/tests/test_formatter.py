@@ -33,7 +33,7 @@ def test_print_error_panel(formatter, mocker):
     # Verify the correct Panel was created
     panel_arg = mock_print.call_args[0][0]
     assert isinstance(panel_arg, Panel)
-    assert "Error:" in panel_arg.renderable
+    assert panel_arg.title == "[bold red]Error[/bold red]"
     assert error_message in panel_arg.renderable
     assert panel_arg.style == "bold red"
     assert panel_arg.expand is False
@@ -56,7 +56,7 @@ def test_print_success_panel(formatter, mocker):
     # Verify the correct Panel was created
     panel_arg = mock_print.call_args[0][0]
     assert isinstance(panel_arg, Panel)
-    assert "Success:" in panel_arg.renderable
+    assert panel_arg.title == "[bold green]Success[/bold green]"
     assert success_message in panel_arg.renderable
     assert panel_arg.style == "bold green"
     assert panel_arg.expand is False
@@ -88,7 +88,7 @@ def test_print_error_panel_with_empty_message(formatter, mocker):
 
     # Verify the panel was created with the empty message
     panel_arg = mock_print.call_args[0][0]
-    assert "Error:" in panel_arg.renderable
+    assert panel_arg.title == "[bold red]Error[/bold red]"
     assert panel_arg.style == "bold red"
 
 

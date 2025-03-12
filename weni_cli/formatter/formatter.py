@@ -7,9 +7,22 @@ class Formatter:
         pass
 
     def print_error_panel(self, message):
-        error_panel = Panel(f"[red]Error:[/red] {message}", style="bold red", expand=False)
+        error_panel = Panel(
+            f"{message}",
+            title="[bold red]Error[/bold red]",
+            title_align="left",
+            style="bold red",
+            expand=False,
+            padding=(1, 1),
+        )
         print(error_panel)
 
     def print_success_panel(self, message):
-        success_panel = Panel(f"[green]Success:[/green] {message}", style="bold green", expand=False)
+        success_panel = Panel(
+            f"{message}",
+            title="[bold green]Success[/bold green]",
+            title_align="left",
+            style="bold green",
+            expand=False,
+        )
         print(success_panel)

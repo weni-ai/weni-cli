@@ -2,7 +2,7 @@
 
 Weni CLI is a command-line tool that simplifies the creation and management of multiple AI agents quickly and efficiently. Integrated with the Weni platform, it enables the development and deployment of high-performance agents across various communication channels, such as WhatsApp, Instagram, Facebook, and more.
 
-![Weni Platform](assets/weni-platform-my-agents.png)
+![Weni Platform](assets/agent_builder.png)
 
 ## Overview
 

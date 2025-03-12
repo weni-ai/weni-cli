@@ -235,10 +235,14 @@
 
 /* Estilo do container da sidebar */
 .md-sidebar--primary {
-    background-color: #ffffff;
-    border-right: 0px solid #e5e7eb;
+    background-color: var(--md-sidebar-bg);
+    border-right: 1px solid var(--md-sidebar-border);
     position: fixed;
-    padding-right: 0;
+    height: auto;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    bottom: auto;
+    padding-bottom: 2rem;
 }
 
 /* Ajuste do conteúdo principal para não sobrepor a sidebar */
@@ -246,13 +250,16 @@
     margin-left: 242px; /* Ajuste conforme necessário */
     background-color: #ffffff;
     padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
 }
 
 /* Garante que a barra de rolagem da sidebar funcione corretamente */
 .md-sidebar__scrollwrap {
-    background-color: #ffffff;
+    background-color: var(--md-sidebar-bg);
     padding-right: 0;
     margin-right: 0;
+    overflow-y: visible;
+    height: auto;
 }
 
 /* Remove sombras indesejadas */
@@ -263,6 +270,7 @@
 /* Ajuste do container principal */
 .md-main__inner {
     margin-top: 0;
+    min-height: calc(100vh - 120px);
 }
 
 /* Ajuste para telas menores */
@@ -548,4 +556,11 @@
 [data-md-color-scheme="slate"] .md-nav__title:hover {
     color: var(--md-default-fg-color) !important;
     text-decoration: none !important;
+}
+
+/* Ensure footer is visible and not overlapped */
+.md-footer {
+    position: relative;
+    z-index: 10;
+    margin-top: 2rem;
 }

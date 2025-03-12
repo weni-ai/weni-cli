@@ -5,6 +5,7 @@ import importlib.metadata
 
 from weni_cli.spinner import spinner
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_PROJECT_UUID_KEY, STORE_TOKEN_KEY, Store
+from weni_cli.clients.response_handlers import process_push_display_step, process_test_progress
 
 DEFAULT_BASE_URL = "https://cli.cloud.weni.ai"
 
@@ -37,17 +38,6 @@ class CLIClient:
         self.base_url = store.get(STORE_CLI_BASE_URL, DEFAULT_BASE_URL)
 
     def push_agents(self, project_uuid, agents_definition, skill_folders):
-
-        def display_step(resp):
-            if not resp:
-                return
-
-            if not resp.get("success") and not resp.get("message"):
-                return "Unknown error while pushing agents"
-
-            # Add a buffer at the end to avoid the stdout last character being cut off by the spinner
-            return resp.get("message") + "."
-
         url = f"{self.base_url}/api/v1/agents"
 
         data = create_default_payload(project_uuid, agents_definition)
@@ -63,7 +53,11 @@ class CLIClient:
 
                 progress = 0
                 with click.progressbar(
-                    length=100, label="Pushing agents", item_show_func=display_step, show_eta=False, show_pos=False
+                    length=100,
+                    label="Pushing agents",
+                    item_show_func=process_push_display_step,
+                    show_eta=False,
+                    show_pos=False,
                 ) as bar:
                     for line in response.iter_lines():
                         if line:
@@ -96,39 +90,6 @@ class CLIClient:
     ) -> list[dict]:
         test_logs = []
 
-        def display_test_progress(resp, verbose):
-            if not resp:
-                return
-
-            if not resp.get("success") and not resp.get("message"):
-                click.echo("Unknown error while running test")
-                return
-
-            if not resp.get("success"):
-                click.echo(resp.get("message"))
-                click.echo(f"Request ID: {resp.get('request_id')}")
-                return
-
-            if resp.get("code") == "TEST_CASE_RUNNING" or resp.get("code") == "TEST_CASE_COMPLETED":
-                data = resp.get("data", {})
-                test_name = data.get("test_case")
-                test_status_code = data.get("test_status_code")
-                test_response = data.get("test_response")
-
-                if verbose:
-                    test_logs.append(
-                        {
-                            "test_name": test_name,
-                            "test_status_code": test_status_code,
-                            "test_response": test_response,
-                            "test_logs": data.get("logs"),
-                        }
-                    )
-
-                result_callback(test_name, test_response, test_status_code, resp.get("code"), verbose)
-            else:
-                click.echo(resp.get("message"))
-
         url = f"{self.base_url}/api/v1/runs"
 
         data = create_default_payload(project_uuid, definition)
@@ -151,7 +112,19 @@ class CLIClient:
 
                 for line in response.iter_lines():
                     if line:
-                        display_test_progress(json.loads(line), verbose)
+                        resp = json.loads(line)
+                        test_data = process_test_progress(resp, verbose)
+                        if test_data:
+                            if verbose and "test_logs" in test_data:
+                                test_logs.append(test_data)
+                            # Call the callback with the test results
+                            result_callback(
+                                test_data["test_name"],
+                                test_data["test_response"],
+                                test_data["test_status_code"],
+                                resp.get("code"),
+                                verbose,
+                            )
         except Exception as e:
             raise e
 

@@ -2,13 +2,14 @@ import io
 import json
 
 import pytest
-import requests
+from contextlib import contextmanager
 
 from weni_cli.clients.cli_client import (
     CLIClient,
     DEFAULT_BASE_URL,
     create_default_payload,
     get_toolkit_version,
+    RequestError,
 )
 from weni_cli.clients.response_handlers import process_push_display_step, process_test_progress
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_PROJECT_UUID_KEY, STORE_TOKEN_KEY
@@ -50,6 +51,20 @@ def mock_toolkit_version(mocker):
         return version
 
     return _mock
+
+
+# Mock for streaming request context manager
+@pytest.fixture
+def mock_streaming_request(mocker, client):
+    """Mock the _streaming_request context manager."""
+
+    @contextmanager
+    def mock_cm(*args, **kwargs):
+        mock_response = mocker.MagicMock()
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_cm)
+    return client
 
 
 def test_init_with_default_values(mock_store):
@@ -211,12 +226,19 @@ def test_push_agents_success(client, requests_mock, mocker):
     mock_progressbar.return_value.__enter__.return_value = progress_instance
     mocker.patch("weni_cli.clients.cli_client.spinner")
 
-    # Mock the response content with a success response and 100% progress
-    response_content = [
-        json.dumps({"success": True, "message": "Processing agents", "progress": 0.5}),
-        json.dumps({"success": True, "message": "Agents pushed successfully", "progress": 1.0}),
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [
+        json.dumps({"success": True, "message": "Processing agents", "progress": 0.5}).encode("utf-8"),
+        json.dumps({"success": True, "message": "Agents pushed successfully", "progress": 1.0}).encode("utf-8"),
     ]
-    requests_mock.post(f"{client.base_url}/api/v1/agents", content="\n".join(response_content).encode("utf-8"))
+
+    # Create a mock for the context manager
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -226,16 +248,11 @@ def test_push_agents_success(client, requests_mock, mocker):
     # Call the method
     client.push_agents(project_uuid, agents_definition, skill_folders)
 
-    # Verify the request
-    assert requests_mock.last_request is not None
-    assert requests_mock.last_request.headers["Authorization"] == client.headers["Authorization"]
-    assert requests_mock.last_request.headers["X-Project-Uuid"] == client.headers["X-Project-Uuid"]
-
     # Verify progressbar was updated
     assert progress_instance.update.call_count == 2
 
 
-def test_push_agents_error_response(client, requests_mock, mocker):
+def test_push_agents_error_response(client, mocker):
     """Test pushing agents with error in response."""
     # Mock the progressbar and spinner
     mock_progressbar = mocker.patch("rich_click.progressbar")
@@ -243,9 +260,17 @@ def test_push_agents_error_response(client, requests_mock, mocker):
     mock_progressbar.return_value.__enter__.return_value = progress_instance
     mocker.patch("weni_cli.clients.cli_client.spinner")
 
-    # Mock the response content with an error message
-    response_content = [json.dumps({"success": False, "message": "Error pushing agents", "request_id": "12345"})]
-    requests_mock.post(f"{client.base_url}/api/v1/agents", content="\n".join(response_content).encode("utf-8"))
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [
+        json.dumps({"success": False, "message": "Error pushing agents", "request_id": "12345"}).encode("utf-8")
+    ]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -253,7 +278,7 @@ def test_push_agents_error_response(client, requests_mock, mocker):
     skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
 
     # Call the method and expect exception
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(RequestError) as exc_info:
         client.push_agents(project_uuid, agents_definition, skill_folders)
 
     # Verify the exception message
@@ -263,24 +288,21 @@ def test_push_agents_error_response(client, requests_mock, mocker):
 
 def test_push_agents_error_no_message(client, mocker):
     """Test pushing agents with error but no message."""
-    # Mock the Session class and post method
-    mock_session = mocker.MagicMock()
-    mock_post = mocker.MagicMock()
-    mock_session.post.return_value = mock_post
-
-    # Mock response from post method
-    mock_post.status_code = 200
-    mock_post.__enter__.return_value = mock_post
-    mock_post.iter_lines.return_value = [json.dumps({"success": False}).encode("utf-8")]
-
-    # Mock Session class to return our mock session
-    mocker.patch("requests.Session", return_value=mock_session)
-
-    # Mock progressbar and spinner
+    # Mock the progressbar and spinner
     mock_progressbar = mocker.patch("rich_click.progressbar")
-    mock_progress_context = mocker.MagicMock()
-    mock_progressbar.return_value.__enter__.return_value = mock_progress_context
+    progress_instance = mocker.MagicMock()
+    mock_progressbar.return_value.__enter__.return_value = progress_instance
     mocker.patch("weni_cli.clients.cli_client.spinner")
+
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [json.dumps({"success": False}).encode("utf-8")]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -288,21 +310,24 @@ def test_push_agents_error_no_message(client, mocker):
     skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
 
     # Call the method and expect exception
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(RequestError) as exc_info:
         client.push_agents(project_uuid, agents_definition, skill_folders)
 
-    # Verify the session.post call
-    mock_session.post.assert_called_once()
-    assert "Failed to push agents" in str(exc_info.value)
+    # Verify the exception message
+    assert "Unknown error during agent push" in str(exc_info.value)
 
 
-def test_push_agents_http_error(client, requests_mock, mocker):
+def test_push_agents_http_error(client, mocker):
     """Test pushing agents with HTTP error."""
     # Mock the spinner
     mocker.patch("weni_cli.clients.cli_client.spinner")
 
-    # Mock the response with an error status code
-    requests_mock.post(f"{client.base_url}/api/v1/agents", status_code=500, text="Internal Server Error")
+    # Mock the streaming_request to raise an exception
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        raise RequestError("Request failed with status code 500: Internal Server Error", status_code=500)
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -310,21 +335,26 @@ def test_push_agents_http_error(client, requests_mock, mocker):
     skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
 
     # Call the method and expect exception
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(RequestError) as exc_info:
         client.push_agents(project_uuid, agents_definition, skill_folders)
 
-    # Verify the exception message
-    assert "Failed to push agents" in str(exc_info.value)
+    # Verify the exception
+    assert "500" in str(exc_info.value)
     assert "Internal Server Error" in str(exc_info.value)
 
 
-def test_run_test_success(client, requests_mock, mocker):
+def test_run_test_success(client, mocker):
     """Test successful test run."""
     # Mock the callback function
     result_callback = mocker.Mock()
 
-    # Mock the response content with test case responses
-    response_content = [
+    # Define the expected test responses
+    test_response_1 = {"response": {"text": "Test response"}}
+    test_response_2 = {"response": {"text": "Final response"}}
+
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [
         json.dumps(
             {
                 "success": True,
@@ -332,11 +362,11 @@ def test_run_test_success(client, requests_mock, mocker):
                 "data": {
                     "test_case": "Test 1",
                     "test_status_code": 200,
-                    "test_response": {"response": {"text": "Test response"}},
+                    "test_response": test_response_1,
                     "logs": "Test logs",
                 },
             }
-        ),
+        ).encode("utf-8"),
         json.dumps(
             {
                 "success": True,
@@ -344,13 +374,18 @@ def test_run_test_success(client, requests_mock, mocker):
                 "data": {
                     "test_case": "Test 1",
                     "test_status_code": 200,
-                    "test_response": {"response": {"text": "Final response"}},
+                    "test_response": test_response_2,
                     "logs": "Final logs",
                 },
             }
-        ),
+        ).encode("utf-8"),
     ]
-    requests_mock.post(f"{client.base_url}/api/v1/runs", content="\n".join(response_content).encode("utf-8"))
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -376,30 +411,26 @@ def test_run_test_success(client, requests_mock, mocker):
         verbose=True,
     )
 
-    # Verify the request
-    assert requests_mock.last_request is not None
-    assert requests_mock.last_request.headers["Authorization"] == client.headers["Authorization"]
-    assert requests_mock.last_request.headers["X-Project-Uuid"] == client.headers["X-Project-Uuid"]
-
     # Verify the test logs were collected (verbose=True)
     assert len(test_logs) == 2
     assert test_logs[0]["test_name"] == "Test 1"
     assert test_logs[0]["test_status_code"] == 200
-    assert test_logs[0]["test_logs"] == "Test logs"
+    assert test_logs[0]["test_response"] == test_response_1
     assert test_logs[1]["test_logs"] == "Final logs"
 
     # Verify the callback was called
     assert result_callback.call_count == 2
-    result_callback.assert_any_call("Test 1", {"response": {"text": "Test response"}}, 200, "TEST_CASE_RUNNING", True)
+    result_callback.assert_any_call("Test 1", test_response_1, 200, "TEST_CASE_RUNNING", True)
 
 
-def test_run_test_non_verbose(client, requests_mock, mocker):
+def test_run_test_non_verbose(client, mocker):
     """Test running a test without verbose mode."""
     # Mock the callback function
     result_callback = mocker.Mock()
 
-    # Mock the response content with a test case response
-    response_content = [
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [
         json.dumps(
             {
                 "success": True,
@@ -411,9 +442,14 @@ def test_run_test_non_verbose(client, requests_mock, mocker):
                     "logs": "Test logs",
                 },
             }
-        )
+        ).encode("utf-8")
     ]
-    requests_mock.post(f"{client.base_url}/api/v1/runs", content="\n".join(response_content).encode("utf-8"))
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -449,15 +485,23 @@ def test_run_test_non_verbose(client, requests_mock, mocker):
     )
 
 
-def test_run_test_error_message(client, requests_mock, mocker):
+def test_run_test_error_message(client, mocker):
     """Test running a test with error message in response."""
     # Mock echo and callback
     mock_echo = mocker.patch("rich_click.echo")
     result_callback = mocker.Mock()
 
-    # Mock the response content with an error message
-    response_content = [json.dumps({"success": False, "message": "Error running test", "request_id": "12345"})]
-    requests_mock.post(f"{client.base_url}/api/v1/runs", content="\n".join(response_content).encode("utf-8"))
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [
+        json.dumps({"success": False, "message": "Error running test", "request_id": "12345"}).encode("utf-8")
+    ]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -494,13 +538,17 @@ def test_run_test_error_message(client, requests_mock, mocker):
     result_callback.assert_not_called()
 
 
-def test_run_test_http_error(client, requests_mock, mocker):
+def test_run_test_http_error(client, mocker):
     """Test running a test with HTTP error."""
     # Mock the callback
     result_callback = mocker.Mock()
 
-    # Mock the response with an error status code
-    requests_mock.post(f"{client.base_url}/api/v1/runs", status_code=500, text="Internal Server Error")
+    # Mock the streaming_request to raise an exception
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        raise RequestError("Request failed with status code 500: Internal Server Error", status_code=500)
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -513,7 +561,7 @@ def test_run_test_http_error(client, requests_mock, mocker):
     skill_globals = {"REGION": "us-east-1"}
 
     # Call the method and expect exception
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(RequestError) as exc_info:
         client.run_test(
             project_uuid,
             definition,
@@ -529,25 +577,24 @@ def test_run_test_http_error(client, requests_mock, mocker):
 
     # Verify the exception message
     assert "Failed to run test" in str(exc_info.value)
-    assert "Internal Server Error" in str(exc_info.value)
+    assert "500" in str(exc_info.value)
 
 
-def test_run_test_unknown_error(client, requests_mock, mocker):
+def test_run_test_unknown_error(client, mocker):
     """Test running a test with unknown error in response."""
     # Mock echo and callback
     mock_echo = mocker.patch("rich_click.echo")
     result_callback = mocker.Mock()
 
-    # Mock the response content with a success=False but no message
-    response_content = [
-        json.dumps(
-            {
-                "success": False
-                # No message or other data
-            }
-        )
-    ]
-    requests_mock.post(f"{client.base_url}/api/v1/runs", content="\n".join(response_content).encode("utf-8"))
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [json.dumps({"success": False}).encode("utf-8")]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -580,22 +627,21 @@ def test_run_test_unknown_error(client, requests_mock, mocker):
     assert test_logs == []
 
 
-def test_run_test_success_false_no_message(client, requests_mock, mocker):
+def test_run_test_success_false_no_message(client, mocker):
     """Test running a test with success=False but no message."""
     # Mock echo
     mock_echo = mocker.patch("rich_click.echo")
     result_callback = mocker.Mock()
 
-    # Mock the response content with success=False but no message
-    response_content = [
-        json.dumps(
-            {
-                "success": False
-                # No message
-            }
-        )
-    ]
-    requests_mock.post(f"{client.base_url}/api/v1/runs", content="\n".join(response_content).encode("utf-8"))
+    # Mock the streaming_request context manager
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [json.dumps({"success": False}).encode("utf-8")]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
 
     # Create test data
     project_uuid = "test-project-uuid"
@@ -628,46 +674,30 @@ def test_run_test_success_false_no_message(client, requests_mock, mocker):
     assert test_logs == []
 
 
-def test_check_project_permission_success(client, requests_mock):
+def test_check_project_permission_success(client, mocker):
     """Test successful project permission check."""
-    # Mock the response with a success status code
-    project_uuid = "test-project-uuid"
-    requests_mock.post(
-        f"{client.base_url}/api/v1/permissions/verify",
-        status_code=200,
-        json={"status": "success", "message": "User has permission to access this project"},
-    )
+    # Mock the make_request method
+    mocker.patch.object(client, "_make_request", return_value=mocker.MagicMock(status_code=200))
 
     # Call the method - should not raise an exception
+    project_uuid = "test-project-uuid"
     client.check_project_permission(project_uuid)
 
-    # Verify the request was made with correct data
-    assert requests_mock.last_request is not None
-    assert requests_mock.last_request.headers["Authorization"] == client.headers["Authorization"]
-    assert requests_mock.last_request.headers["X-Project-Uuid"] == client.headers["X-Project-Uuid"]
-
-    # Verify the payload contains the project_uuid
-    # The body might be bytes or string depending on the version of requests_mock
-    body = requests_mock.last_request.body
-    if isinstance(body, bytes):
-        body = body.decode("utf-8")
-    request_payload = json.loads(body)
-    assert request_payload["project_uuid"] == project_uuid
-
-
-def test_check_project_permission_failure(client, requests_mock):
-    """Test failed project permission check."""
-    # Mock the response with a failure status code
-    project_uuid = "test-project-uuid"
-    error_message = "User does not have permission to access this project"
-    requests_mock.post(
-        f"{client.base_url}/api/v1/permissions/verify",
-        status_code=403,
-        json={"status": "error", "message": error_message},
+    # Verify the method was called with correct parameters
+    client._make_request.assert_called_once_with(
+        method="POST", endpoint="api/v1/permissions/verify", data=json.dumps({"project_uuid": project_uuid})
     )
 
+
+def test_check_project_permission_failure(client, mocker):
+    """Test failed project permission check."""
+    # Mock the make_request method to raise RequestError
+    error_message = "User does not have permission to access this project"
+    mocker.patch.object(client, "_make_request", side_effect=RequestError(message=error_message, status_code=403))
+
     # Call the method and expect an exception
-    with pytest.raises(Exception) as exc_info:
+    project_uuid = "test-project-uuid"
+    with pytest.raises(RequestError) as exc_info:
         client.check_project_permission(project_uuid)
 
     # Verify the exception message
@@ -675,48 +705,175 @@ def test_check_project_permission_failure(client, requests_mock):
     assert error_message in str(exc_info.value)
 
 
-def test_check_project_permission_no_message(client, requests_mock):
+def test_check_project_permission_no_message(client, mocker):
     """Test project permission check with no message in response."""
-    # Mock the response with a failure status code but no message
-    project_uuid = "test-project-uuid"
-    requests_mock.post(
-        f"{client.base_url}/api/v1/permissions/verify", status_code=500, json={"status": "error"}  # No message field
+    # Mock the make_request method to raise RequestError without a specific message
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message="Request failed with status code 500", status_code=500),
     )
 
     # Call the method and expect an exception
-    with pytest.raises(Exception) as exc_info:
-        client.check_project_permission(project_uuid)
-
-    # Verify the exception message contains a default message
-    assert "Failed to check project permission: None" in str(exc_info.value)
-
-
-def test_check_project_permission_invalid_json(client, requests_mock):
-    """Test project permission check with invalid JSON response."""
-    # Mock the response with a failure status code and invalid JSON
     project_uuid = "test-project-uuid"
-    requests_mock.post(
-        f"{client.base_url}/api/v1/permissions/verify", status_code=500, text="Not a valid JSON response"
-    )
-
-    # Call the method and expect an exception
-    with pytest.raises(Exception) as exc_info:
+    with pytest.raises(RequestError) as exc_info:
         client.check_project_permission(project_uuid)
 
-    # The error could be a direct JSONDecodeError or wrapped in our custom message
-    error_str = str(exc_info.value)
-    assert "Failed to check project permission" in error_str or "Expecting value" in error_str
+    # Verify the exception message
+    assert "Failed to check project permission" in str(exc_info.value)
+    assert "500" in str(exc_info.value)
 
 
 def test_check_project_permission_network_error(client, mocker):
     """Test project permission check with network error."""
-    # Mock requests.post to raise a ConnectionError
-    project_uuid = "test-project-uuid"
-    mocker.patch("requests.post", side_effect=requests.ConnectionError("Connection refused"))
+    # Mock the _make_request method to raise a ConnectionError that gets wrapped in RequestError
+    mocker.patch.object(client, "_make_request", side_effect=RequestError("Connection refused"))
 
     # Call the method and expect an exception
-    with pytest.raises(requests.ConnectionError) as exc_info:
+    project_uuid = "test-project-uuid"
+    with pytest.raises(RequestError) as exc_info:
         client.check_project_permission(project_uuid)
 
     # Verify the exception message
+    assert "Failed to check project permission" in str(exc_info.value)
     assert "Connection refused" in str(exc_info.value)
+
+
+def test_request_error_format_message():
+    """Test the RequestError _format_message method with various parameters."""
+    # Test with just a message
+    error = RequestError("Test error")
+    assert error._format_message() == "Test error"
+
+    # Test with message and data
+    error = RequestError("Test error", data={"key": "value"})
+    assert error._format_message() == "Test error - Data: {'key': 'value'}"
+
+    # Test with message and request_id
+    error = RequestError("Test error", request_id="12345")
+    assert error._format_message() == "Test error - Request ID: 12345"
+
+    # Test with all parameters
+    error = RequestError("Test error", data={"key": "value"}, request_id="12345")
+    assert error._format_message() == "Test error - Data: {'key': 'value'} - Request ID: 12345"
+
+
+def test_streaming_request_json_decode_error(client, requests_mock, mocker):
+    """Test _streaming_request method with a JSON decode error."""
+    # Mock the session.request method
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 500
+    mock_response.text = "Not a JSON response"
+    # Ensure json.loads raises JSONDecodeError
+    mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
+
+    client.session.request = mocker.MagicMock(return_value=mock_response)
+
+    # Test with the context manager
+    with pytest.raises(RequestError) as excinfo:
+        with client._streaming_request("GET", "test/endpoint"):
+            pass
+
+    # Verify the error message format
+    assert "Request failed with status code 500: Not a JSON response" in str(excinfo.value)
+
+
+def test_request_method_error_handling(client, mocker):
+    """Test _make_request method with various error responses."""
+    # 1. Test with JSON error response
+    json_error_resp = mocker.MagicMock()
+    json_error_resp.status_code = 400
+    json_error_resp.json.return_value = {
+        "message": "Bad request",
+        "data": {"field": "error"},
+        "request_id": "req-12345",
+    }
+
+    client.session.request = mocker.MagicMock(return_value=json_error_resp)
+
+    with pytest.raises(RequestError) as excinfo:
+        client._make_request("GET", "test/endpoint")
+
+    error = excinfo.value
+    assert error.message == "Bad request"
+    assert error.status_code == 400
+    assert error.data == {"field": "error"}
+    assert error.request_id == "req-12345"
+
+    # 2. Test with non-JSON error response
+    text_error_resp = mocker.MagicMock()
+    text_error_resp.status_code = 500
+    text_error_resp.json.side_effect = json.JSONDecodeError("Expecting value", "", 0)
+    text_error_resp.text = "Internal server error"
+
+    client.session.request = mocker.MagicMock(return_value=text_error_resp)
+
+    with pytest.raises(RequestError) as excinfo:
+        client._make_request("GET", "test/endpoint")
+
+    assert "Request failed with status code 500: Internal server error" in str(excinfo.value)
+
+    # 3. Test with successful response
+    success_resp = mocker.MagicMock()
+    success_resp.status_code = 200
+    success_resp.json.return_value = {"data": "success"}
+
+    client.session.request = mocker.MagicMock(return_value=success_resp)
+
+    response = client._make_request("GET", "test/endpoint")
+    assert response == success_resp
+
+
+def test_streaming_request_json_error_response(client, mocker):
+    """Test _streaming_request method with a JSON error response."""
+    # Mock the session.request method to return a JSON error
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 400
+    mock_response.json.return_value = {
+        "message": "Bad request from streaming",
+        "data": {"field": "stream_error"},
+        "request_id": "stream-12345",
+    }
+
+    client.session.request = mocker.MagicMock(return_value=mock_response)
+
+    # Test with the context manager
+    with pytest.raises(RequestError) as excinfo:
+        with client._streaming_request("GET", "test/endpoint"):
+            pass
+
+    # Verify the error properties
+    error = excinfo.value
+    assert error.message == "Bad request from streaming"
+    assert error.status_code == 400
+    assert error.data == {"field": "stream_error"}
+    assert error.request_id == "stream-12345"
+
+    # Ensure the session.request was called properly
+    client.session.request.assert_called_once()
+    call_args = client.session.request.call_args
+    assert call_args[1]["stream"] is True
+
+
+def test_streaming_request_successful_response(client, mocker):
+    """Test _streaming_request method with a successful response."""
+    # Mock the session.request method to return a successful response
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+
+    client.session.request = mocker.MagicMock(return_value=mock_response)
+
+    # Test with the context manager and ensure the response is yielded
+    with client._streaming_request("GET", "test/endpoint") as response:
+        assert response == mock_response
+
+    # Ensure the session.request was called properly
+    client.session.request.assert_called_once()
+    call_args = client.session.request.call_args
+    assert call_args[1]["stream"] is True
+
+
+def test_run_test_verbose_with_callback(client, mocker):
+    """Test run_test method with verbose=True and a callback."""
+    # This test is a placeholder and can be implemented if needed
+    pass

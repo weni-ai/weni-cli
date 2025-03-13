@@ -174,7 +174,7 @@ def test_project_push_error(mocker, create_mocked_files, mock_cli_response, mock
         assert result.exit_code == 0
         assert (
             result.output
-            == f'Using toolkit version: {get_toolkit_version()}\nError: Failed to push agents: {{"success": false, "message": "Failed to push agents", "request_id": "12345"}}\n\n'
+            == f"Using toolkit version: {get_toolkit_version()}\nError: Failed to push agents - Request ID: 12345\n"
         )
 
 

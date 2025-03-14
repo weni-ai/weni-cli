@@ -42,9 +42,17 @@ Before you begin, make sure you have:
    weni project current
    ```
 
-### 2. Create Agent Definition
+### 2. Use Weni Init
 
-Create a file named `agents.yaml`:
+```bash
+weni init
+```
+
+This command will create a new agent with the name `cep_agent` and the skill `get_address`.
+
+#### 2.1. Agent Configuration
+
+Create a file named `agents.yaml` with your agent configuration:
 
 ```yaml
 agents:
@@ -70,7 +78,7 @@ agents:
                 required: true
 ```
 
-### 3. Create Agent Skill
+#### 2.2. Skill Implementation
 
 1. **Create Skill Directory**
    ```bash
@@ -121,7 +129,7 @@ agents:
    urllib3==2.3.0
    ```
 
-### 4. Deploy Agent
+### 3. Deploy Agent
 
 ```bash
 weni project push agents.yaml

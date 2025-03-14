@@ -21,37 +21,28 @@ Here is an example of how you can define your agent in a YAML file:
 
 ``` yaml title="agent_definition.yaml"
 agents:
-  sample_agent:
-    name: "Sample Agent"
-    description: "Weni's sample agent"
+  cep_agent:
+    name: "CEP Agent"
+    description: "Weni's CEP agent"
     instructions:
-      - "You should always be polite, respectful and helpful, even if the user is not."
-      - "If you don't know the answer, don't lie. Tell the user you don't know."
+      - "You are an expert in providing addresses to the user based on a postal code provided by the user"
+      - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
     skills:
-      - get_order_status:
-          name: "Get Order Status"
+      - get_address:
+          name: "Get Address"
           source: 
-            path: "skills/order_status"
-            entrypoint: "lambda_function.lambda_handler"
-          description: "Function to get the order status"
+            path: "skills/get_address"
+            entrypoint: "main.GetAddress"
+            path_test: "tests.yaml"
+          description: "Function to get the address from the postal code"
           parameters:
-            - order_id:
-                description: "Order ID"
+            - cep:
+                description: "postal code of a place"
                 type: "string"
                 required: true
-      - get_order_details:
-          name: "Get Order Details"                                                           
-          source: 
-            path: "skills/order_details"
-            entrypoint: "lambda_function.lambda_handler"
-          description: "Function to get the order details"
-          parameters:
-            - order_id:
-                description: "Order ID"
-                type: "string"
-                required: true
+                contact_field: true
 ```
 
 ### YAML Elements
@@ -64,7 +55,7 @@ agents:
 
     `Credentials`
 
-    :   The credentials used in the skills you define for your agent.
+    :   The credentials used in the skills you define for your agent. For more detailed information about this definition, see [Credentials](./credentials.md).
 
     `Description`
 
@@ -86,7 +77,13 @@ agents:
 
     `Source`
 
-    :   The location or path where the skill can be found.
+    :   The location or path where the skill can be found. It contains three important elements:
+        
+        - `path`: The directory path where your skill's code is located. This is typically a relative path from the root of your project.
+        
+        - `entrypoint`: The specific class that will be executed when the skill is called. It follows the format "file_name.ClassName". You can see a practical example of the skill implementation for this entrypoint in the [example](/core-concepts/skills) page, where the GetAddress class from this example is implemented.
+        
+        - `path_test`: The location of the test file for your skill, which contains test cases to validate the skill's functionality.
 
     `Description`
 
@@ -95,8 +92,14 @@ agents:
     `Parameters`
 
     :   The parameters or variables used in your agent's skill.
-
-
+        
+        - `description`: A clear explanation of what the parameter is used for and what kind of data it expects.
+        
+        - `type`: The data type of the parameter (e.g., string, integer, boolean, object).
+        
+        - `required`: A boolean value (true/false) indicating whether the parameter must be provided for the skill to function properly. If set to true, the agent will ask the user for this information if it's not available before proceeding with the request.
+        
+        - `contact_field`: Specifies if the parameter should be stored as a contact field in the user's profile for future reference. If set to true, the respective parameter will become information that persists for the user integrated with the Weni Platform. This brings benefits to the user experience because in future interactions, your agent may not need to request this information from the user again. Read more about contact fields in [Contact Fields](./contact-fields.md).
 
 ## Basic Structure
 
@@ -106,44 +109,34 @@ Based on the definition example below:
 
 ``` yaml title="agent_definition.yaml"
 agents:
-  sample_agent:
-    name: "Sample Agent"
-    description: "Weni's sample agent"
+  cep_agent:
+    name: "CEP Agent"
+    description: "Weni's CEP agent"
     instructions:
-      - "You should always be polite, respectful and helpful, even if the user is not."
-      - "If you don't know the answer, don't lie. Tell the user you don't know."
+      - "You are an expert in providing addresses to the user based on a postal code provided by the user"
+      - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
     skills:
-      - get_order_status:
-          name: "Get Order Status"
+      - get_address:
+          name: "Get Address"
           source: 
-            path: "skills/order_status"
-            entrypoint: "lambda_function.lambda_handler"
-          description: "Function to get the order status"
+            path: "skills/get_address"
+            entrypoint: "main.GetAddress"
+            path_test: "tests.yaml"
+          description: "Function to get the address from the postal code"
           parameters:
-            - order_id:
-                description: "Order ID"
+            - cep:
+                description: "postal code of a place"
                 type: "string"
                 required: true
-      - get_order_details:
-          name: "Get Order Details"                                                           
-          source: 
-            path: "skills/order_details"
-            entrypoint: "lambda_function.lambda_handler"
-          description: "Function to get the order details"
-          parameters:
-            - order_id:
-                description: "Order ID"
-                type: "string"
-                required: true
+                contact_field: true
 ```
 
 Your project should have the following structure:
 ```
 your-project-name/
 ├── skills/
-│   ├── get_orders_status/
-│   ├── get_order_details/
+│   ├── get_address/main.py
 └── agent_definition.yaml
 ```

@@ -48,3 +48,20 @@ line-length = 119
 
 [tool.mypy]
 disable_error_code = ["import-untyped"]
+
+[tool.pytest]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+testpaths = ["weni_cli"]
+addopts = "--strict-markers -v"
+
+[tool.coverage.run]
+source = ["app"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/.pytest_cache/*",
+    "*/__init__.py"
+]

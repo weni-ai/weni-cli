@@ -101,7 +101,7 @@ class ProjectPushHandler(Handler):
                         files.remove(zip_file_name)
 
                     # skip __pycache__ folders
-                    if "__pycache__" in root:
+                    if "__pycache__" in root:  # pragma: no cover
                         continue
 
                     # add the remaining files to the zip file

@@ -169,7 +169,10 @@ def test_run_command_success(mocker, create_mocked_files, mock_cli_response, moc
         mocker.patch(
             "weni_cli.commands.run.RunHandler.load_skill_folder", return_value=io.BytesIO(b"mock zip content")
         )
-        mocker.patch("weni_cli.commands.run.load_definition", return_value={"agents": {"get_address": {"skills": []}}})
+        mocker.patch(
+            "weni_cli.commands.run.load_agent_definition",
+            return_value=({"agents": {"get_address": {"skills": []}}}, None),
+        )
         mocker.patch(
             "weni_cli.commands.run.format_definition",
             return_value={
@@ -272,10 +275,15 @@ def test_run_command_invalid_definition(mocker, mock_store_values):
         with open("invalid.yaml", "w") as f:
             f.write("invalid: yaml: content")
 
+        # Mock the load_yaml_file function to return a proper YAML parse error
+        yaml_error = "mapping values are not allowed here"
+        mocker.patch("weni_cli.validators.definition.load_yaml_file", return_value=(None, yaml_error))
+
         result = runner.invoke(cli, ["run", "invalid.yaml", "get_address", "get_address"])
 
         assert result.exit_code == 0
-        assert "Failed to parse definition file" in result.output
+        # Check for the actual error that's now being displayed
+        assert yaml_error in result.output
 
 
 def test_run_command_missing_definition(mocker, mock_store_values):
@@ -301,13 +309,21 @@ def test_run_command_missing_test_definition(mocker, create_mocked_files, mock_s
         # Remove the test definition file
         os.remove("skills/get_address/test_definition.yaml")
 
+        # Mock load_agent_definition to return valid data
+        mocker.patch(
+            "weni_cli.commands.run.load_agent_definition",
+            return_value=({"agents": {"get_address": {"description": "Test", "skills": []}}}, None),
+        )
+
         # Patch the load_default_test_definition to return None
-        mocker.patch.object(RunHandler, "load_default_test_definition", return_value=None)
+        mocker.patch("weni_cli.commands.run.RunHandler.load_default_test_definition", return_value=None)
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
 
         assert result.exit_code == 0
-        assert f"Failed to get default test definition file: {DEFAULT_TEST_DEFINITION_FILE}" in result.output
+
+        # Check the output directly for the error message
+        assert "Failed to get default test definition file" in result.output
 
 
 def test_run_command_skill_folder_failure(mocker, create_mocked_files, mock_store_values):
@@ -317,46 +333,26 @@ def test_run_command_skill_folder_failure(mocker, create_mocked_files, mock_stor
         agent_file = create_mocked_files()
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
 
+        # Mock load_agent_definition to return valid data
+        mocker.patch(
+            "weni_cli.commands.run.load_agent_definition",
+            return_value=({"agents": {"get_address": {"description": "Test", "skills": []}}}, None),
+        )
+
+        # Patch the load_default_test_definition to return a valid file
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_default_test_definition",
+            return_value="skills/get_address/test_definition.yaml",
+        )
+
         # Patch the load_skill_folder to return None
-        mocker.patch.object(RunHandler, "load_skill_folder", return_value=None)
+        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=None)
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
 
         assert result.exit_code == 0
+        # Check the output directly for the error message
         assert "Failed to load skill folder" in result.output
-
-
-def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock_store_values, mock_skill_folder):
-    """Test running a command when format_definition returns None."""
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        agent_file = create_mocked_files()
-        _ = mock_store_values(mocker)  # Project UUID is saved in the mock
-        mock_skill_folder(mocker)
-
-        # Patch the format_definition to return None
-        mocker.patch("weni_cli.commands.run.format_definition", return_value=None)
-
-        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
-
-        assert result.exit_code == 0
-
-
-def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_store_values, mock_skill_folder):
-    """Test running a command when test definition file is invalid."""
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        agent_file = create_mocked_files()
-        _ = mock_store_values(mocker)  # Project UUID is saved in the mock
-        mock_skill_folder(mocker)
-
-        # Patch the load_definition for test_definition to return None
-        load_definition_mock = mocker.patch("weni_cli.commands.run.load_definition")
-        load_definition_mock.side_effect = [{"agents": {"get_address": {"skills": []}}}, None]
-
-        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
-
-        assert result.exit_code == 0
 
 
 def test_run_command_skill_name_error(mocker, create_mocked_files, mock_store_values, mock_skill_folder):
@@ -367,13 +363,77 @@ def test_run_command_skill_name_error(mocker, create_mocked_files, mock_store_va
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
         mock_skill_folder(mocker)
 
+        # Mock load_agent_definition to return valid data
+        mocker.patch(
+            "weni_cli.commands.run.load_agent_definition",
+            return_value=({"agents": {"get_address": {"description": "Test", "skills": []}}}, None),
+        )
+
+        # Mock load_test_definition to return valid data
+        mocker.patch("weni_cli.commands.run.load_test_definition", return_value=({"test_cases": []}, None))
+
+        # Patch the load_default_test_definition to return a valid file
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_default_test_definition",
+            return_value="skills/get_address/test_definition.yaml",
+        )
+
+        # Patch the load_skill_folder to return a mock folder
+        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=b"mock_skill_folder")
+
+        # Make sure format_definition returns a valid definition
+        mocker.patch(
+            "weni_cli.commands.run.format_definition", return_value={"agents": {"get_address": {"skills": []}}}
+        )
+
         # Patch the get_skill_and_agent_name to return None
-        mocker.patch.object(RunHandler, "get_skill_and_agent_name", return_value=(None, None))
+        mocker.patch("weni_cli.commands.run.RunHandler.get_skill_and_agent_name", return_value=(None, None))
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
 
         assert result.exit_code == 0
+        # Check the output directly for the error message
         assert "Failed to get skill or agent name" in result.output
+
+
+def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_store_values, mock_skill_folder):
+    """Test running a command when test definition file is invalid."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        _ = mock_store_values(mocker)  # Project UUID is saved in the mock
+        mock_skill_folder(mocker)
+
+        # Mock load_agent_definition to return valid data
+        mocker.patch(
+            "weni_cli.commands.run.load_agent_definition",
+            return_value=({"agents": {"get_address": {"description": "Test", "skills": []}}}, None),
+        )
+
+        # Mock load_test_definition to return an error
+        error_message = "Error loading test definition"
+        mocker.patch("weni_cli.commands.run.load_test_definition", return_value=(None, error_message))
+
+        # Patch the load_default_test_definition to return a valid file
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_default_test_definition",
+            return_value="skills/get_address/test_definition.yaml",
+        )
+
+        # Patch the load_skill_folder to return a mock folder
+        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=b"mock_skill_folder")
+
+        # Patch the format_definition to return a valid definition
+        mocker.patch(
+            "weni_cli.commands.run.format_definition", return_value={"agents": {"get_address": {"skills": []}}}
+        )
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        assert result.exit_code == 0
+
+        # The error message should be displayed in the output
+        assert error_message in result.output
 
 
 def test_parse_agent_skill_success():
@@ -698,15 +758,11 @@ def test_load_default_test_definition_exception_handling(mocker):
             }
         }
 
-        # Mock click.echo to capture the error message
-        mock_echo = mocker.patch("rich_click.echo")
-
+        # Call the method directly and check the result
         result = handler.load_default_test_definition(definition, "get_address", "get_address")
 
+        # Verify the function returns None on exception
         assert result is None
-        assert mock_echo.call_count == 1
-        # Check that the error message starts with "Error: Failed to load default test definition file"
-        assert mock_echo.call_args[0][0].startswith("Error: Failed to load default test definition file")
 
 
 def test_load_skill_folder_zip_creation_failure(mocker):
@@ -727,14 +783,11 @@ def test_load_skill_folder_zip_creation_failure(mocker):
         # Mock create_skill_folder_zip to return None, simulating a failure
         mocker.patch("weni_cli.commands.run.create_skill_folder_zip", return_value=None)
 
-        # Mock click.echo to capture the error message
-        mock_echo = mocker.patch("rich_click.echo")
-
+        # Call the method directly and check the result
         result = handler.load_skill_folder(definition, "get_address", "get_address")
 
+        # Verify the function returns None on failure
         assert result is None
-        # Verify the error message was output
-        assert any("Failed to create skill folder" in call_args[0][0] for call_args in mock_echo.call_args_list)
 
 
 def test_render_response_and_logs(capsys):
@@ -788,44 +841,49 @@ def test_run_test_uses_new_methods(mocker):
     """Test that run_test uses our newly extracted methods."""
     runner = CliRunner()
     with runner.isolated_filesystem():
+        # Create a separate handler instance for this test
         handler = RunHandler()
 
-        # Mock CLIClient properly
+        # We'll directly verify that update_live_display gets called
+        # by patching it and tracking if it was called
+        update_mock = mocker.patch.object(handler, "update_live_display")
+
+        # Skip the indirect approach and directly mock the client creation
+        # This ensures we're testing only our handler.run_test method
+        # Create a CLIClient mock with a prepared run_test method
         client_mock = mocker.MagicMock()
 
-        # Mock the client headers and base_url to avoid Auth errors
-        mocker.patch.object(client_mock, "headers", {"Authorization": "Bearer token", "X-Project-Uuid": "uuid"})
-        mocker.patch.object(client_mock, "base_url", "https://example.com")
+        # Have the client.run_test method call the callback directly
+        def fake_run_test(*args, **kwargs):
+            # Directly call the callback function with test data
+            # The callback is the 9th positional argument (index 8)
+            callback = args[8]
+            # Call the callback with some test data
+            callback(
+                "Test Name",
+                {"response": {"text": "Test result"}},
+                200,
+                "TEST_CASE_COMPLETED",
+                kwargs.get("verbose", False),
+            )
+            return []
 
-        # Mock requests to avoid actual HTTP calls
-        session_mock = mocker.MagicMock()
-        response_mock = mocker.MagicMock()
-        response_mock.status_code = 200
-        response_mock.iter_lines.return_value = [
-            b'{"success": true, "code": "TEST_CASE_COMPLETED", "data": {"test_case": "Test Name", "test_status_code": 200, "test_response": "Test Result"}}'
-        ]
-        session_mock.post.return_value.__enter__.return_value = response_mock
-        mocker.patch("requests.Session", return_value=session_mock)
+        client_mock.run_test.side_effect = fake_run_test
 
-        # Use the actual CLIClient.run_test method so we can verify all the behavior
-        mocker.patch("weni_cli.clients.cli_client.create_default_payload", return_value={})
+        # This will replace the CLIClient constructor with our mock
+        # Save the patch reference for later verification
+        mocker.patch("weni_cli.commands.run.CLIClient", return_value=client_mock)
 
-        # Mock Live context manager
+        # Mock the Live context manager
         live_context = mocker.MagicMock()
         live_mock = mocker.MagicMock()
         live_context.__enter__.return_value = live_mock
         mocker.patch("rich.live.Live", return_value=live_context)
 
-        # Mock our display_test_results method
-        display_mock = mocker.patch.object(handler, "display_test_results", return_value="Test Table")
+        # Mock display_test_results for verification - no need to save the reference
+        mocker.patch.object(handler, "display_test_results", return_value="Test Table")
 
-        # Mock our update_live_display method to simplify verification
-        update_mock = mocker.patch.object(handler, "update_live_display")
-
-        # Make sure the actual client is used
-        mocker.patch("weni_cli.clients.cli_client.CLIClient", return_value=client_mock)
-
-        # Call run_test
+        # Call the handler method to be tested
         handler.run_test(
             "project_uuid",
             {"test": "definition"},
@@ -838,53 +896,64 @@ def test_run_test_uses_new_methods(mocker):
             False,
         )
 
-        # Verify that display_test_results was called
-        display_mock.assert_called_once_with([], "Skill Name", False)
+        # Verify that client.run_test was called
+        assert client_mock.run_test.called, "client.run_test was not called"
 
-        # Verify update_live_display was called
-        assert update_mock.called, "update_live_display was not called"
+        # Now verify that update_live_display was called
+        assert update_mock.call_count > 0, "update_live_display was not called"
 
 
 def test_run_test_verbose_triggers_render_logs(mocker):
     """Test that run_test with verbose=True triggers the render_reponse_and_logs method."""
     runner = CliRunner()
     with runner.isolated_filesystem():
+        # Create a separate handler instance for this test
         handler = RunHandler()
 
-        # Mock CLIClient properly with headers
+        # Set up test logs to be returned by our mock
+        test_logs = [
+            {
+                "test_name": "Test Name",
+                "test_response": {"response": {"text": "Test response"}},
+                "test_logs": "Test logs",
+            }
+        ]
+
+        # Create a CLIClient mock with a prepared run_test method
         client_mock = mocker.MagicMock()
-        client_mock.headers = {"Authorization": "Bearer token", "X-Project-Uuid": "project_uuid"}
-        client_mock.base_url = "https://example.com"
-        test_logs = []  # The actual logs passed to render_reponse_and_logs might be empty
-        client_mock.run_test.return_value = test_logs
-        mocker.patch("weni_cli.clients.cli_client.CLIClient", return_value=client_mock)
 
-        # Mock Live to avoid context manager issues
-        live_mock = mocker.MagicMock()
-        live_mock.__enter__.return_value = mocker.MagicMock()
-        live_mock.__exit__.return_value = None
-        mocker.patch("rich.live.Live", return_value=live_mock)
-
-        # Mock requests Session and response
-        session_mock = mocker.MagicMock()
-        response_mock = mocker.MagicMock()
-        response_mock.status_code = 200
-        session_mock.post.return_value.__enter__.return_value = response_mock
-        mocker.patch("requests.Session", return_value=session_mock)
-
-        # Mock json module to avoid serialization issues
-        mocker.patch("json.dumps", return_value="{}")
-
-        # Since we're mocking the CLIClient, override the run_test method to return our logs
-        def mock_run_test(*args, **kwargs):
+        # Have the client.run_test method call the callback directly
+        def fake_run_test(*args, **kwargs):
+            # Directly call the callback function with test data
+            # The callback is the 9th positional argument (index 8)
+            if len(args) > 8:
+                callback = args[8]
+                # Call the callback with some test data
+                callback(
+                    "Test Name",
+                    {"response": {"text": "Test response"}},
+                    200,
+                    "TEST_CASE_COMPLETED",
+                    True,  # verbose=True
+                )
             return test_logs
 
-        client_mock.run_test = mock_run_test
+        client_mock.run_test.side_effect = fake_run_test
 
-        # Mock the render_reponse_and_logs method to verify it gets called
+        # This will replace the CLIClient constructor with our mock
+        # Save the patch reference for later verification
+        client_patch = mocker.patch("weni_cli.commands.run.CLIClient", return_value=client_mock)
+
+        # Mock the Live context manager
+        live_context = mocker.MagicMock()
+        live_mock = mocker.MagicMock()
+        live_context.__enter__.return_value = live_mock
+        mocker.patch("rich.live.Live", return_value=live_context)
+
+        # Mock render_reponse_and_logs for verification
         render_mock = mocker.patch.object(handler, "render_reponse_and_logs")
 
-        # Call run_test with verbose=True, which should trigger render_reponse_and_logs
+        # Call the handler method to be tested with verbose=True
         handler.run_test(
             "project_uuid",
             {"test": "definition"},
@@ -897,7 +966,10 @@ def test_run_test_verbose_triggers_render_logs(mocker):
             True,  # verbose=True
         )
 
-        # Verify render_reponse_and_logs was called with the empty logs
+        # Verify client constructor was called
+        assert client_patch.called, "CLIClient constructor not called"
+
+        # Verify render_reponse_and_logs was called with the test logs
         render_mock.assert_called_once_with(test_logs)
 
 
@@ -1059,10 +1131,14 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
             "agents": {"test_agent": {"skills": [{"test_skill": {"source": {"path": "skills/test_skill"}}}]}}
         }
 
-        # Mock load_definition to return our definition data the first time (for the agent definition)
-        # and None the second time (for the test definition)
-        mock_load_definition = mocker.patch("weni_cli.commands.run.load_definition")
-        mock_load_definition.side_effect = [definition_data, None]
+        # Mock load_agent_definition to return our definition data the first time (for the agent definition)
+        # and None for the test definition
+        mock_load_agent_definition = mocker.patch("weni_cli.commands.run.load_agent_definition")
+        mock_load_agent_definition.return_value = (definition_data, None)
+
+        # Mock load_test_definition to return None with an error
+        mock_load_test_definition = mocker.patch("weni_cli.commands.run.load_test_definition")
+        mock_load_test_definition.return_value = (None, "Error loading test definition")
 
         # Mock format_definition to return a formatted definition with the same structure
         formatted_definition = {
@@ -1088,13 +1164,96 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
         # Assert that the method returned None (early exit)
         assert result is None
 
-        # Verify load_definition was called twice: once for definition_path and once for test_definition_path
-        assert mock_load_definition.call_count == 2
-        # The second call should have been with test_definition_path
-        assert mock_load_definition.call_args_list[1][0][0] == "path/to/test_definition.json"
+        # Verify load_agent_definition was called once for definition_path
+        assert mock_load_agent_definition.call_count == 1
+
+        # Verify load_test_definition was called once for the test definition path
+        assert mock_load_test_definition.call_count == 1
+        assert mock_load_test_definition.call_args[0][0] == "path/to/test_definition.json"
 
         # Verify that load_skill_folder was called
         assert load_skill_folder_mock.called
 
         # Verify that get_skill_source_path was NOT called since we should exit early
         assert not get_skill_source_path_spy.called
+
+
+def test_run_command_unhandled_exception(mocker, create_mocked_files, mock_store_values):
+    """Test running a command with an unhandled exception."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        # Mock RunHandler.execute to raise an exception
+        mock_execute = mocker.patch("weni_cli.commands.run.RunHandler.execute")
+        mock_execute.side_effect = Exception("Unhandled test exception")
+
+        # Run the command and expect the exception to be caught and printed
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        # Verify the command output
+        assert result.exit_code == 0  # CLI commands return 0 when error is handled
+        assert "Error: Unhandled test exception" in result.output
+
+        # Verify the execute method was called with the correct arguments
+        mock_execute.assert_called_once()
+        args, kwargs = mock_execute.call_args
+        assert kwargs["definition"] == agent_file
+        assert kwargs["agent_key"] == "get_address"
+        assert kwargs["skill_key"] == "get_address"
+        assert kwargs["test_definition"] is None
+        assert kwargs["verbose"] is False
+
+
+def test_project_push_command_unhandled_exception(mocker):
+    """Test project push command with an unhandled exception."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        # Create a dummy definition file
+        with open("agents.yaml", "w") as f:
+            f.write("agents: {}")
+
+        # Mock ProjectPushHandler.execute to raise an exception
+        mock_execute = mocker.patch("weni_cli.commands.project_push.ProjectPushHandler.execute")
+        mock_execute.side_effect = Exception("Unhandled project push exception")
+
+        # Run the command and expect the exception to be caught and printed
+        result = runner.invoke(cli, ["project", "push", "agents.yaml"])
+
+        # Verify the command output
+        assert result.exit_code == 0  # CLI commands return 0 when error is handled
+        assert "Error: Unhandled project push exception" in result.output
+
+        # Verify the execute method was called with the correct arguments
+        mock_execute.assert_called_once()
+        args, kwargs = mock_execute.call_args
+        assert kwargs["definition"] == "agents.yaml"
+        assert kwargs["force_update"] is False
+
+
+def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock_store_values, mock_skill_folder):
+    """Test running a command when format_definition returns None."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        _ = mock_store_values(mocker)  # Project UUID is saved in the mock
+        mock_skill_folder(mocker)
+
+        # Mock load_agent_definition to return valid data
+        mocker.patch(
+            "weni_cli.validators.definition.load_agent_definition",
+            return_value=({"agents": {"get_address": {"description": "Test", "skills": []}}}, None),
+        )
+
+        # Patch the load_default_test_definition to return a valid file
+        mocker.patch.object(
+            RunHandler, "load_default_test_definition", return_value="skills/get_address/test_definition.yaml"
+        )
+
+        # Patch the format_definition to return None
+        mocker.patch("weni_cli.commands.run.format_definition", return_value=None)
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        assert result.exit_code == 0

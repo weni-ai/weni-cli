@@ -9,10 +9,11 @@ from rich.panel import Panel
 from rich.console import group
 
 from weni_cli.clients.cli_client import CLIClient
+from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
 from weni_cli.packager.packager import create_skill_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
-from weni_cli.validators.definition import format_definition, load_definition
+from weni_cli.validators.definition import format_definition, load_agent_definition, load_test_definition
 
 
 DEFAULT_TEST_DEFINITION_FILE = "test_definition.yaml"
@@ -28,13 +29,16 @@ class RunHandler(Handler):
         store = Store()
         project_uuid = store.get(STORE_PROJECT_UUID_KEY)
 
+        formatter = Formatter()
+
         if not project_uuid:
             click.echo("No project selected, please select a project first")
             return
 
-        definition_data = load_definition(definition_path)
+        definition_data, error = load_agent_definition(definition_path)
 
-        if not definition_data:
+        if error:
+            formatter.print_error_panel(error)
             return
 
         if not test_definition_path:
@@ -58,9 +62,10 @@ class RunHandler(Handler):
         if not definition:
             return
 
-        test_definition = load_definition(test_definition_path)
+        test_definition, error = load_test_definition(test_definition_path)
 
-        if not test_definition:
+        if error:
+            formatter.print_error_panel(error)
             return
 
         skill_source_path = self.get_skill_source_path(definition, agent_key, skill_key)

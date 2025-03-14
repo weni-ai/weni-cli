@@ -101,3 +101,73 @@ def test_init_command_creates_required_directories(cli_runner):
     # Check skill-specific directory
     skill_dir = Path(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}")
     assert skill_dir.exists() and skill_dir.is_dir(), f"Skill directory not created: {skill_dir}"
+
+
+def test_init_ensure_directory_error(cli_runner, mocker):
+    """Test exception handling in _ensure_directory when an unexpected error occurs."""
+    # Mock os.mkdir to raise a non-FileExistsError exception
+    mock_mkdir = mocker.patch("os.mkdir")
+    mock_mkdir.side_effect = PermissionError("Permission denied")
+
+    # Mock click.echo to verify error message
+    mock_echo = mocker.patch("rich_click.echo")
+
+    # Create an instance of InitHandler and call the method directly
+    from weni_cli.commands.init import InitHandler
+
+    handler = InitHandler()
+
+    # Call the method with a test directory
+    test_dir = "test_directory"
+    handler._ensure_directory(test_dir)
+
+    # Verify the exception was caught and error message was displayed
+    mock_echo.assert_called_once_with(f"Error creating directory {test_dir}: Permission denied")
+
+
+def test_init_write_file_error(cli_runner, mocker):
+    """Test exception handling in _write_file when an error occurs."""
+    # Mock open to raise an exception
+    mock_open = mocker.patch("builtins.open")
+    mock_open.side_effect = PermissionError("Permission denied")
+
+    # Mock click.echo to verify error message
+    mock_echo = mocker.patch("rich_click.echo")
+
+    # Create an instance of InitHandler and call the method directly
+    from weni_cli.commands.init import InitHandler
+
+    handler = InitHandler()
+
+    # Call the method with test values
+    test_filename = "test_file.py"
+    test_content = "test content"
+    test_description = "Test file"
+
+    handler._write_file(test_filename, test_content, test_description)
+
+    # Verify the exception was caught and error message was displayed
+    mock_echo.assert_called_once_with(f"Error creating {test_description} at {test_filename}: Permission denied")
+
+
+def test_init_ensure_directory_file_exists_error(cli_runner, mocker):
+    """Test exception handling in _ensure_directory when FileExistsError occurs."""
+    # Mock os.mkdir to raise FileExistsError
+    mock_mkdir = mocker.patch("os.mkdir")
+    mock_mkdir.side_effect = FileExistsError("File exists")
+
+    # Mock click.echo to verify it's not called for FileExistsError
+    mock_echo = mocker.patch("rich_click.echo")
+
+    # Create an instance of InitHandler and call the method directly
+    from weni_cli.commands.init import InitHandler
+
+    handler = InitHandler()
+
+    # Call the method with a test directory
+    test_dir = "test_directory"
+    handler._ensure_directory(test_dir)
+
+    # Verify mkdir was called but echo wasn't called (pass is executed)
+    mock_mkdir.assert_called_once_with(test_dir)
+    mock_echo.assert_not_called()

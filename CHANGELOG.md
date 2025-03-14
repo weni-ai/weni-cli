@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.1.0] - 2025-03-14
+
+### Added
+
+- Docs/content reformulation ([#70](https://github.com/weni-ai/weni-cli/pull/70)) ([**@hugocarvalhopc**](https://github.com/hugocarvalhopc))
+- Feat: Add WeniClient tests ([#61](https://github.com/weni-ai/weni-cli/pull/61)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- test: add tests for handling unhandled exceptions in CLI commands ([#63](https://github.com/weni-ai/weni-cli/pull/63)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- test: enhance exception handling tests for directory and file operations in CLI commands ([#64](https://github.com/weni-ai/weni-cli/pull/64)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- test: add unit tests for Store class ([#65](https://github.com/weni-ai/weni-cli/pull/65)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- feat: add formatter module for CLI ([#66](https://github.com/weni-ai/weni-cli/pull/66)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- feat: implement project permission check in CLIClient and integrate with ProjectUseHandler ([#67](https://github.com/weni-ai/weni-cli/pull/67)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- feat: add agent definition schema validation ([#68](https://github.com/weni-ai/weni-cli/pull/68)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- feat: definition validator tests ([#69](https://github.com/weni-ai/weni-cli/pull/69)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
+### Changed
+
+- Refactor: CLI client ([#62](https://github.com/weni-ai/weni-cli/pull/62)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [2.0.4] - 2025-03-11
 
 ### Added

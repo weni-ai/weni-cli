@@ -33,11 +33,15 @@ poetry install
 
 ## Verifying Installation
 
-After installation, verify that Weni CLI is properly installed:
+After installation, verify that Weni CLI is properly installed, type the command `weni` in your terminal:
 
 ```bash
-weni --version
+weni
 ```
+
+If everything went well, your terminal should display something like this:
+
+![Weni Command](../assets/weni_command.png)
 
 ## Troubleshooting
 

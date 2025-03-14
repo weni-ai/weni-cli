@@ -12,13 +12,13 @@ auth_queue = queue.Queue()
 
 
 @app.route("/sso-callback", methods=["GET"])
-def sso_callback():
+def sso_callback():  # pragma: no cover
     global auth_queue
     auth_queue.put(request.args.get("code"))
     return "Successfully logged in, you can close this window now"
 
 
-def serve():
+def serve():  # pragma: no cover
     global server_thread
     server_thread = Thread(
         target=waitress_serve,
@@ -28,7 +28,7 @@ def serve():
     server_thread.start()
 
 
-def shutdown():
+def shutdown():  # pragma: no cover
     global server_thread
     if server_thread is not None:
         server_thread.join(timeout=1)

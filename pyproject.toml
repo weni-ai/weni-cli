@@ -57,7 +57,7 @@ testpaths = ["weni_cli"]
 addopts = "--strict-markers -v"
 
 [tool.coverage.run]
-source = ["app"]
+source = ["weni_cli"]
 omit = [
     "*/tests/*",
     "*/test_*.py",

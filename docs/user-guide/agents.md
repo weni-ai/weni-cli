@@ -54,6 +54,37 @@ agents:
    - Custom functionalities
    - Implemented as Python classes using the Weni SDK
 
+### Skill Source Configuration
+
+The `source` field is critical for locating and executing your skill:
+
+```yaml
+source:
+  path: "skills/skill_name"
+  entrypoint: "main.SkillClass"
+```
+
+- **path**: Points to the directory containing your skill implementation
+  - Example: `skills/get_address` refers to a folder named `get_address` inside a `skills` directory
+  - This folder should contain your Python modules and requirements.txt
+
+- **entrypoint**: Specifies which class to use in which file
+  - Format: `filename.ClassName`
+  - Example: `main.GetAddress` means:
+    - Look for a file named `main.py` in the path directory
+    - Find a class named `GetAddress` inside that file
+    - This class must inherit from the `Skill` class
+
+Your directory structure should look like:
+```
+project/
+├── agents.yaml
+└── skills/
+    └── get_address/
+        ├── main.py             # Contains GetAddress class
+        └── requirements.txt    # Dependencies
+```
+
 ## Creating Skills
 
 ### Skill Implementation Structure
@@ -79,6 +110,11 @@ class SkillName(Skill):
         # Your business logic here
         return {"key": "value"}
 ```
+
+#### Important Requirements
+- The class **must** inherit from `Skill`
+- The class **must** implement the `execute` method
+- The class name **must** match the class name in your entrypoint
 
 ## Deploying Agents
 

@@ -78,6 +78,36 @@ agents:
                 required: true
 ```
 
+##### Understanding the Source Configuration
+
+In the YAML above, note the `source` field:
+
+```yaml
+source: 
+  path: "skills/get_address"
+  entrypoint: "main.GetAddress"
+```
+
+- **path**: Specifies the directory containing your skill implementation
+  - `skills/get_address` means a folder named `get_address` inside a `skills` directory
+  - This is where your Python files and requirements.txt should be located
+
+- **entrypoint**: Tells the system which class to use
+  - `main.GetAddress` means:
+    - Find a file named `main.py` in the path directory
+    - Use the `GetAddress` class inside that file
+    - The class must inherit from the `Skill` base class
+
+Your project structure should look like:
+```
+my-agent-project/
+├── agents.yaml
+└── skills/
+    └── get_address/
+        ├── main.py             # Contains GetAddress class
+        └── requirements.txt    # Dependencies
+```
+
 #### 2.2. Skill Implementation
 
 1. **Create Skill Directory**
@@ -107,6 +137,11 @@ agents:
            response = requests.get(url)
            return response.json()
    ```
+
+   **Important**: 
+   - The class name `GetAddress` must match the class name in your entrypoint
+   - The file name `main.py` must match the file name in your entrypoint
+   - The class must inherit from `Skill` and implement the `execute` method
 
 3. **Create Requirements File**
    Create a `requirements.txt` file:

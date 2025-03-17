@@ -19,7 +19,9 @@ agents:
     skills:
       - skill_name:
           name: "Skill Name"
-          path: "path/to/agent_skill_folder"
+          source:
+            path: "skills/skill_name"
+            entrypoint: "main.SkillClass"
           description: "Skill Description"
           parameters:
             - param_name:
@@ -50,36 +52,34 @@ agents:
 
 5. **Skills**
    - Custom functionalities
-   - Implemented as Lambda functions
+   - Implemented as Python classes using the Weni SDK
 
 ## Creating Skills
 
-### Lambda Function Structure
+### Skill Implementation Structure
 
 ```python
-def lambda_handler(event, context):
-    # Extract parameters
-    parameters = event.get('parameters', [])
-    
-    # Process the request
-    result = process_request(parameters)
-    
-    # Format response
-    return {
-        'messageVersion': '1.0',
-        'response': {
-            'actionGroup': event['actionGroup'],
-            'function': event['function'],
-            'functionResponse': {
-                'responseBody': {
-                    'TEXT': {'body': result}
-                }
-            }
-        },
-        'sessionAttributes': event.get('sessionAttributes', {}),
-        'promptSessionAttributes': event.get('promptSessionAttributes', {})
-    }
+from weni import Skill
+from weni.context import Context
+from weni.responses import TextResponse
+
+class SkillName(Skill):
+    def execute(self, context: Context) -> TextResponse:
+        # Extract parameters
+        parameters = context.parameters
+        param_value = parameters.get("param_name", "")
+        
+        # Process the request
+        result = self.process_request(param_value)
+        
+        # Return response
+        return TextResponse(data=result)
+        
+    def process_request(self, param_value):
+        # Your business logic here
+        return {"key": "value"}
 ```
+
 ## Deploying Agents
 
 ### Push Command
@@ -125,8 +125,8 @@ Available parameter types:
 ### Response Formats
 
 Skills can return:
-- Text responses
-- Structured data
+- Text responses via `TextResponse`
+- Structured data 
 - Error messages
 
 ### Error Handling
@@ -146,9 +146,9 @@ Your skills should:
    - Confirm project selection
 
 2. **Skill Errors**
-   - Verify skill entrypoint
-   - Test Lambda function locally
-   - Check parameter handling
+   - Verify skill entrypoint (class name)
+   - Test skill class locally
+   - Check parameter handling in context
    - Verify API endpoints
 
 3. **Agent Behavior**

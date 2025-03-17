@@ -68,8 +68,8 @@ agents:
       - get_address:
           name: "Get Address"
           source: 
-            path: "skills/cep_agent"
-            entrypoint: "lambda_function.lambda_handler"
+            path: "skills/get_address"
+            entrypoint: "main.GetAddress"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -82,51 +82,37 @@ agents:
 
 1. **Create Skill Directory**
    ```bash
-   mkdir -p skills/cep_agent
-   cd skills/cep_agent
+   mkdir -p skills/get_address
+   cd skills/get_address
    ```
 
-2. **Create Lambda Function**
-   Create a file `skills/cep_agent/lambda_function.py`:
+2. **Create Skill Class**
+   Create a file `skills/get_address/main.py`:
 
    ```python
-   import urllib.request
+   from weni import Skill
+   from weni.context import Context
+   from weni.responses import TextResponse
+   import requests
 
-   def cep_search(cep):
-       headers = {
-           'Content-Type': 'application/json',
-           'Accept': 'application/json',
-       }
-       url = f'https://viacep.com.br/ws/{cep}/json/'
-       req = urllib.request.Request(url, headers=headers)
-       with urllib.request.urlopen(req) as response:
-           response_data = response.read().decode('utf-8')
-       return response_data
 
-   def lambda_handler(event, context):
-       parameters = event.get('parameters', [])
-       cep_value = next((param['value'] for param in parameters 
-                        if param['name'] == 'cep'), None)
-       
-       response_body = {'TEXT': {'body': cep_search(cep=cep_value)}}
-       
-       return {
-           'messageVersion': '1.0',
-           'response': {
-               'actionGroup': event['actionGroup'],
-               'function': event['function'],
-               'functionResponse': {'responseBody': response_body}
-           },
-           'sessionAttributes': event.get('sessionAttributes', {}),
-           'promptSessionAttributes': event.get('promptSessionAttributes', {})
-       }
+   class GetAddress(Skill):
+       def execute(self, context: Context) -> TextResponse:
+           cep = context.parameters.get("cep", "")
+           address_response = self.get_address_by_cep(cep=cep)
+           return TextResponse(data=address_response)
+
+       def get_address_by_cep(self, cep):
+           url = f"https://viacep.com.br/ws/{cep}/json/"
+           response = requests.get(url)
+           return response.json()
    ```
 
-3. **Create Requirements File (Optional)**
-   If you are using any external libraries, create a `requirements.txt` file:
+3. **Create Requirements File**
+   Create a `requirements.txt` file:
 
    ```txt
-   urllib3==2.3.0
+   requests==2.31.0
    ```
 
 ### 3. Deploy Agent

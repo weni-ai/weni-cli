@@ -20,8 +20,8 @@ agents:
       - get_address:
           name: "Get Address"
           source: 
-            path: "skills/cep_agent"
-            entrypoint: "lambda_function.lambda_handler"
+            path: "skills/get_address"
+            entrypoint: "main.GetAddress"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -31,66 +31,33 @@ agents:
                 contact_field: true
 ```
 
-## Lambda Function
+## Skill Implementation
 
-Create a file `skills/cep_agent/lambda_function.py`:
+Create a file `skills/get_address/main.py`:
 
 ```python
-import urllib.request
-
-def cep_search(cep):
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-
-    url = f'https://viacep.com.br/ws/{cep}/json/'
-
-    req = urllib.request.Request(url, headers=headers)
-
-    with urllib.request.urlopen(req) as response:
-        response_data = response.read().decode('utf-8')
-
-    return response_data
+from weni import Skill
+from weni.context import Context
+from weni.responses import TextResponse
+import requests
 
 
-def lambda_handler(event, context):
-    agent = event['agent']
-    actionGroup = event['actionGroup']
-    function = event['function']
-    parameters = event.get('parameters', [])
+class GetAddress(Skill):
+    def execute(self, context: Context) -> TextResponse:
+        cep = context.parameters.get("cep", "")
+        address_response = self.get_address_by_cep(cep=cep)
+        return TextResponse(data=address_response)
 
-    cep_value = None
-    for param in parameters:
-        if param['name'] == 'cep':
-            cep_value = param['value']
-            break
+    def get_address_by_cep(self, cep):
+        url = f"https://viacep.com.br/ws/{cep}/json/"
+        response = requests.get(url)
+        return response.json()
+```
 
-    response_body = {
-        'TEXT': {
-            'body': f"{cep_search(cep=cep_value)}"
-        }
-    }
-    
-    function_response = {
-        'actionGroup': actionGroup,
-        'function': function,
-        'functionResponse': {
-            'responseBody': response_body
-        }
-    }
-    
-    session_attributes = event.get('sessionAttributes', {})
-    prompt_session_attributes = event.get('promptSessionAttributes', {})
-    
-    action_response = {
-        'messageVersion': '1.0', 
-        'response': function_response,
-        'sessionAttributes': session_attributes,
-        'promptSessionAttributes': prompt_session_attributes
-    }
-        
-    return action_response
+Create a file `skills/get_address/requirements.txt`:
+
+```
+requests==2.31.0
 ```
 
 ## Deployment Steps

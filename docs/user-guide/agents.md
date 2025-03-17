@@ -19,7 +19,9 @@ agents:
     skills:
       - skill_name:
           name: "Skill Name"
-          path: "path/to/agent_skill_folder"
+          source:
+            path: "skills/skill_name"
+            entrypoint: "main.SkillClass"
           description: "Skill Description"
           parameters:
             - param_name:
@@ -50,36 +52,70 @@ agents:
 
 5. **Skills**
    - Custom functionalities
-   - Implemented as Lambda functions
+   - Implemented as Python classes using the Weni SDK
+
+### Skill Source Configuration
+
+The `source` field is critical for locating and executing your skill:
+
+```yaml
+source:
+  path: "skills/skill_name"
+  entrypoint: "main.SkillClass"
+```
+
+- **path**: Points to the directory containing your skill implementation
+  - Example: `skills/get_address` refers to a folder named `get_address` inside a `skills` directory
+  - This folder should contain your Python modules and requirements.txt
+
+- **entrypoint**: Specifies which class to use in which file
+  - Format: `filename.ClassName`
+  - Example: `main.GetAddress` means:
+    - Look for a file named `main.py` in the path directory
+    - Find a class named `GetAddress` inside that file
+    - This class must inherit from the `Skill` class
+
+Your directory structure should look like:
+```
+project/
+├── agents.yaml
+└── skills/
+    └── get_address/
+        ├── main.py             # Contains GetAddress class
+        └── requirements.txt    # Dependencies
+```
 
 ## Creating Skills
 
-### Lambda Function Structure
+### Skill Implementation Structure
 
 ```python
-def lambda_handler(event, context):
-    # Extract parameters
-    parameters = event.get('parameters', [])
-    
-    # Process the request
-    result = process_request(parameters)
-    
-    # Format response
-    return {
-        'messageVersion': '1.0',
-        'response': {
-            'actionGroup': event['actionGroup'],
-            'function': event['function'],
-            'functionResponse': {
-                'responseBody': {
-                    'TEXT': {'body': result}
-                }
-            }
-        },
-        'sessionAttributes': event.get('sessionAttributes', {}),
-        'promptSessionAttributes': event.get('promptSessionAttributes', {})
-    }
+from weni import Skill
+from weni.context import Context
+from weni.responses import TextResponse
+
+class SkillName(Skill):
+    def execute(self, context: Context) -> TextResponse:
+        # Extract parameters
+        parameters = context.parameters
+        param_value = parameters.get("param_name", "")
+        
+        # Process the request
+        result = self.process_request(param_value)
+        
+        # Return response
+        return TextResponse(data=result)
+        
+    def process_request(self, param_value):
+        # Your business logic here
+        return {"key": "value"}
 ```
+
+#### Important Requirements
+- The class **must** inherit from `Skill`
+- The class **must** implement the `execute` method
+- The class name **must** match the class name in your entrypoint
+
 ## Deploying Agents
 
 ### Push Command
@@ -125,8 +161,8 @@ Available parameter types:
 ### Response Formats
 
 Skills can return:
-- Text responses
-- Structured data
+- Text responses via `TextResponse`
+- Structured data 
 - Error messages
 
 ### Error Handling
@@ -146,9 +182,9 @@ Your skills should:
    - Confirm project selection
 
 2. **Skill Errors**
-   - Verify skill entrypoint
-   - Test Lambda function locally
-   - Check parameter handling
+   - Verify skill entrypoint (class name)
+   - Test skill class locally
+   - Check parameter handling in context
    - Verify API endpoints
 
 3. **Agent Behavior**

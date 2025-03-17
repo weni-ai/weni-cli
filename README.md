@@ -73,8 +73,8 @@ agents:
       - get_address:
           name: "Get Address"
           source: 
-            path: "path/to/agent_skill_folder"
-            entrypoint: "lambda_function.lambda_handler"
+            path: "skills/get_address"
+            entrypoint: "main.GetAddress"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -85,80 +85,40 @@ agents:
 ```
 
 ### 6. Create Your Skill Folder
-Create a folder named `path/to/agent_skill_folder` (you can use any name you prefer) to add your Lambda function file to it.
+Create a folder for your skill:
 ```bash
-mkdir path/to/agent_skill_folder
+mkdir -p skills/get_address
 ```
 
-### 7. Create the Lambda Function for Your Skill
-Create a file in `path/to/agent_skill_folder` named `lambda_function.py` (this is the standard name for Lambda functions, but you can use any name) with this content:
+### 7. Create the Skill Class
+Create a file in `skills/get_address` named `main.py` with this content:
 ```python
-import urllib.request
-
-def cep_search(cep):
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-
-    url = f'https://viacep.com.br/ws/{cep}/json/'
-
-    req = urllib.request.Request(url, headers=headers)
-
-    with urllib.request.urlopen(req) as response:
-        response_data = response.read().decode('utf-8')
-
-    return response_data
+from weni import Skill
+from weni.context import Context
+from weni.responses import TextResponse
+import requests
 
 
-def lambda_handler(event, context):
-    agent = event['agent']
-    actionGroup = event['actionGroup']
-    function = event['function']
-    parameters = event.get('parameters', [])
+class GetAddress(Skill):
+    def execute(self, context: Context) -> TextResponse:
+        cep = context.parameters.get("cep", "")
+        address_response = self.get_address_by_cep(cep=cep)
+        return TextResponse(data=address_response)
 
-    cep_value = None
-    for param in parameters:
-        if param['name'] == 'cep':
-            cep_value = param['value']
-            break
-
-    response_body = {
-        'TEXT': {
-            'body': f"{cep_search(cep=cep_value)}"
-        }
-    }
-    
-    function_response = {
-        'actionGroup': actionGroup,
-        'function': function,
-        'functionResponse': {
-            'responseBody': response_body
-        }
-    }
-    
-    session_attributes = event.get('sessionAttributes', {})
-    prompt_session_attributes = event.get('promptSessionAttributes', {})
-    
-    action_response = {
-        'messageVersion': '1.0', 
-        'response': function_response,
-        'sessionAttributes': session_attributes,
-        'promptSessionAttributes': prompt_session_attributes
-    }
-        
-    return action_response
+    def get_address_by_cep(self, cep):
+        url = f"https://viacep.com.br/ws/{cep}/json/"
+        response = requests.get(url)
+        return response.json()
 ```
 
 Make sure the file folder matches the `path` specified in your `agents.yaml` file.
 
-### 7.1 Create the requirements.txt file (optional)
+### 7.1 Create the requirements.txt file
 
-If your Lambda function requires any external libraries, create a `requirements.txt` file in the same folder as your Lambda function with the necessary dependencies.
+Create a `requirements.txt` file in the same folder as your skill with the necessary dependencies:
 
-Example:
 ```txt
-urllib3==2.3.0
+requests==2.31.0
 ```
 
 ### 8. Upload Your Agent
@@ -170,7 +130,7 @@ That's it! You've just created your first agent with a custom skill using Weni-C
 
 The agent will now be able to:
 1. Receive a CEP (postal code) from the user
-2. Call the ViaCEP API through your Lambda function
+2. Call the ViaCEP API through your skill
 3. Return the address information to the user
 
 ## Features
@@ -235,7 +195,7 @@ agents:
           name: "Get Order Status"                                                            # Maximum of 53 characters
           source: 
             path: "skills/order_status"
-            entrypoint: "lambda_function.lambda_handler"
+            entrypoint: "main.GetOrderStatus"
           description: "Function to get the order status"
           parameters:
             - order_id:
@@ -246,7 +206,7 @@ agents:
           name: "Get Order Details"                                                           # Maximum of 53 characters
           source: 
             path: "skills/order_details"
-            entrypoint: "lambda_function.lambda_handler"
+            entrypoint: "main.GetOrderDetails"
           description: "Function to get the order details"
           parameters:
             - order_id:

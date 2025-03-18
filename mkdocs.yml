@@ -44,7 +44,7 @@ plugins:
       default_handler: python
       handlers:
         python:
-          rendering:
+          options:
             show_source: true
 
 markdown_extensions:
@@ -89,6 +89,8 @@ nav:
     - Skills: core-concepts/skills.md
     - Credentials: core-concepts/credentials.md
     - Contact Fields: core-concepts/contact-fields.md
+  - Run:
+    - Run: run/skill-run.md
   - Examples:
     - Example Gallery: examples/gallery.md
   - Utils:

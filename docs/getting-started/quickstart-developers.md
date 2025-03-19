@@ -8,7 +8,6 @@ Before you begin, make sure you have:
 
 1. **Installed Weni CLI**
    - Follow the [installation guide](installation.md)
-   - Verify installation with `weni --version`
 
 2. **Created a Weni Account**
    - Sign up at [Weni.ai](https://weni.ai/)

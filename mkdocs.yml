@@ -6,6 +6,8 @@ repo_name: weni-ai/weni-cli
 
 theme:
   name: material
+  logo: assets/weni-by-vtex-logo.png
+  favicon: assets/favicon.png
   features:
     - navigation.sections
     - navigation.indexes

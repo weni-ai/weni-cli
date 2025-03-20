@@ -51,7 +51,8 @@ agents:
 
     `Name`
 
-    :   The name of your agent that will be displayed in the Weni Platform.
+    :   The name of your agent that will be displayed in the Weni Platform.  
+        **Limit**: :octicons-alert-24: Maximum of 128 characters
 
     `Credentials`
 
@@ -63,17 +64,20 @@ agents:
 
     `Instructions`
 
-    :   Here you can define rules and guidelines that your agent should follow.
+    :   Here you can define rules and guidelines that your agent should follow.  
+        **Limit**: :octicons-alert-24: Minimum of 40 characters.
 
     `Guardrails`
 
-    :   You can list boundaries and limitations for your agent, such as topics it should not discuss.
+    :   You can list boundaries and limitations for your agent, such as topics it should not discuss.  
+        **Limit**: :octicons-alert-24: Minimum of 40 characters.
 
 === "Skill"
 
     `Name`
 
-    :   The name of the skill that will be associated with the agent in the Weni Platform.
+    :   The name of the skill that will be associated with the agent in the Weni Platform.  
+        **Limit**: :octicons-alert-24: Maximum of 53 characters
 
     `Source`
 

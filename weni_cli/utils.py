@@ -1,6 +1,5 @@
 """Utility functions for the Weni CLI."""
 
-import sys
 import importlib.metadata
 from rich.console import Console
 from rich.panel import Panel
@@ -22,4 +21,4 @@ def print_version(ctx, param, value):
     panel = Panel(version_text, title="Version", border_style="blue", expand=False, title_align="left", padding=(1, 2))
 
     console.print(panel)
-    sys.exit(0)
+    ctx.exit(0)

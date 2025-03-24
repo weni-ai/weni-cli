@@ -8,6 +8,7 @@ from weni_cli.clients.cli_client import (
     CLIClient,
     DEFAULT_BASE_URL,
     create_default_payload,
+    get_cli_version,
     get_toolkit_version,
     RequestError,
 )
@@ -75,6 +76,7 @@ def test_init_with_default_values(mock_store):
     assert client.headers == {
         "Authorization": f"Bearer {token}",
         "X-Project-Uuid": project_uuid,
+        "X-CLI-Version": get_cli_version(),
     }
     assert client.base_url == base_url
 
@@ -89,6 +91,7 @@ def test_init_with_custom_values(mock_store):
     assert client.headers == {
         "Authorization": f"Bearer {token}",
         "X-Project-Uuid": project_uuid,
+        "X-CLI-Version": get_cli_version(),
     }
     assert client.base_url == base_url
 

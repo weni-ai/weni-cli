@@ -1,8 +1,18 @@
 import rich_click as click
+from weni_cli.utils import print_version
 
 
 # Main CLI Group
 @click.group()
+@click.option(
+    "-v",
+    "--version",
+    is_flag=True,
+    callback=print_version,
+    expose_value=False,
+    is_eager=True,
+    help="Show the version and exit.",
+)
 def cli():
     """Weni CLI"""
 

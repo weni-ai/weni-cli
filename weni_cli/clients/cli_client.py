@@ -44,6 +44,11 @@ def get_toolkit_version() -> str:
     return version
 
 
+def get_cli_version() -> str:
+    """Get the version of weni-cli from metadata."""
+    return importlib.metadata.version("weni-cli")
+
+
 def create_default_payload(project_uuid: str, definition: Dict) -> Dict[str, str]:
     """Create a default payload for API requests."""
     return {
@@ -67,6 +72,7 @@ class CLIClient:
         return {
             "Authorization": f"Bearer {store.get(STORE_TOKEN_KEY)}",
             "X-Project-Uuid": store.get(STORE_PROJECT_UUID_KEY),
+            "X-CLI-Version": get_cli_version(),
         }
 
     @contextmanager

@@ -1,5 +1,18 @@
 # Changelog
 
+## [2.2.0] - 2025-03-27
+
+### Added
+
+- feat: update toolkit version to 1.0.0 ([#79](https://github.com/weni-ai/weni-cli/pull/79)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Add CLI version retrieval and include it in request headers ([#78](https://github.com/weni-ai/weni-cli/pull/78)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: Remove old build method and update dependencies ([#77](https://github.com/weni-ai/weni-cli/pull/77)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Add version flag to CLI and implement version printing utility ([#76](https://github.com/weni-ai/weni-cli/pull/76)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- add more agents examples and warnings for yaml elements ([#75](https://github.com/weni-ai/weni-cli/pull/75)) ([**@hugocarvalhopc**](https://github.com/hugocarvalhopc))
+- remove weni version command ([#74](https://github.com/weni-ai/weni-cli/pull/74)) ([**@hugocarvalhopc**](https://github.com/hugocarvalhopc))
+- add run content and glosary att ([#73](https://github.com/weni-ai/weni-cli/pull/73)) ([**@hugocarvalhopc**](https://github.com/hugocarvalhopc))
+- Hotfix/new skills doc ([#72](https://github.com/weni-ai/weni-cli/pull/72)) ([**@johncordeiro**](https://github.com/johncordeiro))
+
 ## [2.1.0] - 2025-03-14
 
 ### Added

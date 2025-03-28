@@ -1,5 +1,12 @@
 # Weni-CLI
 
+Weni CLI is a highly powerful tool for creating customized AI multi-agents. This command-line interface enables developers to build, deploy, and manage sophisticated AI agents with tailored skills and functionalities across various communication channels. With Weni CLI, you can rapidly prototype, develop, and deploy agents that perfectly match your business requirements and use cases.
+
+For comprehensive guidance and detailed documentation, we strongly recommend visiting our official documentation:
+[https://weni-ai.github.io/weni-cli/](https://weni-ai.github.io/weni-cli/)
+
+## Overview
+
 A command-line interface (CLI) tool to manage and interact with projects on the Weni platform.
 
 ## Requirements

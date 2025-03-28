@@ -32,4 +32,4 @@ Based on your experience level, choose one of the following guides:
 ## What's Next?
 
 - **How to use Credentials**
-    - [Credentials guide](./core-concepts/credentials.md)
+    - [Credentials guide](../core-concepts/credentials.md)

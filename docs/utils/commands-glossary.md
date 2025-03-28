@@ -5,6 +5,7 @@ These commands are fundamental for developing and deploying agents, allowing dir
 | Command | Description |
 |---------|-------------|
 | `weni` | Displays the main features and available commands directly in the terminal. |
+| `weni --version` | Displays the current version of the Weni CLI installed on your system. |
 | `weni init` | Creates an initial setup ready for use and learning with Weni. |
 | `weni login` | This is how authentication happens. Use it to authenticate according to your Weni platform account. |
 | `weni project list` | Existing projects in your account will be listed using this command. |

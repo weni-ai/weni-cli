@@ -181,9 +181,3 @@ skills:
   - validate_cep:
       # another skill definition
 ```
-
-## What's Next?
-
-- Learn about [advanced agent features](../user-guide/agents.md#advanced-topics)
-- Explore [skill development best practices](../user-guide/skills.md)
-- See [example implementations](../examples/) 

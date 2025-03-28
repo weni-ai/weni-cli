@@ -20,7 +20,7 @@ agents:
             - "When the user asks about a topic, you should search and present the most relevant news"
             - "Always be helpful and provide brief context about the news found"
             - "If you can't find news about the topic, suggest related topics"
-            - "Always respond in English"
+            - "Always use english to answer the user and be polite"
         guardrails:
             - "Maintain a professional and impartial tone when presenting news"
             - "Don't make assumptions or speculations about the news"

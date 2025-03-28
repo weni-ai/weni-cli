@@ -47,12 +47,12 @@ weni project current
 
 This ensures you're working with the correct project.
 
-### 5. Create a Simple Agent Without Code
+### 5. Create a Simple Agent
 
-For beginners, you can create a simple agent without writing any code by using our templates:
+You can create a simple agent without writing any code by using our templates:
 
 ```bash
-weni agent create --template cep-agent
+weni init
 ```
 
 This command will:
@@ -67,9 +67,3 @@ weni project push
 ```
 
 That's it! Your agent is now deployed and ready to use.
-
-## What's Next?
-
-- Try interacting with your agent in the Weni platform
-- Learn about [basic agent concepts](../user-guide/agents.md)
-- Explore other [pre-built templates](../examples/) 

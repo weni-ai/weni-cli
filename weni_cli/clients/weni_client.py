@@ -1,3 +1,4 @@
+from typing import Optional
 import rich_click as click
 import requests
 
@@ -26,7 +27,7 @@ class WeniClient:
 
         return response.json()
 
-    def list_orgs(self, url=None) -> tuple[str, list]:
+    def list_orgs(self, url=None) -> tuple[Optional[str], list]:
         url = f"{self.base_url}/v2/organizations/" if not url else url
         orgs = []
 
@@ -41,7 +42,7 @@ class WeniClient:
 
         return next_url, orgs
 
-    def list_projects(self, org_uuid=None, next_orgs_page_url=None) -> tuple[str, dict]:
+    def list_projects(self, org_uuid=None, next_orgs_page_url=None) -> tuple[Optional[str], dict]:
         orgs = []
         next_url = None
         if org_uuid:
@@ -58,7 +59,7 @@ class WeniClient:
             click.echo("No orgs found")
             return None, {}
 
-        org_project_map = {}
+        org_project_map: dict = {}
 
         for org in orgs:
             if org["name"] not in org_project_map:

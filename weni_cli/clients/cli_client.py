@@ -116,7 +116,8 @@ class CLIClient:
         self,
         method: str,
         endpoint: str,
-        data: Optional[Dict] = None,
+        data: Optional[Any] = None,
+        json_data: Optional[Dict] = None,
         files: Optional[Dict] = None,
         timeout: tuple = (10, None),
     ) -> requests.Response:
@@ -124,7 +125,7 @@ class CLIClient:
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
 
         response = self.session.request(
-            method=method, url=url, headers=self.headers, data=data, files=files, stream=False, timeout=timeout
+            method=method, url=url, headers=self.headers, data=data, json=json_data, files=files, stream=False, timeout=timeout
         )
 
         if response.status_code != 200:
@@ -144,10 +145,10 @@ class CLIClient:
 
     def check_project_permission(self, project_uuid: str) -> None:
         """Check if the user has permission for the given project."""
-        payload = {"project_uuid": project_uuid}
+        payload: dict = {"project_uuid": project_uuid}
 
         try:
-            self._make_request(method="POST", endpoint="api/v1/permissions/verify", data=json.dumps(payload))
+            self._make_request(method="POST", endpoint="api/v1/permissions/verify", json_data=payload)
         except RequestError as e:
             raise RequestError(f"Failed to check project permission: {e.message}")
 

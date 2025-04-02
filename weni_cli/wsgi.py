@@ -8,7 +8,7 @@ DEFAULT_PORT = 50051
 
 app = Flask(__name__)
 server_thread = None
-auth_queue = queue.Queue()
+auth_queue: queue.Queue = queue.Queue()
 
 
 @app.route("/sso-callback", methods=["GET"])

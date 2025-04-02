@@ -161,7 +161,7 @@ class ProjectPushHandler(Handler):
                 if not parameter_data.get("description"):
                     return None, error(parameter_name, "description is required")
 
-                if type(parameter_data.get("description")) is not str:
+                if not isinstance(parameter_data.get("description"), str):
                     return None, error(parameter_name, "description must be a string")
 
                 if not parameter_data.get("type"):
@@ -173,10 +173,10 @@ class ProjectPushHandler(Handler):
                         error(parameter_name, "type must be one of: string, number, integer, boolean, array"),
                     )
 
-                if type(parameter_data.get("required", None)) is not bool:
+                if not isinstance(parameter_data.get("required", None), bool):
                     return None, error(parameter_name, "'required' field must be a boolean")
 
-                if parameter_data.get("contact_field", None) and type(parameter_data.get("contact_field")) is not bool:
+                if parameter_data.get("contact_field", None) and not isinstance(parameter_data.get("contact_field"), bool):
                     return None, error(parameter_name, "contact_field must be a boolean")
 
                 if parameter_data.get("contact_field", None) and not self.is_valid_contact_field_name(parameter_name):

@@ -279,6 +279,17 @@ def test_validate_agent_definition_calls_validate_schema(mocker, tmpdir):
     assert "agents" in result
 
 
+def test_load_agent_definition_fails_on_empty_file(mocker, tmpdir):
+    """Test that load_agent_definition returns error when file is empty."""
+    yaml_file = tmpdir.join("empty_definition.yaml")
+    yaml_file.write("")
+
+    result, error = load_agent_definition(str(yaml_file))
+    assert result is None
+    assert error is not None
+    assert "Empty definition file" in str(error)
+
+
 def test_load_agent_definition_fails_on_invalid_schema(mocker, tmpdir):
     """Test that load_agent_definition returns error when schema validation fails."""
     # Create a temporary YAML file
@@ -1473,6 +1484,45 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
         "Agent 'test_agent': skill 'skill_1': parameter 'param_1_with_a_very_long_name_that_exceeds_the_maximum_length_of_36_characters' name must be 36 characters or less in the agent definition file"
         in error
     )
+
+
+def test_validate_definition_with_valid_skill_parameters_item_contact_field_name():
+    """Test validation passes when skill parameters item contact_field is a valid contact field name."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "skills": [
+                    {
+                        "skill_1": {
+                            "name": "Skill 1",
+                            "description": "Skill description",
+                            "source": {
+                                "path": "path/to/skill",
+                                "entrypoint": "entrypoint",
+                                "path_test": "path/to/test",
+                            },
+                            "parameters": [
+                                {
+                                    "param_1": {
+                                        "description": "Parameter description",
+                                        "type": "string",
+                                        "contact_field": True,
+                                    }
+                                }
+                            ],
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is None
 
 
 def test_validate_definition_with_invalid_skill_parameters_item_contact_field_name_reserved():

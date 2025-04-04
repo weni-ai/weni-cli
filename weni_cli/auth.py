@@ -1,3 +1,4 @@
+from typing import Optional
 import requests
 
 from weni_cli.store import (
@@ -30,7 +31,7 @@ class Auth:
     def get_login_url(self) -> str:
         return f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/auth?client_id={self.client_id}&redirect_uri={self.redirect_uri}&response_type={self.response_type}"
 
-    def exchange_code(self, code) -> str:
+    def exchange_code(self, code) -> Optional[str]:
         token_url = f"{self.keycloak_url}/realms/{self.realm}/protocol/openid-connect/token"
 
         data = {

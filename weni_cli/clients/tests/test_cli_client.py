@@ -688,7 +688,7 @@ def test_check_project_permission_success(client, mocker):
 
     # Verify the method was called with correct parameters
     client._make_request.assert_called_once_with(
-        method="POST", endpoint="api/v1/permissions/verify", data=json.dumps({"project_uuid": project_uuid})
+        method="POST", endpoint="api/v1/permissions/verify", json_data={"project_uuid": project_uuid}
     )
 
 

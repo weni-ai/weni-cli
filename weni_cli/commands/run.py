@@ -1,3 +1,4 @@
+from typing import Optional
 import rich_click as click
 
 from slugify import slugify
@@ -92,13 +93,13 @@ class RunHandler(Handler):
             verbose,
         )
 
-    def parse_agent_skill(self, agent_skill) -> tuple[str, str]:
+    def parse_agent_skill(self, agent_skill) -> tuple[Optional[str], Optional[str]]:
         try:
             return agent_skill.split(".")[0], agent_skill.split(".")[1]
         except Exception:
             return None, None
 
-    def get_skill_and_agent_name(self, definition, agent_key, skill_key) -> tuple[str, str]:
+    def get_skill_and_agent_name(self, definition, agent_key, skill_key) -> tuple[Optional[str], Optional[str]]:
         agent_data = definition.get("agents", {}).get(agent_key)
 
         if not agent_data:
@@ -173,7 +174,7 @@ class RunHandler(Handler):
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
 
-    def load_skill_folder(self, definition, agent_key, skill_key) -> bytes:
+    def load_skill_folder(self, definition, agent_key, skill_key) -> Optional[bytes]:
         agent_data = definition.get("agents", {}).get(agent_key)
 
         if not agent_data:

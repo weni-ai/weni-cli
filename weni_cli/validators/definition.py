@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 import rich_click as click
 import regex
 import yaml
@@ -179,7 +179,7 @@ def validate_agent_definition_schema(data):
     return None
 
 
-def load_yaml_file(path) -> tuple[Any, str | None]:
+def load_yaml_file(path) -> tuple[Any, Optional[Exception]]:
     try:
         with open(path, "r") as file:
             return yaml.safe_load(file), None
@@ -187,7 +187,7 @@ def load_yaml_file(path) -> tuple[Any, str | None]:
         return None, error
 
 
-def load_agent_definition(path) -> tuple[Any, str | None]:
+def load_agent_definition(path) -> tuple[Any, Optional[Exception]]:
     data, error = load_yaml_file(path)
     if error:
         return None, error
@@ -200,7 +200,7 @@ def load_agent_definition(path) -> tuple[Any, str | None]:
     return data, None
 
 
-def load_test_definition(path) -> tuple[Any, str | None]:
+def load_test_definition(path) -> tuple[Any, Optional[Exception]]:
     data, error = load_yaml_file(path)
     if error:
         return None, error
@@ -242,7 +242,7 @@ def format_definition(definition):
     return definition
 
 
-def validate_parameters(parameters: dict) -> tuple[any, str]:
+def validate_parameters(parameters: dict) -> tuple[Any, Optional[str]]:
     if not parameters:
         return None, None
 

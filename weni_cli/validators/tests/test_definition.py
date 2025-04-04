@@ -3,6 +3,8 @@ import pytest
 import regex
 from click.testing import CliRunner
 from weni_cli.validators.definition import (
+    MAX_AGENT_NAME_LENGTH,
+    MAX_SKILL_NAME_LENGTH,
     load_yaml_file,
     load_agent_definition,
     format_definition,
@@ -334,7 +336,7 @@ def test_validate_definition_with_invalid_agent_name_length():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': 'name' must be less than 83 characters in the agent definition file" in error
+    assert f"Agent 'test_agent': 'name' must be less than {MAX_AGENT_NAME_LENGTH} characters in the agent definition file" in error
 
 
 def test_validate_definition_without_instructions():
@@ -421,6 +423,35 @@ def test_validate_definition_with_invalid_instructions():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert "'instructions' must be an array" in error
+
+
+def test_validate_definition_file_with_short_instruction():
+    """Test validation fails when instruction is shorter than the minimum allowed length."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": ["Short instruction"],
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': instruction at index 0 must have at least 40 characters in the agent definition file" in error
 
 
 def test_validate_definition_with_invalid_guardrails():
@@ -567,6 +598,24 @@ def test_validate_definition_with_invalid_guardrail_type():
     assert "Agent 'test_agent': guardrail at index 0 must be a string in the agent definition file" in error
 
 
+def test_validate_agent_definition_with_short_guardrail():
+    """Test validation fails when guardrail is shorter than the minimum allowed length."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": ["Short guardrail"],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': guardrail at index 0 must have at least 40 characters in the agent definition file" in error
+
+
 def test_validate_definition_with_missing_skills():
     """Test validation fails when skills are missing."""
     invalid_definition = {
@@ -703,6 +752,25 @@ def test_validate_definition_with_invalid_skill_name():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert "Agent 'test_agent': skill 'skill_1': 'name' must be a string in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_skill_name_length():
+    """Test validation fails when skill name is longer than the maximum allowed length."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Agent Name",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "skills": [{"skill_1": {"name": "kill Name with a really really really really really really really really really really really really long name"}}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert f"Agent 'test_agent': skill 'skill_1': 'name' must be less than {MAX_SKILL_NAME_LENGTH} characters in the agent definition file" in error
 
 
 def test_validate_definition_with_missing_skill_description():

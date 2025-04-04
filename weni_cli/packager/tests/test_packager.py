@@ -45,11 +45,14 @@ def test_create_skill_folder_zip_success(skill_setup, mocker):
     skill_name, skill_path = skill_setup
 
     # Call the function
-    result = create_skill_folder_zip(skill_name, skill_path)
+    result, error = create_skill_folder_zip(skill_name, skill_path)
 
     # Verify the result is a file-like object
     assert result is not None
     assert hasattr(result, "read")
+
+    # Verify the error is None
+    assert error is None
 
     # Close the file handle
     result.close()
@@ -74,17 +77,15 @@ def test_create_skill_folder_zip_success(skill_setup, mocker):
 
 def test_create_skill_folder_zip_nonexistent_path(mocker):
     """Test handling of non-existent skill path."""
-    # Mock rich_click.echo to capture messages
-    mock_echo = mocker.patch("rich_click.echo")
-
     # Call with non-existent path
-    result = create_skill_folder_zip("test-skill", "nonexistent_path")
+    result, error = create_skill_folder_zip("test-skill", "nonexistent_path")
 
     # Verify the result is None
     assert result is None
 
     # Verify appropriate error message was shown
-    mock_echo.assert_called_once_with("Failed to prepare skill: Folder nonexistent_path not found")
+    assert error is not None
+    assert "Folder nonexistent_path not found" in str(error)
 
 
 def test_create_skill_folder_zip_overwrites_existing(skill_setup):
@@ -105,9 +106,12 @@ def test_create_skill_folder_zip_overwrites_existing(skill_setup):
     time.sleep(0.1)
 
     # Call the function which should overwrite the existing zip
-    result = create_skill_folder_zip(skill_name, skill_path)
+    result, error = create_skill_folder_zip(skill_name, skill_path)
     assert result is not None
     result.close()
+
+    # Verify the error is None
+    assert error is None
 
     # Verify the file was modified
     assert os.path.getmtime(zip_path) > initial_mtime
@@ -127,19 +131,16 @@ def test_create_skill_folder_zip_exception_handling(skill_setup, mocker):
     mock_zipfile = mocker.patch("weni_cli.packager.packager.ZipFile")
     mock_zipfile.side_effect = Exception("Simulated error")
 
-    # Mock rich_click.echo to capture messages
-    mock_echo = mocker.patch("rich_click.echo")
-
     # Call the function
-    result = create_skill_folder_zip(skill_name, skill_path)
+    result, error = create_skill_folder_zip(skill_name, skill_path)
 
     # Verify the result is None due to the exception
     assert result is None
 
-    # Verify appropriate error message was shown
-    mock_echo.assert_called_once()
-    assert f"Failed to create skill zip file for skill path {skill_path}" in mock_echo.call_args[0][0]
-    assert "Simulated error" in mock_echo.call_args[0][0]
+    # Verify the error is not None
+    assert error is not None
+    assert "Failed to create skill zip file for skill path" in str(error)
+    assert "Simulated error" in str(error)
 
 
 def test_create_skill_folder_zip_skips_zip_file(skill_setup, mocker):
@@ -150,9 +151,12 @@ def test_create_skill_folder_zip_skips_zip_file(skill_setup, mocker):
     spy_write = mocker.spy(ZipFile, "write")
 
     # Call the function
-    result = create_skill_folder_zip(skill_name, skill_path)
+    result, error = create_skill_folder_zip(skill_name, skill_path)
     assert result is not None
     result.close()
+
+    # Verify the error is None
+    assert error is None
 
     # Verify the zip file itself was not added to the zip
     for call_args in spy_write.call_args_list:
@@ -169,11 +173,14 @@ def test_create_skill_folder_zip_with_empty_folder(mocker):
         os.makedirs(skill_path, exist_ok=True)
 
         # Call the function
-        result = create_skill_folder_zip("empty-skill", skill_path)
+        result, error = create_skill_folder_zip("empty-skill", skill_path)
 
         # Verify the result is not None
         assert result is not None
         result.close()
+
+        # Verify the error is None
+        assert error is None
 
         # Verify an empty zip was created
         with ZipFile(f"{skill_path}/empty-skill.zip", "r") as z:
@@ -197,11 +204,14 @@ def test_create_skill_folder_zip_with_relative_path(mocker):
 
         try:
             # Call the function with a relative path
-            result = create_skill_folder_zip("my-skill", "skills/my_skill")
+            result, error = create_skill_folder_zip("my-skill", "skills/my_skill")
 
             # Verify the result is not None
             assert result is not None
             result.close()
+
+            # Verify the error is None
+            assert error is None
 
             # Verify the zip file was created in the correct location
             assert os.path.exists("skills/my_skill/my-skill.zip")
@@ -235,11 +245,14 @@ def test_create_skill_folder_zip_with_nested_duplicate_filenames(mocker):
             f.write("# Main file")
 
         # Call the function
-        result = create_skill_folder_zip("skill-with-dupes", skill_path)
+        result, error = create_skill_folder_zip("skill-with-dupes", skill_path)
 
         # Verify the result is not None
         assert result is not None
         result.close()
+
+        # Verify the error is None
+        assert error is None
 
         # Verify the zip contains all files with proper paths
         with ZipFile(f"{skill_path}/skill-with-dupes.zip", "r") as z:

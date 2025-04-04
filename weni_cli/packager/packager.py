@@ -1,16 +1,16 @@
+from io import BufferedReader
 import os
-import rich_click as click
+from typing import Optional
 
 from zipfile import ZipFile
 
 
-def create_skill_folder_zip(skill_name, skill_path):
+def create_skill_folder_zip(skill_name, skill_path) -> tuple[Optional[BufferedReader], Optional[Exception]]:
     zip_file_name = f"{skill_name}.zip"
     zip_file_path = f"{skill_path}{os.sep}{zip_file_name}"
 
     if not os.path.exists(skill_path):
-        click.echo(f"Failed to prepare skill: Folder {skill_path} not found")
-        return None
+        return None, Exception(f"Folder {skill_path} not found")
 
     # delete the existing zip file if it exists
     if os.path.exists(zip_file_path):
@@ -31,7 +31,6 @@ def create_skill_folder_zip(skill_name, skill_path):
                 for file in files:
                     z.write(os.path.join(root, file), os.path.relpath(os.path.join(root, file), skill_path))
 
-        return open(zip_file_path, "rb")
+        return open(zip_file_path, "rb"), None
     except Exception as error:
-        click.echo(f"Failed to create skill zip file for skill path {skill_path}: {error}")
-        return None
+        return None, Exception(f"Failed to create skill zip file for skill path {skill_path}: {error}")

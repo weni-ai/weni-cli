@@ -1,3 +1,4 @@
+from io import BufferedReader
 from typing import Optional
 import rich_click as click
 
@@ -51,10 +52,9 @@ class RunHandler(Handler):
                 click.echo("You can use the --file option to specify a different file.")
                 return
 
-        skill_folder = self.load_skill_folder(definition_data, agent_key, skill_key)
-
-        if not skill_folder:
-            click.echo("Error: Failed to load skill folder")
+        skill_folder, error = self.load_skill_folder(definition_data, agent_key, skill_key)
+        if error:
+            formatter.print_error_panel(error)
             return
 
         definition, error = format_definition(definition_data)
@@ -110,7 +110,7 @@ class RunHandler(Handler):
 
         return agent_data.get("name"), skill_name
 
-    def get_skill_source_path(self, definition, agent_key, skill_key) -> str | None:
+    def get_skill_source_path(self, definition, agent_key, skill_key) -> Optional[str]:
         agent_data = definition.get("agents", {}).get(agent_key)
 
         if not agent_data:
@@ -121,7 +121,7 @@ class RunHandler(Handler):
                 return skill.get("source", {}).get("path")
         return None
 
-    def load_skill_credentials(self, skill_source_path: str) -> dict | None:
+    def load_skill_credentials(self, skill_source_path: str) -> Optional[dict]:
         credentials = {}
         try:
             with open(f"{skill_source_path}/.env", "r") as file:
@@ -133,7 +133,7 @@ class RunHandler(Handler):
 
         return credentials
 
-    def load_skill_globals(self, skill_source_path: str) -> dict | None:
+    def load_skill_globals(self, skill_source_path: str) -> Optional[dict]:
         globals = {}
         try:
             with open(f"{skill_source_path}/.globals", "r") as file:
@@ -145,7 +145,7 @@ class RunHandler(Handler):
 
         return globals
 
-    def load_default_test_definition(self, definition, agent_key, skill_key) -> str | None:
+    def load_default_test_definition(self, definition, agent_key, skill_key) -> Optional[str]:
         try:
             definition_path = None
 
@@ -172,12 +172,10 @@ class RunHandler(Handler):
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
 
-    def load_skill_folder(self, definition, agent_key, skill_key) -> Optional[bytes]:
+    def load_skill_folder(self, definition, agent_key, skill_key) -> tuple[Optional[BufferedReader], Optional[Exception]]:
         agent_data = definition.get("agents", {}).get(agent_key)
-
         if not agent_data:
-            click.echo(f"Error: Agent {agent_key} not found in definition")
-            return None
+            return None, Exception(f"Agent {agent_key} not found in definition")
 
         skills = agent_data.get("skills", [])
 
@@ -189,17 +187,14 @@ class RunHandler(Handler):
                     break
 
         if not skill_data:
-            click.echo(f"Error: Skill {skill_key} not found in agent {agent_key}")
-            return None
+            return None, Exception(f"Skill {skill_key} not found in agent {agent_key}")
 
         skill_slug = slugify(skill_data.get("name"))
-        skill_folder = create_skill_folder_zip(skill_slug, skill_data.get("source").get("path"))
+        skill_folder, error = create_skill_folder_zip(skill_slug, skill_data.get("source").get("path"))
+        if error:
+            return None, Exception(f"Failed to create skill folder for skill {skill_key} in agent {agent_key}\n{error}")
 
-        if not skill_folder:
-            click.echo(f"Error: Failed to create skill folder for skill {skill_key} in agent {agent_key}")
-            return None
-
-        return skill_folder
+        return skill_folder, None
 
     def format_response_for_display(self, test_result):
         """Format response for better display"""

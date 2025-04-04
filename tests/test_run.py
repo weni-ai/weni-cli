@@ -369,7 +369,7 @@ def test_run_command_skill_name_error(mocker, create_mocked_files, mock_store_va
 
         # Make sure format_definition returns a valid definition
         mocker.patch(
-            "weni_cli.commands.run.format_definition", return_value=({"agents": {"get_address": {"skills": []}}}, None)
+            "weni_cli.commands.run.format_definition", return_value={"agents": {"get_address": {"skills": []}}}
         )
 
         # Patch the get_skill_and_agent_name to return None

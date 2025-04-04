@@ -160,10 +160,7 @@ def test_load_yaml_file_nonexistent():
 
 def test_format_definition_valid(valid_definition):
     """Test formatting a valid definition."""
-    result, error = format_definition(valid_definition)
-
-    # Check that there's no error
-    assert error is None
+    result = format_definition(valid_definition)
 
     # Check that the result is a dictionary
     assert isinstance(result, dict)
@@ -197,10 +194,7 @@ def test_format_definition_no_skills():
         }
     }
 
-    result, error = format_definition(definition)
-
-    # Check that there's no error
-    assert error is None
+    result = format_definition(definition)
 
     # Check that the result is a dictionary
     assert isinstance(result, dict)

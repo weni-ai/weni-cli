@@ -229,7 +229,7 @@ def load_test_definition(path) -> tuple[Any, Optional[Exception]]:
 
 
 # Updates the skills in the definition to be an array of objects containing name, path and slug
-def format_definition(definition: dict) -> tuple[Optional[dict], Optional[str]]:
+def format_definition(definition: dict) -> Optional[dict]:
     agents = definition.get("agents", {})
 
     for agent in agents:
@@ -253,7 +253,7 @@ def format_definition(definition: dict) -> tuple[Optional[dict], Optional[str]]:
         agents[agent]["skills"] = agent_skills
         agents[agent]["slug"] = slugify(agents[agent].get("name"))
 
-    return definition, None
+    return definition
 
 
 class ContactFieldValidator:

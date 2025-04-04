@@ -57,15 +57,12 @@ class RunHandler(Handler):
             formatter.print_error_panel(error)
             return
 
-        definition, error = format_definition(definition_data)
-        if error:
-            formatter.print_error_panel(error)
-            return
-
         test_definition, error = load_test_definition(test_definition_path)
         if error:
             formatter.print_error_panel(error)
             return
+
+        definition = format_definition(definition_data)
 
         skill_source_path = self.get_skill_source_path(definition, agent_key, skill_key)
 

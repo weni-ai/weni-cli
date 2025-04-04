@@ -43,7 +43,7 @@ def validate_agent_definition_schema(data):
         if not isinstance(agent_data["name"], str):
             return f"Agent '{agent_key}': 'name' must be a string in the agent definition file"
         if len(agent_data["name"]) > MAX_AGENT_NAME_LENGTH:
-            return f"Agent '{agent_key}': 'name' must be less than 83 characters in the agent definition file"
+            return f"Agent '{agent_key}': 'name' must be less than {MAX_AGENT_NAME_LENGTH} characters in the agent definition file"
 
         # Validate description (required, must be string)
         if not agent_data.get("description"):
@@ -59,7 +59,7 @@ def validate_agent_definition_schema(data):
                 if not isinstance(instruction, str):
                     return f"Agent '{agent_key}': instruction at index {idx} must be a string in the agent definition file"
                 if len(instruction) < MIN_INSTRUCTION_LENGTH:
-                    return f"Agent '{agent_key}': instruction at index {idx} must have at least 40 characters in the agent definition file"
+                    return f"Agent '{agent_key}': instruction at index {idx} must have at least {MIN_INSTRUCTION_LENGTH} characters in the agent definition file"
 
         # Guardrails are optional, but if present must be a list of strings, and each item must have a minimum of 40 characters
         if "guardrails" in agent_data:
@@ -71,7 +71,7 @@ def validate_agent_definition_schema(data):
                         f"Agent '{agent_key}': guardrail at index {idx} must be a string in the agent definition file"
                     )
                 if len(guardrail) < MIN_GUARDRAIL_LENGTH:
-                    return f"Agent '{agent_key}': guardrail at index {idx} must have at least 40 characters in the agent definition file"
+                    return f"Agent '{agent_key}': guardrail at index {idx} must have at least {MIN_GUARDRAIL_LENGTH} characters in the agent definition file"
 
         # Validate skills
         if not agent_data.get("skills"):
@@ -106,7 +106,7 @@ def validate_agent_definition_schema(data):
                     f"Agent '{agent_key}': skill '{skill_name}': 'name' must be a string in the agent definition file"
                 )
             if len(skill_data["name"]) > MAX_SKILL_NAME_LENGTH:
-                return f"Agent '{agent_key}': skill '{skill_name}': 'name' must be less than 53 characters in the agent definition file"
+                return f"Agent '{agent_key}': skill '{skill_name}': 'name' must be less than {MAX_SKILL_NAME_LENGTH} characters in the agent definition file"
 
             # Validate description (required, must be string)
             if not skill_data.get("description"):

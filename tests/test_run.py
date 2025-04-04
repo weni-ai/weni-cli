@@ -26,6 +26,7 @@ def create_mocked_files():
 agents:
   get_address:
     name: Get Address
+    description: An agent to get address information
     skills:
       - get_address:
           name: Get Address
@@ -33,6 +34,7 @@ agents:
           source:
             path: skills/get_address
             path_test: test_definition.yaml
+            entrypoint: main.Skill
           parameters:
             - address:
                 type: string

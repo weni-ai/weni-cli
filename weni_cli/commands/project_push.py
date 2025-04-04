@@ -59,7 +59,7 @@ class ProjectPushHandler(Handler):
                     skill_slug = slugify(skill_data.get("name"))
                     skill_folder, error = create_skill_folder_zip(skill_slug, skill_data.get("source").get("path"))
                     if error:
-                        return None, f"Error: Failed to create skill folder for skill {skill_data.get('name')} in agent {agent_data.get('name')}\n{error}"
+                        return None, f"Failed to create skill folder for skill {skill_data.get('name')} in agent {agent_data.get('name')}\n{error}"
 
                     skills_folder_map[f"{agent_name_slug}:{skill_slug}"] = skill_folder
 

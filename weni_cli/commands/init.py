@@ -14,23 +14,23 @@ SAMPLE_AGENT_DEFINITION_YAML = f"""agents:
         name: "CEP Agent"
         description: "Weni's CEP agent with components"
         instructions:
-        - "You are an expert in providing addresses to the user based on a postal code provided by the user"
-        - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
+            - "You are an expert in providing addresses to the user based on a postal code provided by the user"
+            - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
         guardrails:
-        - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
+            - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
         skills:
-        - get_address:
-            name: "Get Address"
-            source:
-                path: "skills/get_address"
-                entrypoint: "main.GetAddress"
-                path_test: "{DEFAULT_TEST_DEFINITION_FILE}"
-            description: "Function to get the address from the postal code"
-            parameters:
-                - cep:
-                    description: "postal code of a place"
-                    type: "string"
-                    required: true
+            - get_address:
+                name: "Get Address"
+                source:
+                    path: "skills/get_address"
+                    entrypoint: "main.GetAddress"
+                    path_test: "{DEFAULT_TEST_DEFINITION_FILE}"
+                description: "Function to get the address from the postal code"
+                parameters:
+                    - cep:
+                        description: "postal code of a place"
+                        type: "string"
+                        required: true
 """
 
 SAMPLE_GET_ADDRESS_SKILL_PY = """from weni import Skill

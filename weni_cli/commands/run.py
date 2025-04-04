@@ -37,7 +37,6 @@ class RunHandler(Handler):
             return
 
         definition_data, error = load_agent_definition(definition_path)
-
         if error:
             formatter.print_error_panel(error)
             return
@@ -58,13 +57,12 @@ class RunHandler(Handler):
             click.echo("Error: Failed to load skill folder")
             return
 
-        definition = format_definition(definition_data)
-
-        if not definition:
+        definition, error = format_definition(definition_data)
+        if error:
+            formatter.print_error_panel(error)
             return
 
         test_definition, error = load_test_definition(test_definition_path)
-
         if error:
             formatter.print_error_panel(error)
             return

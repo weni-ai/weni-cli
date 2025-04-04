@@ -1,3 +1,4 @@
+import re
 import pytest
 import regex
 from click.testing import CliRunner
@@ -5,12 +6,21 @@ from weni_cli.validators.definition import (
     load_yaml_file,
     load_agent_definition,
     format_definition,
-    validate_parameters,
-    is_valid_contact_field_name,
-    CONTACT_FIELD_NAME_REGEX,
     validate_agent_definition_schema,
     load_test_definition,
+    ContactFieldValidator,
 )
+
+SAMPLE_INSTRUCTIONS = [
+    "This is a test instruction with more than 40 characters",
+    "This is another test instruction with more than 40 characters",
+    "This is a third test instruction with more than 40 characters",
+]
+
+SAMPLE_GUARDRAILS = [
+    "This is a test guardrail with more than 40 characters",
+    "This is another test guardrail with more than 40 characters",
+]
 
 
 @pytest.fixture
@@ -148,7 +158,10 @@ def test_load_yaml_file_nonexistent():
 
 def test_format_definition_valid(valid_definition):
     """Test formatting a valid definition."""
-    result = format_definition(valid_definition)
+    result, error = format_definition(valid_definition)
+
+    # Check that there's no error
+    assert error is None
 
     # Check that the result is a dictionary
     assert isinstance(result, dict)
@@ -171,46 +184,6 @@ def test_format_definition_valid(valid_definition):
     assert skills[0]["name"] == "Test Skill"
 
 
-def test_format_definition_invalid_parameter(mocker):
-    """Test formatting a definition with invalid parameters."""
-    # Mock rich_click.echo to capture messages
-    mock_echo = mocker.patch("rich_click.echo")
-
-    # Create a definition with an invalid parameter (missing type)
-    definition = {
-        "agents": {
-            "test_agent": {
-                "name": "Test Agent",
-                "skills": [
-                    {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "parameters": [
-                                {
-                                    "invalid_param": {
-                                        "description": "Invalid parameter"
-                                        # Missing type field
-                                    }
-                                }
-                            ],
-                        }
-                    }
-                ],
-            }
-        }
-    }
-
-    result = format_definition(definition)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that an error message was displayed
-    mock_echo.assert_called_once()
-    assert "Error in skill test_skill" in mock_echo.call_args[0][0]
-    assert "type is required" in mock_echo.call_args[0][0]
-
-
 def test_format_definition_no_skills():
     """Test formatting a definition with no skills."""
     definition = {
@@ -222,7 +195,10 @@ def test_format_definition_no_skills():
         }
     }
 
-    result = format_definition(definition)
+    result, error = format_definition(definition)
+
+    # Check that there's no error
+    assert error is None
 
     # Check that the result is a dictionary
     assert isinstance(result, dict)
@@ -240,175 +216,12 @@ def test_format_definition_no_skills():
     assert len(skills) == 0
 
 
-def test_validate_parameters_valid():
-    """Test validating valid parameters."""
-    # Create valid parameters
-    parameters = [
-        {"test_param": {"type": "string", "description": "Test parameter", "required": True}},
-        {"number_param": {"type": "number", "description": "Number parameter"}},
-        {"array_param": {"type": "array", "description": "Array parameter", "required": False}},
-        {"contact_field_param": {"type": "string", "description": "Contact field parameter", "contact_field": True}},
-    ]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that there's no error
-    assert error is None
-
-    # Check that the result is the original parameters
-    assert result == parameters
-
-
-def test_validate_parameters_none():
-    """Test validating None parameters."""
-    result, error = validate_parameters(None)
-
-    # Check that there's no error
-    assert error is None
-
-    # Check that the result is None
-    assert result is None
-
-
-def test_validate_parameters_invalid_parameter_type():
-    """Test validating a parameter with an invalid type."""
-    # Create parameters with an invalid type
-    parameters = [{"test_param": {"type": "invalid_type", "description": "Test parameter"}}]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: type must be one of:" in error
-
-
-def test_validate_parameters_missing_description():
-    """Test validating a parameter with a missing description."""
-    # Create parameters with a missing description
-    parameters = [
-        {
-            "test_param": {
-                "type": "string"
-                # Missing description
-            }
-        }
-    ]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: description is required" in error
-
-
-def test_validate_parameters_missing_type():
-    """Test validating a parameter with a missing type."""
-    # Create parameters with a missing type
-    parameters = [
-        {
-            "test_param": {
-                "description": "Test parameter"
-                # Missing type
-            }
-        }
-    ]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: type is required" in error
-
-
-def test_validate_parameters_non_dict():
-    """Test validating a parameter that's not a dictionary."""
-    # Looking at the actual implementation, the function expects parameter_data to be a dict
-    # with get() method. Let's create a more accurate test case where the issue occurs
-    # after the initial string check.
-
-    # Create parameters with non-dict nested inside a parameter that looks valid from outside
-    parameters = [
-        {
-            "test_param": {
-                "description": "Test parameter",
-                "type": "string",
-                "required": "not_a_boolean",  # This should trigger the boolean check
-            }
-        }
-    ]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: 'required' field must be a boolean" in error
-
-
-def test_validate_parameters_invalid_required():
-    """Test validating a parameter with an invalid required field."""
-    # Create parameters with an invalid required field
-    parameters = [{"test_param": {"type": "string", "description": "Test parameter", "required": "not_a_boolean"}}]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: 'required' field must be a boolean" in error
-
-
-def test_validate_parameters_invalid_contact_field():
-    """Test validating a parameter with an invalid contact_field field."""
-    # Create parameters with an invalid contact_field field
-    parameters = [
-        {"test_param": {"type": "string", "description": "Test parameter", "contact_field": "not_a_boolean"}}
-    ]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: contact_field must be a boolean" in error
-
-
-def test_validate_parameters_invalid_contact_field_name():
-    """Test validating a parameter with an invalid name for a contact field."""
-    # Create parameters with an invalid name for a contact field
-    parameters = [{"Invalid-Name": {"type": "string", "description": "Test parameter", "contact_field": True}}]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter Invalid-Name: parameter name must match the regex of a valid contact field" in error
-
-
 def test_is_valid_contact_field_name_valid():
     """Test valid contact field names."""
     valid_names = ["valid", "valid123", "valid_name", "a123_456"]
 
     for name in valid_names:
-        assert is_valid_contact_field_name(name) is True
+        assert ContactFieldValidator.has_valid_contact_field_name(name) is True
 
 
 def test_is_valid_contact_field_name_invalid():
@@ -416,7 +229,7 @@ def test_is_valid_contact_field_name_invalid():
     invalid_names = ["123invalid", "Invalid", "invalid-name", "_invalid", "invalid.name"]
 
     for name in invalid_names:
-        assert is_valid_contact_field_name(name) is False
+        assert ContactFieldValidator.has_valid_contact_field_name(name) is False
 
 
 def test_contact_field_regex_pattern():
@@ -426,40 +239,10 @@ def test_contact_field_regex_pattern():
     invalid_names = ["123invalid", "Invalid", "invalid-name", "_invalid", "invalid.name"]
 
     for name in valid_names:
-        assert regex.match(CONTACT_FIELD_NAME_REGEX, name, regex.V0) is not None
+        assert regex.match(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, name, regex.V0) is not None
 
     for name in invalid_names:
-        assert regex.match(CONTACT_FIELD_NAME_REGEX, name, regex.V0) is None
-
-
-def test_validate_parameters_description_not_string():
-    """Test validating a parameter with a description that's not a string."""
-    # Create parameters with a description that's not a string
-    parameters = [{"test_param": {"type": "string", "description": 123, "required": True}}]  # Not a string
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error
-    assert error is not None
-    assert "parameter test_param: description must be a string" in error
-
-
-def test_validate_parameters_non_dictionary():
-    """Test validating a parameter where parameter_data is not a dictionary."""
-    # Create parameters where parameter_data is not a dictionary, but a string
-    parameters = [{"test_param": "not a dictionary"}]
-
-    result, error = validate_parameters(parameters)
-
-    # Check that the result is None
-    assert result is None
-
-    # Check that there's an error message
-    assert error is not None
-    assert "parameter test_param: must be an object" in error
+        assert regex.match(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, name, regex.V0) is None
 
 
 def test_validate_agent_definition_calls_validate_schema(mocker, tmpdir):
@@ -545,6 +328,15 @@ def test_validate_definition_with_empty_agents():
     assert "No agents defined in the agent definition file" in error
 
 
+def test_validate_definition_with_invalid_agent_name_length():
+    """Test that a definition with an invalid agent name length is invalid."""
+    invalid_definition = {"agents": {"test_agent": {"name": "a" * 83}}}
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'name' must be less than 83 characters in the agent definition file" in error
+
+
 def test_validate_definition_without_instructions():
     """Test that a definition without instructions is valid."""
     valid_definition = {
@@ -580,7 +372,7 @@ def test_validate_definition_without_guardrails():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
                 # No guardrails key
                 "skills": [
                     {
@@ -638,7 +430,7 @@ def test_validate_definition_with_invalid_guardrails():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": "Not an array",  # String instead of array
                 "skills": [
                     {
@@ -730,7 +522,7 @@ def test_validate_definition_with_invalid_agent_guardrails():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": "Not an array",  # String instead of array
             }
         }
@@ -782,8 +574,8 @@ def test_validate_definition_with_missing_skills():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 # No skills key
             }
         }
@@ -801,8 +593,8 @@ def test_validate_definition_with_invalid_skills_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": "Not an array",
             }
         }
@@ -820,8 +612,8 @@ def test_validate_definition_with_invalid_skill_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [1, False, None],
             }
         }
@@ -839,8 +631,8 @@ def test_validate_definition_with_invalid_skill_format():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_name": "Skill 1",
@@ -863,8 +655,8 @@ def test_validate_definition_with_invalid_skill_data_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": "Not a dictionary"}],
             }
         }
@@ -882,8 +674,8 @@ def test_validate_definition_with_missing_skill_name():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": {}}],
             }
         }
@@ -901,8 +693,8 @@ def test_validate_definition_with_invalid_skill_name():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": {"name": 123}}],
             }
         }
@@ -920,8 +712,8 @@ def test_validate_definition_with_missing_skill_description():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": {"name": "Skill 1"}}],
             }
         }
@@ -942,8 +734,8 @@ def test_validate_definition_with_invalid_skill_description():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": {"name": "Skill 1", "description": 123}}],
             }
         }
@@ -961,8 +753,8 @@ def test_validate_definition_with_missing_skill_source():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description"}}],
             }
         }
@@ -982,8 +774,8 @@ def test_validate_definition_with_invalid_skill_source():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {"skill_1": {"name": "Skill 1", "description": "Skill description", "source": "Not a dictionary"}}
                 ],
@@ -1003,8 +795,8 @@ def test_validate_definition_with_missing_skill_source_path():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {}}}],
             }
         }
@@ -1025,8 +817,8 @@ def test_validate_definition_with_invalid_skill_source_path():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {"path": 123}}}
                 ],
@@ -1046,8 +838,8 @@ def test_validate_definition_with_missing_skill_source_entrypoint():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1076,8 +868,8 @@ def test_validate_definition_with_invalid_skill_source_entrypoint():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1106,8 +898,8 @@ def test_validate_definition_with_invalid_skill_source_path_test():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1136,8 +928,8 @@ def test_validate_definition_with_invalid_skill_parameters_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1168,8 +960,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_format():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1203,8 +995,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_format_dict_keys
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1238,8 +1030,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1273,8 +1065,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_description_miss
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1308,8 +1100,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_description_not_
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1343,8 +1135,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_missing():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1378,8 +1170,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_not_string(
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1413,8 +1205,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_not_allowed
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1450,8 +1242,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_required_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1493,8 +1285,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_ty
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1536,8 +1328,8 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "instructions": ["Instruction 1"],
-                "guardrails": ["Guardrail 1"],
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
                 "skills": [
                     {
                         "skill_1": {
@@ -1567,7 +1359,93 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        f"Agent 'test_agent': skill 'skill_1': parameter 'Param_1' name must match the regex of a valid contact field: {CONTACT_FIELD_NAME_REGEX} in the agent definition file"
+        f"Agent 'test_agent': skill 'skill_1': parameter 'Param_1' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file" # noqa W605
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_skill_parameters_item_contact_field_name_length():
+    """Test validation fails when skill parameters item contact_field is not a valid contact field name."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "skills": [
+                    {
+                        "skill_1": {
+                            "name": "Skill 1",
+                            "description": "Skill description",
+                            "source": {
+                                "path": "path/to/skill",
+                                "entrypoint": "entrypoint",
+                                "path_test": "path/to/test",
+                            },
+                            "parameters": [
+                                {
+                                    "param_1_with_a_very_long_name_that_exceeds_the_maximum_length_of_36_characters": {
+                                        "description": "Parameter description",
+                                        "type": "string",
+                                        "contact_field": True,
+                                    }
+                                }
+                            ],
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': skill 'skill_1': parameter 'param_1_with_a_very_long_name_that_exceeds_the_maximum_length_of_36_characters' name must be 36 characters or less in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_skill_parameters_item_contact_field_name_reserved():
+    """Test validation fails when skill parameters item contact_field is a reserved contact field name."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "skills": [
+                    {
+                        "skill_1": {
+                            "name": "Skill 1",
+                            "description": "Skill description",
+                            "source": {
+                                "path": "path/to/skill",
+                                "entrypoint": "entrypoint",
+                                "path_test": "path/to/test",
+                            },
+                            "parameters": [
+                                {
+                                    "id": {
+                                        "description": "Parameter description",
+                                        "type": "string",
+                                        "contact_field": True,
+                                    }
+                                }
+                            ],
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': skill 'skill_1': parameter 'id' name must not be a reserved contact field name in the agent definition file"
         in error
     )
 

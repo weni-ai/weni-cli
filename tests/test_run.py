@@ -1144,7 +1144,7 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
         formatted_definition = {
             "agents": {"test_agent": {"skills": [{"key": "test_skill", "source": {"path": "skills/test_skill"}}]}}
         }
-        mocker.patch("weni_cli.commands.run.format_definition", return_value=formatted_definition)
+        mocker.patch("weni_cli.commands.run.format_definition", return_value=(formatted_definition, None))
 
         # Mock load_skill_folder to return a mock skill folder
         load_skill_folder_mock = mocker.patch.object(handler, "load_skill_folder")

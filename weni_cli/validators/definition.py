@@ -9,6 +9,13 @@ MIN_INSTRUCTION_LENGTH = 40
 MIN_GUARDRAIL_LENGTH = 40
 MAX_AGENT_NAME_LENGTH = 55
 MAX_SKILL_NAME_LENGTH = 53
+AVAILABLE_COMPONENTS = [
+    "cta_message",
+    "quick_replies",
+    "list_message",
+    "catalog",
+    "simple_text",
+]
 
 
 def validate_agent_definition_schema(data):
@@ -67,11 +74,30 @@ def validate_agent_definition_schema(data):
                 return f"Agent '{agent_key}': 'guardrails' must be an array in the agent definition file"
             for idx, guardrail in enumerate(agent_data["guardrails"]):
                 if not isinstance(guardrail, str):
-                    return (
-                        f"Agent '{agent_key}': guardrail at index {idx} must be a string in the agent definition file"
-                    )
+                    return f"Agent '{agent_key}': guardrail at index {idx} must be a string in the agent definition file"
                 if len(guardrail) < MIN_GUARDRAIL_LENGTH:
                     return f"Agent '{agent_key}': guardrail at index {idx} must have at least {MIN_GUARDRAIL_LENGTH} characters in the agent definition file"
+
+        # Validate components, they are optional, but if present must be an array of objects
+        if "components" in agent_data:
+            if not isinstance(agent_data["components"], list):
+                return f"Agent '{agent_key}': 'components' must be an array in the agent definition file"
+
+            for idx, component in enumerate(agent_data["components"]):
+                if not isinstance(component, dict):
+                    return f"Agent '{agent_key}': component at index {idx} must be an object in the agent definition file"
+
+                # Validate type (required, must be string)
+                if "type" not in component:
+                    return f"Agent '{agent_key}': component at index {idx} must have a 'type' field in the agent definition file"
+
+                if component["type"] not in AVAILABLE_COMPONENTS:
+                    return f"Agent '{agent_key}': component at index {idx} must have a 'type' field with one of the following values: {', '.join(AVAILABLE_COMPONENTS)} in the agent definition file"  # noqa: F821
+
+                # Validate instructions if present (must be string)
+                if "instructions" in component:
+                    if not isinstance(component["instructions"], str):
+                        return f"Agent '{agent_key}': component at index {idx} must have a 'instructions' field with a string value in the agent definition file"
 
         # Validate skills
         if not agent_data.get("skills"):
@@ -83,9 +109,7 @@ def validate_agent_definition_schema(data):
         # Validate each skill
         for skill_idx, skill_obj in enumerate(agent_data["skills"]):
             if not isinstance(skill_obj, dict):
-                return (
-                    f"Agent '{agent_key}': skill at index {skill_idx} must be an object in the agent definition file"
-                )
+                return f"Agent '{agent_key}': skill at index {skill_idx} must be an object in the agent definition file"
 
             # Each skill object should have one key that is the skill name
             if len(skill_obj) != 1:
@@ -102,9 +126,7 @@ def validate_agent_definition_schema(data):
             if not skill_data.get("name"):
                 return f"Agent '{agent_key}': skill '{skill_name}' is missing required field 'name' in the agent definition file"
             if not isinstance(skill_data["name"], str):
-                return (
-                    f"Agent '{agent_key}': skill '{skill_name}': 'name' must be a string in the agent definition file"
-                )
+                return f"Agent '{agent_key}': skill '{skill_name}': 'name' must be a string in the agent definition file"
             if len(skill_data["name"]) > MAX_SKILL_NAME_LENGTH:
                 return f"Agent '{agent_key}': skill '{skill_name}': 'name' must be less than {MAX_SKILL_NAME_LENGTH} characters in the agent definition file"
 
@@ -134,7 +156,9 @@ def validate_agent_definition_schema(data):
                 return f"Agent '{agent_key}': skill '{skill_name}': 'source.entrypoint' must be a string in the agent definition file"
 
             # Validate source path_test if present (must be string)
-            if "path_test" in skill_data["source"] and not isinstance(skill_data["source"]["path_test"], str):
+            if "path_test" in skill_data["source"] and not isinstance(
+                skill_data["source"]["path_test"], str
+            ):
                 return f"Agent '{agent_key}': skill '{skill_name}': 'source.path_test' must be a string in the agent definition file"
 
             # Validate parameters if present
@@ -171,26 +195,48 @@ def validate_agent_definition_schema(data):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' type must be a string in the agent definition file"
 
                     # Check allowed types
-                    if param_data["type"] not in ["string", "number", "integer", "boolean", "array"]:
+                    if param_data["type"] not in [
+                        "string",
+                        "number",
+                        "integer",
+                        "boolean",
+                        "array",
+                    ]:
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' type must be one of: string, number, integer, boolean, array in the agent definition file"
 
                     # Validate required if present (must be boolean)
-                    if "required" in param_data and not isinstance(param_data["required"], bool):
+                    if "required" in param_data and not isinstance(
+                        param_data["required"], bool
+                    ):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' required field must be a boolean in the agent definition file"
 
                     # Validate contact_field if present (must be boolean)
-                    if "contact_field" in param_data and not isinstance(param_data["contact_field"], bool):
+                    if "contact_field" in param_data and not isinstance(
+                        param_data["contact_field"], bool
+                    ):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' contact_field must be a boolean in the agent definition file"
 
                     # If contact_field is True, validate parameter name
 
-                    if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_name(param_name):
+                    if param_data.get(
+                        "contact_field"
+                    ) and not ContactFieldValidator.has_valid_contact_field_name(
+                        param_name
+                    ):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file"
 
-                    if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_length(param_name):
+                    if param_data.get(
+                        "contact_field"
+                    ) and not ContactFieldValidator.has_valid_contact_field_length(
+                        param_name
+                    ):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must be {ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH} characters or less in the agent definition file"
 
-                    if param_data.get("contact_field") and not ContactFieldValidator.has_allowed_parameter_name(param_name):
+                    if param_data.get(
+                        "contact_field"
+                    ) and not ContactFieldValidator.has_allowed_parameter_name(
+                        param_name
+                    ):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must not be a reserved contact field name in the agent definition file\nRestricted contact field names: {ContactFieldValidator.RESERVED_CONTACT_FIELDS}"
 
     return None
@@ -237,7 +283,6 @@ def format_definition(definition: dict) -> Optional[dict]:
         agent_skills = []
         for skill in skills:
             for skill_name, skill_data in skill.items():
-
                 skill_slug = slugify(skill_data.get("name"))
                 agent_skills.append(
                     {
@@ -297,7 +342,9 @@ class ContactFieldValidator:
 
     @staticmethod
     def has_valid_contact_field_name(parameter_name) -> bool:
-        if not regex.match(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, parameter_name, regex.V0):
+        if not regex.match(
+            ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, parameter_name, regex.V0
+        ):
             return False
         return True
 

@@ -188,7 +188,7 @@ def validate_agent_definition_schema(data):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file"
 
                     if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_length(param_name):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must be 36 characters or less in the agent definition file"
+                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must be {ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH} characters or less in the agent definition file"
 
                     if param_data.get("contact_field") and not ContactFieldValidator.has_allowed_parameter_name(param_name):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must not be a reserved contact field name in the agent definition file\nRestricted contact field names: {ContactFieldValidator.RESERVED_CONTACT_FIELDS}"

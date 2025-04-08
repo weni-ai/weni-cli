@@ -1,11 +1,14 @@
+import re
 from typing import Any, Optional
-import rich_click as click
 import regex
 import yaml
 
 from slugify import slugify
 
-CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_]*$"
+MIN_INSTRUCTION_LENGTH = 40
+MIN_GUARDRAIL_LENGTH = 40
+MAX_AGENT_NAME_LENGTH = 55
+MAX_SKILL_NAME_LENGTH = 53
 
 
 def validate_agent_definition_schema(data):
@@ -39,6 +42,8 @@ def validate_agent_definition_schema(data):
             return f"Agent '{agent_key}' is missing required field 'name' in the agent definition file"
         if not isinstance(agent_data["name"], str):
             return f"Agent '{agent_key}': 'name' must be a string in the agent definition file"
+        if len(agent_data["name"]) > MAX_AGENT_NAME_LENGTH:
+            return f"Agent '{agent_key}': 'name' must be less than {MAX_AGENT_NAME_LENGTH} characters in the agent definition file"
 
         # Validate description (required, must be string)
         if not agent_data.get("description"):
@@ -46,15 +51,17 @@ def validate_agent_definition_schema(data):
         if not isinstance(agent_data["description"], str):
             return f"Agent '{agent_key}': 'description' must be a string in the agent definition file"
 
-        # Instructions are optional, but if present must be a list of strings
+        # Instructions are optional, but if present must be a list of strings, and each item must have a minimum of 40 characters
         if "instructions" in agent_data:
             if not isinstance(agent_data["instructions"], list):
                 return f"Agent '{agent_key}': 'instructions' must be an array in the agent definition file"
             for idx, instruction in enumerate(agent_data["instructions"]):
                 if not isinstance(instruction, str):
                     return f"Agent '{agent_key}': instruction at index {idx} must be a string in the agent definition file"
+                if len(instruction) < MIN_INSTRUCTION_LENGTH:
+                    return f"Agent '{agent_key}': instruction at index {idx} must have at least {MIN_INSTRUCTION_LENGTH} characters in the agent definition file"
 
-        # Guardrails are optional, but if present must be a list of strings
+        # Guardrails are optional, but if present must be a list of strings, and each item must have a minimum of 40 characters
         if "guardrails" in agent_data:
             if not isinstance(agent_data["guardrails"], list):
                 return f"Agent '{agent_key}': 'guardrails' must be an array in the agent definition file"
@@ -63,6 +70,8 @@ def validate_agent_definition_schema(data):
                     return (
                         f"Agent '{agent_key}': guardrail at index {idx} must be a string in the agent definition file"
                     )
+                if len(guardrail) < MIN_GUARDRAIL_LENGTH:
+                    return f"Agent '{agent_key}': guardrail at index {idx} must have at least {MIN_GUARDRAIL_LENGTH} characters in the agent definition file"
 
         # Validate skills
         if not agent_data.get("skills"):
@@ -96,6 +105,8 @@ def validate_agent_definition_schema(data):
                 return (
                     f"Agent '{agent_key}': skill '{skill_name}': 'name' must be a string in the agent definition file"
                 )
+            if len(skill_data["name"]) > MAX_SKILL_NAME_LENGTH:
+                return f"Agent '{agent_key}': skill '{skill_name}': 'name' must be less than {MAX_SKILL_NAME_LENGTH} characters in the agent definition file"
 
             # Validate description (required, must be string)
             if not skill_data.get("description"):
@@ -173,8 +184,14 @@ def validate_agent_definition_schema(data):
 
                     # If contact_field is True, validate parameter name
 
-                    if param_data.get("contact_field") and not is_valid_contact_field_name(param_name):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must match the regex of a valid contact field: {CONTACT_FIELD_NAME_REGEX} in the agent definition file"
+                    if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_name(param_name):
+                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file"
+
+                    if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_length(param_name):
+                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must be {ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH} characters or less in the agent definition file"
+
+                    if param_data.get("contact_field") and not ContactFieldValidator.has_allowed_parameter_name(param_name):
+                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must not be a reserved contact field name in the agent definition file\nRestricted contact field names: {ContactFieldValidator.RESERVED_CONTACT_FIELDS}"
 
     return None
 
@@ -191,6 +208,9 @@ def load_agent_definition(path) -> tuple[Any, Optional[Exception]]:
     data, error = load_yaml_file(path)
     if error:
         return None, error
+
+    if not data:
+        return None, Exception("Empty definition file")
 
     # Validate the schema
     error = validate_agent_definition_schema(data)
@@ -209,7 +229,7 @@ def load_test_definition(path) -> tuple[Any, Optional[Exception]]:
 
 
 # Updates the skills in the definition to be an array of objects containing name, path and slug
-def format_definition(definition):
+def format_definition(definition: dict) -> Optional[dict]:
     agents = definition.get("agents", {})
 
     for agent in agents:
@@ -217,12 +237,6 @@ def format_definition(definition):
         agent_skills = []
         for skill in skills:
             for skill_name, skill_data in skill.items():
-
-                parameters, err = validate_parameters(skill_data.get("parameters"))
-
-                if err:
-                    click.echo(f"Error in skill {skill_name}: {err}")
-                    return None
 
                 skill_slug = slugify(skill_data.get("name"))
                 agent_skills.append(
@@ -232,7 +246,7 @@ def format_definition(definition):
                         "name": skill_data.get("name"),
                         "source": skill_data.get("source"),
                         "description": skill_data.get("description"),
-                        "parameters": parameters,
+                        "parameters": skill_data.get("parameters"),
                     }
                 )
 
@@ -242,57 +256,59 @@ def format_definition(definition):
     return definition
 
 
-def validate_parameters(parameters: dict) -> tuple[Any, Optional[str]]:
-    if not parameters:
-        return None, None
+class ContactFieldValidator:
+    CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_]*$"
+    CONTACT_FIELD_MAX_LENGTH = 36
+    RESERVED_CONTACT_FIELDS = [
+        "id",
+        "name",
+        "first_name",
+        "language",
+        "groups",
+        "uuid",
+        "created_on",
+        "created_by",
+        "modified_by",
+        "is",
+        "has",
+        "mailto",
+        "ext",
+        "facebook",
+        "jiochat",
+        "line",
+        "tel",
+        "telegram",
+        "twilio",
+        "twitter",
+        "twitterid",
+        "viber",
+        "vk",
+        "fcm",
+        "whatsapp",
+        "wechat",
+        "freshchat",
+        "rocketchat",
+        "discord",
+        "weniwebchat",
+        "instagram",
+        "slack",
+        "teams",
+    ]
 
-    def error(name, message):
-        return f"parameter {name}: {message}"
+    @staticmethod
+    def has_valid_contact_field_name(parameter_name) -> bool:
+        if not regex.match(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, parameter_name, regex.V0):
+            return False
+        return True
 
-    for parameter in parameters:
-        for parameter_name, parameter_data in parameter.items():
-            if not isinstance(parameter_data, dict):
-                return None, error(parameter_name, "must be an object")
+    @staticmethod
+    def has_allowed_parameter_name(parameter_name) -> bool:
+        if parameter_name in ContactFieldValidator.RESERVED_CONTACT_FIELDS:
+            return False
+        return True
 
-            description = parameter_data.get("description")
-            parameter_type = parameter_data.get("type")
-            required = parameter_data.get("required", None)
-            contact_field = parameter_data.get("contact_field", None)
-
-            if not description:
-                return None, error(parameter_name, "description is required")
-
-            if not isinstance(description, str):
-                return None, error(parameter_name, "description must be a string")
-
-            if not parameter_type:
-                return None, error(parameter_name, "type is required")
-
-            if parameter_type not in ["string", "number", "integer", "boolean", "array"]:
-                return (
-                    None,
-                    error(parameter_name, "type must be one of: string, number, integer, boolean, array"),
-                )
-
-            if required is not None and not isinstance(required, bool):
-                return None, error(parameter_name, "'required' field must be a boolean")
-
-            if contact_field is not None and not isinstance(contact_field, bool):
-                return None, error(parameter_name, "contact_field must be a boolean")
-
-            if contact_field and not is_valid_contact_field_name(parameter_name):
-                return (
-                    None,
-                    error(
-                        parameter_name,
-                        f"parameter name must match the regex of a valid contact field: {CONTACT_FIELD_NAME_REGEX}",
-                    ),
-                )
-
-    return parameters, None
-
-
-def is_valid_contact_field_name(parameter_name):
-    if not regex.match(CONTACT_FIELD_NAME_REGEX, parameter_name, regex.V0):
-        return False
-    return True
+    @staticmethod
+    def has_valid_contact_field_length(parameter_name) -> bool:
+        if len(parameter_name) > ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH:
+            return False
+        return True

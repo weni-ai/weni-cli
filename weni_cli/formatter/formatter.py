@@ -6,10 +6,10 @@ class Formatter:
     def __init__(self):
         pass
 
-    def print_error_panel(self, message):
+    def print_error_panel(self, message, title="Error"):
         error_panel = Panel(
             f"{message}",
-            title="[bold red]Error[/bold red]",
+            title=f"[bold red]{title}[/bold red]",
             title_align="left",
             style="bold red",
             expand=False,

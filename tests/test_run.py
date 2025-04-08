@@ -26,6 +26,7 @@ def create_mocked_files():
 agents:
   get_address:
     name: Get Address
+    description: An agent to get address information
     skills:
       - get_address:
           name: Get Address
@@ -33,6 +34,7 @@ agents:
           source:
             path: skills/get_address
             path_test: test_definition.yaml
+            entrypoint: main.Skill
           parameters:
             - address:
                 type: string
@@ -167,22 +169,7 @@ def test_run_command_success(mocker, create_mocked_files, mock_cli_response, moc
             return_value=f"skills/get_address/{DEFAULT_TEST_DEFINITION_FILE}",
         )
         mocker.patch(
-            "weni_cli.commands.run.RunHandler.load_skill_folder", return_value=io.BytesIO(b"mock zip content")
-        )
-        mocker.patch(
-            "weni_cli.commands.run.load_agent_definition",
-            return_value=({"agents": {"get_address": {"skills": []}}}, None),
-        )
-        mocker.patch(
-            "weni_cli.commands.run.format_definition",
-            return_value={
-                "agents": {
-                    "get_address": {
-                        "name": "Get Address",
-                        "skills": [{"key": "get_address", "name": "Get Address Skill"}],
-                    }
-                }
-            },
+            "weni_cli.commands.run.RunHandler.load_skill_folder", return_value=(io.BytesIO(b"mock zip content"), None)
         )
         mocker.patch("weni_cli.commands.run.RunHandler.get_skill_source_path", return_value="skills/get_address")
         mocker.patch("weni_cli.commands.run.RunHandler.load_skill_credentials", return_value={"API_KEY": "test_key"})
@@ -201,7 +188,6 @@ def test_run_command_success(mocker, create_mocked_files, mock_cli_response, moc
 
         # Run the command
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
-
         # Check results
         assert result.exit_code == 0
         assert mock_client_run.call_count == 1
@@ -346,7 +332,7 @@ def test_run_command_skill_folder_failure(mocker, create_mocked_files, mock_stor
         )
 
         # Patch the load_skill_folder to return None
-        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=None)
+        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=(None, "Failed to load skill folder"))
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
 
@@ -379,7 +365,7 @@ def test_run_command_skill_name_error(mocker, create_mocked_files, mock_store_va
         )
 
         # Patch the load_skill_folder to return a mock folder
-        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=b"mock_skill_folder")
+        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=(b"mock_skill_folder", None))
 
         # Make sure format_definition returns a valid definition
         mocker.patch(
@@ -421,11 +407,11 @@ def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_s
         )
 
         # Patch the load_skill_folder to return a mock folder
-        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=b"mock_skill_folder")
+        mocker.patch("weni_cli.commands.run.RunHandler.load_skill_folder", return_value=(b"mock_skill_folder", None))
 
         # Patch the format_definition to return a valid definition
         mocker.patch(
-            "weni_cli.commands.run.format_definition", return_value={"agents": {"get_address": {"skills": []}}}
+            "weni_cli.commands.run.format_definition", return_value=({"agents": {"get_address": {"skills": []}}}, None)
         )
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
@@ -633,7 +619,7 @@ def test_load_skill_folder_success(mocker, create_mocked_files):
 
         # Mock create_skill_folder_zip to return a bytesIO object
         mock_zip = mocker.patch("weni_cli.commands.run.create_skill_folder_zip")
-        mock_zip.return_value = io.BytesIO(b"mock zip content")
+        mock_zip.return_value = (io.BytesIO(b"mock zip content"), None)
 
         definition = {
             "agents": {
@@ -643,8 +629,9 @@ def test_load_skill_folder_success(mocker, create_mocked_files):
             }
         }
 
-        result = handler.load_skill_folder(definition, "get_address", "get_address")
+        result, error = handler.load_skill_folder(definition, "get_address", "get_address")
         assert result is not None
+        assert error is None
         mock_zip.assert_called_once_with("get-address", "skills/get_address")
 
 
@@ -654,8 +641,9 @@ def test_load_skill_folder_agent_not_found():
     with runner.isolated_filesystem():
         handler = RunHandler()
         definition = {"agents": {}}
-        result = handler.load_skill_folder(definition, "nonexistent", "get_address")
+        result, error = handler.load_skill_folder(definition, "nonexistent", "get_address")
         assert result is None
+        assert "Agent nonexistent not found in definition" in str(error)
 
 
 def test_load_skill_folder_skill_not_found():
@@ -664,8 +652,9 @@ def test_load_skill_folder_skill_not_found():
     with runner.isolated_filesystem():
         handler = RunHandler()
         definition = {"agents": {"get_address": {"skills": []}}}
-        result = handler.load_skill_folder(definition, "get_address", "nonexistent")
+        result, error = handler.load_skill_folder(definition, "get_address", "nonexistent")
         assert result is None
+        assert "Skill nonexistent not found in agent get_address" in str(error)
 
 
 def test_format_response_for_display_none():
@@ -781,13 +770,14 @@ def test_load_skill_folder_zip_creation_failure(mocker):
         }
 
         # Mock create_skill_folder_zip to return None, simulating a failure
-        mocker.patch("weni_cli.commands.run.create_skill_folder_zip", return_value=None)
+        mocker.patch("weni_cli.commands.run.create_skill_folder_zip", return_value=(None, "Failed to create skill folder for skill get_address in agent get_address"))
 
         # Call the method directly and check the result
-        result = handler.load_skill_folder(definition, "get_address", "get_address")
+        result, error = handler.load_skill_folder(definition, "get_address", "get_address")
 
         # Verify the function returns None on failure
         assert result is None
+        assert "Failed to create skill folder for skill get_address in agent get_address" in str(error)
 
 
 def test_render_response_and_logs(capsys):
@@ -1144,11 +1134,11 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
         formatted_definition = {
             "agents": {"test_agent": {"skills": [{"key": "test_skill", "source": {"path": "skills/test_skill"}}]}}
         }
-        mocker.patch("weni_cli.commands.run.format_definition", return_value=formatted_definition)
+        mocker.patch("weni_cli.commands.run.format_definition", return_value=(formatted_definition, None))
 
         # Mock load_skill_folder to return a mock skill folder
         load_skill_folder_mock = mocker.patch.object(handler, "load_skill_folder")
-        load_skill_folder_mock.return_value = b"mock_skill_folder_content"
+        load_skill_folder_mock.return_value = (b"mock_skill_folder_content", None)
 
         # Spy on methods that should not be called if we exit early
         get_skill_source_path_spy = mocker.spy(handler, "get_skill_source_path")

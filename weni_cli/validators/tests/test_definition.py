@@ -5,7 +5,7 @@ from click.testing import CliRunner
 from weni_cli.validators.definition import (
     AVAILABLE_COMPONENTS,
     MAX_AGENT_NAME_LENGTH,
-    MAX_SKILL_NAME_LENGTH,
+    MAX_TOOL_NAME_LENGTH,
     load_yaml_file,
     load_agent_definition,
     format_definition,
@@ -39,13 +39,13 @@ agents:
   test_agent:
     name: Test Agent
     description: Test Description
-    skills:
-      - test_skill:
-          name: Test Skill
-          description: A test skill
+    tools:
+      - test_tool:
+          name: Test Tool
+          description: A test tool
           source:
-            path: skills/test_skill
-            entrypoint: main.TestSkill
+            path: tools/test_tool
+            entrypoint: main.TestTool
           parameters:
             - test_param:
                 type: string
@@ -68,9 +68,9 @@ agents:
 agents:
   test_agent
     name: Test Agent
-    skills:
-      - test_skill:
-          name: Test Skill
+    tools:
+      - test_tool:
+          name: Test Tool
             """
             )
 
@@ -92,12 +92,12 @@ def valid_definition():
         "agents": {
             "test_agent": {
                 "name": "Test Agent",
-                "skills": [
+                "tools": [
                     {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "description": "A test skill",
-                            "source": {"path": "skills/test_skill"},
+                        "test_tool": {
+                            "name": "Test Tool",
+                            "description": "A test tool",
+                            "source": {"path": "tools/test_tool"},
                             "parameters": [
                                 {"test_param": {"type": "string", "description": "Test parameter", "required": True}},
                                 {"optional_param": {"type": "number", "description": "Optional parameter"}},
@@ -124,7 +124,7 @@ def test_load_yaml_file_valid(sample_definition_file):
     assert "agents" in data
     assert "test_agent" in data["agents"]
     assert data["agents"]["test_agent"]["name"] == "Test Agent"
-    assert isinstance(data["agents"]["test_agent"]["skills"], list)
+    assert isinstance(data["agents"]["test_agent"]["tools"], list)
 
 
 def test_load_yaml_file_invalid(sample_definition_file):
@@ -173,24 +173,24 @@ def test_format_definition_valid(valid_definition):
     # Check that the slug was added
     assert result["agents"]["test_agent"]["slug"] == "test-agent"
 
-    # Check that skills were reformatted
-    skills = result["agents"]["test_agent"]["skills"]
-    assert isinstance(skills, list)
-    assert "key" in skills[0]
-    assert "slug" in skills[0]
-    assert "name" in skills[0]
-    assert skills[0]["key"] == "test_skill"
-    assert skills[0]["slug"] == "test-skill"
-    assert skills[0]["name"] == "Test Skill"
+    # Check that tools were reformatted
+    tools = result["agents"]["test_agent"]["tools"]
+    assert isinstance(tools, list)
+    assert "key" in tools[0]
+    assert "slug" in tools[0]
+    assert "name" in tools[0]
+    assert tools[0]["key"] == "test_tool"
+    assert tools[0]["slug"] == "test-tool"
+    assert tools[0]["name"] == "Test Tool"
 
 
-def test_format_definition_no_skills():
-    """Test formatting a definition with no skills."""
+def test_format_definition_no_tools():
+    """Test formatting a definition with no tools."""
     definition = {
         "agents": {
             "test_agent": {
                 "name": "Test Agent"
-                # No skills
+                # No tools
             }
         }
     }
@@ -207,10 +207,10 @@ def test_format_definition_no_skills():
     # Check that the slug was added
     assert result["agents"]["test_agent"]["slug"] == "test-agent"
 
-    # Check that skills is an empty list
-    skills = result["agents"]["test_agent"]["skills"]
-    assert isinstance(skills, list)
-    assert len(skills) == 0
+    # Check that tools is an empty list
+    tools = result["agents"]["test_agent"]["tools"]
+    assert isinstance(tools, list)
+    assert len(tools) == 0
 
 
 def test_is_valid_contact_field_name_valid():
@@ -253,7 +253,7 @@ def test_validate_agent_definition_calls_validate_schema(mocker, tmpdir):
         name: Test Agent
         description: Test description
         instructions: [Instruction 1]
-        skills: []
+        tools: []
     """
     )
 
@@ -353,14 +353,14 @@ def test_validate_definition_without_instructions():
                 "name": "Test Agent",
                 "description": "Test description",
                 # No instructions key
-                "skills": [
+                "tools": [
                     {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "description": "Test skill description",
+                        "test_tool": {
+                            "name": "Test Tool",
+                            "description": "Test tool description",
                             "source": {
-                                "path": "skills/test",
-                                "entrypoint": "main.TestSkill",
+                                "path": "tools/test",
+                                "entrypoint": "main.TestTool",
                             },
                         }
                     }
@@ -382,14 +382,14 @@ def test_validate_definition_without_guardrails():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 # No guardrails key
-                "skills": [
+                "tools": [
                     {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "description": "Test skill description",
+                        "test_tool": {
+                            "name": "Test Tool",
+                            "description": "Test tool description",
                             "source": {
-                                "path": "skills/test",
-                                "entrypoint": "main.TestSkill",
+                                "path": "tools/test",
+                                "entrypoint": "main.TestTool",
                             },
                         }
                     }
@@ -410,14 +410,14 @@ def test_validate_definition_with_invalid_instructions():
                 "name": "Test Agent",
                 "description": "Test description",
                 "instructions": "Not an array",  # String instead of array
-                "skills": [
+                "tools": [
                     {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "description": "Test skill description",
+                        "test_tool": {
+                            "name": "Test Tool",
+                            "description": "Test tool description",
                             "source": {
-                                "path": "skills/test",
-                                "entrypoint": "main.TestSkill",
+                                "path": "tools/test",
+                                "entrypoint": "main.TestTool",
                             },
                         }
                     }
@@ -439,14 +439,14 @@ def test_validate_definition_file_with_short_instruction():
                 "name": "Test Agent",
                 "description": "Test description",
                 "instructions": ["Short instruction"],
-                "skills": [
+                "tools": [
                     {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "description": "Test skill description",
+                        "test_tool": {
+                            "name": "Test Tool",
+                            "description": "Test tool description",
                             "source": {
-                                "path": "skills/test",
-                                "entrypoint": "main.TestSkill",
+                                "path": "tools/test",
+                                "entrypoint": "main.TestTool",
                             },
                         }
                     }
@@ -469,14 +469,14 @@ def test_validate_definition_with_invalid_guardrails():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": "Not an array",  # String instead of array
-                "skills": [
+                "tools": [
                     {
-                        "test_skill": {
-                            "name": "Test Skill",
-                            "description": "Test skill description",
+                        "test_tool": {
+                            "name": "Test Tool",
+                            "description": "Test tool description",
                             "source": {
-                                "path": "skills/test",
-                                "entrypoint": "main.TestSkill",
+                                "path": "tools/test",
+                                "entrypoint": "main.TestTool",
                             },
                         }
                     }
@@ -622,8 +622,8 @@ def test_validate_agent_definition_with_short_guardrail():
     assert "Agent 'test_agent': guardrail at index 0 must have at least 40 characters in the agent definition file" in error
 
 
-def test_validate_definition_with_missing_skills():
-    """Test validation fails when skills are missing."""
+def test_validate_definition_with_missing_tools():
+    """Test validation fails when tools are missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -631,18 +631,18 @@ def test_validate_definition_with_missing_skills():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                # No skills key
+                # No tools key
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent' is missing required field 'skills' in the agent definition file" in error
+    assert "Agent 'test_agent' is missing required field 'tools' in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skills_type():
-    """Test validation fails when skills is not an array."""
+def test_validate_definition_with_invalid_tools_type():
+    """Test validation fails when tools is not an array."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -650,18 +650,18 @@ def test_validate_definition_with_invalid_skills_type():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": "Not an array",
+                "tools": "Not an array",
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': 'skills' must be an array in the agent definition file" in error
+    assert "Agent 'test_agent': 'tools' must be an array in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skill_type():
-    """Test validation fails when skill is not an object."""
+def test_validate_definition_with_invalid_tool_type():
+    """Test validation fails when tool is not an object."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -669,18 +669,18 @@ def test_validate_definition_with_invalid_skill_type():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [1, False, None],
+                "tools": [1, False, None],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill at index 0 must be an object in the agent definition file" in error
+    assert "Agent 'test_agent': tool at index 0 must be an object in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skill_format():
-    """Test validation fails when skill data is not a dictionary."""
+def test_validate_definition_with_invalid_tool_format():
+    """Test validation fails when tool data is not a dictionary."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -688,9 +688,9 @@ def test_validate_definition_with_invalid_skill_format():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_name": "Skill 1",
+                        "tool_name": "Tool 1",
                         "data": "Not a dictionary",
                     }
                 ],
@@ -700,11 +700,11 @@ def test_validate_definition_with_invalid_skill_format():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill at index 0 must have exactly one key in the agent definition file" in error
+    assert "Agent 'test_agent': tool at index 0 must have exactly one key in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skill_data_type():
-    """Test validation fails when skill data is not a dictionary."""
+def test_validate_definition_with_invalid_tool_data_type():
+    """Test validation fails when tool data is not a dictionary."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -712,18 +712,18 @@ def test_validate_definition_with_invalid_skill_data_type():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": "Not a dictionary"}],
+                "tools": [{"tool_1": "Not a dictionary"}],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1' data must be an object in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1' data must be an object in the agent definition file" in error
 
 
-def test_validate_definition_with_missing_skill_name():
-    """Test validation fails when skill name is missing."""
+def test_validate_definition_with_missing_tool_name():
+    """Test validation fails when tool name is missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -731,18 +731,18 @@ def test_validate_definition_with_missing_skill_name():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {}}],
+                "tools": [{"tool_1": {}}],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1' is missing required field 'name' in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1' is missing required field 'name' in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skill_name():
-    """Test validation fails when skill name is not a string."""
+def test_validate_definition_with_invalid_tool_name():
+    """Test validation fails when tool name is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -750,18 +750,18 @@ def test_validate_definition_with_invalid_skill_name():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {"name": 123}}],
+                "tools": [{"tool_1": {"name": 123}}],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1': 'name' must be a string in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1': 'name' must be a string in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skill_name_length():
-    """Test validation fails when skill name is longer than the maximum allowed length."""
+def test_validate_definition_with_invalid_tool_name_length():
+    """Test validation fails when tool name is longer than the maximum allowed length."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -769,18 +769,18 @@ def test_validate_definition_with_invalid_skill_name_length():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {"name": "kill Name with a really really really really really really really really really really really really long name"}}],
+                "tools": [{"tool_1": {"name": "Tool Name with a really really really really really really really really really really really really long name"}}],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert f"Agent 'test_agent': skill 'skill_1': 'name' must be less than {MAX_SKILL_NAME_LENGTH} characters in the agent definition file" in error
+    assert f"Agent 'test_agent': tool 'tool_1': 'name' must be less than {MAX_TOOL_NAME_LENGTH} characters in the agent definition file" in error
 
 
-def test_validate_definition_with_missing_skill_description():
-    """Test validation fails when skill description is missing."""
+def test_validate_definition_with_missing_tool_description():
+    """Test validation fails when tool description is missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -788,7 +788,7 @@ def test_validate_definition_with_missing_skill_description():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {"name": "Skill 1"}}],
+                "tools": [{"tool_1": {"name": "Tool 1"}}],
             }
         }
     }
@@ -796,13 +796,13 @@ def test_validate_definition_with_missing_skill_description():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1' is missing required field 'description' in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1' is missing required field 'description' in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_description():
-    """Test validation fails when skill description is not a string."""
+def test_validate_definition_with_invalid_tool_description():
+    """Test validation fails when tool description is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -810,18 +810,18 @@ def test_validate_definition_with_invalid_skill_description():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {"name": "Skill 1", "description": 123}}],
+                "tools": [{"tool_1": {"name": "Tool 1", "description": 123}}],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1': 'description' must be a string in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1': 'description' must be a string in the agent definition file" in error
 
 
-def test_validate_definition_with_missing_skill_source():
-    """Test validation fails when skill source is missing."""
+def test_validate_definition_with_missing_tool_source():
+    """Test validation fails when tool source is missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -829,7 +829,7 @@ def test_validate_definition_with_missing_skill_source():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description"}}],
+                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description"}}],
             }
         }
     }
@@ -837,12 +837,12 @@ def test_validate_definition_with_missing_skill_source():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1' is missing required field 'source' in the agent definition file" in error
+        "Agent 'test_agent': tool 'tool_1' is missing required field 'source' in the agent definition file" in error
     )
 
 
-def test_validate_definition_with_invalid_skill_source():
-    """Test validation fails when skill source is not a dictionary."""
+def test_validate_definition_with_invalid_tool_source():
+    """Test validation fails when tool source is not a dictionary."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -850,8 +850,8 @@ def test_validate_definition_with_invalid_skill_source():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
-                    {"skill_1": {"name": "Skill 1", "description": "Skill description", "source": "Not a dictionary"}}
+                "tools": [
+                    {"tool_1": {"name": "Tool 1", "description": "Tool description", "source": "Not a dictionary"}}
                 ],
             }
         }
@@ -859,11 +859,11 @@ def test_validate_definition_with_invalid_skill_source():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1': 'source' must be an object in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1': 'source' must be an object in the agent definition file" in error
 
 
-def test_validate_definition_with_missing_skill_source_path():
-    """Test validation fails when skill source path is missing."""
+def test_validate_definition_with_missing_tool_source_path():
+    """Test validation fails when tool source path is missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -871,7 +871,7 @@ def test_validate_definition_with_missing_skill_source_path():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {}}}],
+                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {}}}],
             }
         }
     }
@@ -879,13 +879,13 @@ def test_validate_definition_with_missing_skill_source_path():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': 'source' is missing required field 'path' in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': 'source' is missing required field 'path' in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_source_path():
-    """Test validation fails when skill source path is not a string."""
+def test_validate_definition_with_invalid_tool_source_path():
+    """Test validation fails when tool source path is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -893,8 +893,8 @@ def test_validate_definition_with_invalid_skill_source_path():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
-                    {"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {"path": 123}}}
+                "tools": [
+                    {"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": 123}}}
                 ],
             }
         }
@@ -902,11 +902,11 @@ def test_validate_definition_with_invalid_skill_source_path():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1': 'source.path' must be a string in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1': 'source.path' must be a string in the agent definition file" in error
 
 
-def test_validate_definition_with_missing_skill_source_entrypoint():
-    """Test validation fails when skill source entrypoint is missing."""
+def test_validate_definition_with_missing_tool_source_entrypoint():
+    """Test validation fails when tool source entrypoint is missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -914,12 +914,12 @@ def test_validate_definition_with_missing_skill_source_entrypoint():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
-                            "source": {"path": "path/to/skill"},
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {"path": "path/to/tool"},
                         }
                     }
                 ],
@@ -930,13 +930,13 @@ def test_validate_definition_with_missing_skill_source_entrypoint():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': 'source' is missing required field 'entrypoint' in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': 'source' is missing required field 'entrypoint' in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_source_entrypoint():
-    """Test validation fails when skill source entrypoint is not a string."""
+def test_validate_definition_with_invalid_tool_source_entrypoint():
+    """Test validation fails when tool source entrypoint is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -944,12 +944,12 @@ def test_validate_definition_with_invalid_skill_source_entrypoint():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
-                            "source": {"path": "path/to/skill", "entrypoint": 123},
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {"path": "path/to/tool", "entrypoint": 123},
                         }
                     }
                 ],
@@ -960,13 +960,13 @@ def test_validate_definition_with_invalid_skill_source_entrypoint():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': 'source.entrypoint' must be a string in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': 'source.entrypoint' must be a string in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_source_path_test():
-    """Test validation fails when skill source path_test is not a string."""
+def test_validate_definition_with_invalid_tool_source_path_test():
+    """Test validation fails when tool source path_test is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -974,12 +974,12 @@ def test_validate_definition_with_invalid_skill_source_path_test():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
-                            "source": {"path": "path/to/skill", "entrypoint": "entrypoint", "path_test": 123},
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {"path": "path/to/tool", "entrypoint": "entrypoint", "path_test": 123},
                         }
                     }
                 ],
@@ -990,13 +990,13 @@ def test_validate_definition_with_invalid_skill_source_path_test():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': 'source.path_test' must be a string in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': 'source.path_test' must be a string in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_type():
-    """Test validation fails when skill parameters is not a list."""
+def test_validate_definition_with_invalid_tool_parameters_type():
+    """Test validation fails when tool parameters is not a list."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1004,13 +1004,13 @@ def test_validate_definition_with_invalid_skill_parameters_type():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1024,11 +1024,11 @@ def test_validate_definition_with_invalid_skill_parameters_type():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': skill 'skill_1': 'parameters' must be an array in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1': 'parameters' must be an array in the agent definition file" in error
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_format():
-    """Test validation fails when skill parameters item is not a dictionary."""
+def test_validate_definition_with_invalid_tool_parameters_item_format():
+    """Test validation fails when tool parameters item is not a dictionary."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1036,13 +1036,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_format():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1057,13 +1057,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_format():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter at index 0 must be an object in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter at index 0 must be an object in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_format_dict_keys():
-    """Test validation fails when skill parameters item is not a dictionary."""
+def test_validate_definition_with_invalid_tool_parameters_item_format_dict_keys():
+    """Test validation fails when tool parameters item is not a dictionary."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1071,13 +1071,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_format_dict_keys
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1092,13 +1092,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_format_dict_keys
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter at index 0 must have exactly one key in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter at index 0 must have exactly one key in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_type():
-    """Test validation fails when skill parameters item is not a dictionary."""
+def test_validate_definition_with_invalid_tool_parameters_item_type():
+    """Test validation fails when tool parameters item is not a dictionary."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1106,13 +1106,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1127,13 +1127,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' data must be an object in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' data must be an object in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_description_missing():
-    """Test validation fails when skill parameters item description is not a string."""
+def test_validate_definition_with_invalid_tool_parameters_item_description_missing():
+    """Test validation fails when tool parameters item description is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1141,13 +1141,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_description_miss
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1162,13 +1162,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_description_miss
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' is missing required field 'description' in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' is missing required field 'description' in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_description_not_string():
-    """Test validation fails when skill parameters item description is not a string."""
+def test_validate_definition_with_invalid_tool_parameters_item_description_not_string():
+    """Test validation fails when tool parameters item description is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1176,13 +1176,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_description_not_
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1197,13 +1197,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_description_not_
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' description must be a string in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' description must be a string in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_type_missing():
-    """Test validation fails when skill parameters item type is missing."""
+def test_validate_definition_with_invalid_tool_parameters_item_type_missing():
+    """Test validation fails when tool parameters item type is missing."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1211,13 +1211,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_missing():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1232,13 +1232,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_missing():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' is missing required field 'type' in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' is missing required field 'type' in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_type_not_string():
-    """Test validation fails when skill parameters item type is not a string."""
+def test_validate_definition_with_invalid_tool_parameters_item_type_not_string():
+    """Test validation fails when tool parameters item type is not a string."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1246,13 +1246,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_not_string(
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1267,13 +1267,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_not_string(
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' type must be a string in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' type must be a string in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_type_not_allowed():
-    """Test validation fails when skill parameters item type is not allowed."""
+def test_validate_definition_with_invalid_tool_parameters_item_type_not_allowed():
+    """Test validation fails when tool parameters item type is not allowed."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1281,13 +1281,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_not_allowed
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1304,13 +1304,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_type_not_allowed
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' type must be one of: string, number, integer, boolean, array in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' type must be one of: string, number, integer, boolean, array in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_required_type():
-    """Test validation fails when skill parameters item required is not a boolean."""
+def test_validate_definition_with_invalid_tool_parameters_item_required_type():
+    """Test validation fails when tool parameters item required is not a boolean."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1318,13 +1318,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_required_type():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1347,13 +1347,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_required_type():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' required field must be a boolean in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' required field must be a boolean in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_contact_field_type():
-    """Test validation fails when skill parameters item contact_field is not a boolean."""
+def test_validate_definition_with_invalid_tool_parameters_item_contact_field_type():
+    """Test validation fails when tool parameters item contact_field is not a boolean."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1361,13 +1361,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_ty
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1390,13 +1390,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_ty
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1' contact_field must be a boolean in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1' contact_field must be a boolean in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_contact_field_name():
-    """Test validation fails when skill parameters item contact_field is not a valid contact field name."""
+def test_validate_definition_with_invalid_tool_parameters_item_contact_field_name():
+    """Test validation fails when tool parameters item contact_field is not a valid contact field name."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1404,13 +1404,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1433,13 +1433,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        f"Agent 'test_agent': skill 'skill_1': parameter 'Param_1' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file" # noqa W605
+        f"Agent 'test_agent': tool 'tool_1': parameter 'Param_1' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file" # noqa W605
         in error
     )
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_contact_field_name_length():
-    """Test validation fails when skill parameters item contact_field is not a valid contact field name."""
+def test_validate_definition_with_invalid_tool_parameters_item_contact_field_name_length():
+    """Test validation fails when tool parameters item contact_field is not a valid contact field name."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1447,13 +1447,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1476,13 +1476,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'param_1_with_a_very_long_name_that_exceeds_the_maximum_length_of_36_characters' name must be 36 characters or less in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'param_1_with_a_very_long_name_that_exceeds_the_maximum_length_of_36_characters' name must be 36 characters or less in the agent definition file"
         in error
     )
 
 
-def test_validate_definition_with_valid_skill_parameters_item_contact_field_name():
-    """Test validation passes when skill parameters item contact_field is a valid contact field name."""
+def test_validate_definition_with_valid_tool_parameters_item_contact_field_name():
+    """Test validation passes when tool parameters item contact_field is a valid contact field name."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1490,13 +1490,13 @@ def test_validate_definition_with_valid_skill_parameters_item_contact_field_name
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1520,8 +1520,8 @@ def test_validate_definition_with_valid_skill_parameters_item_contact_field_name
     assert error is None
 
 
-def test_validate_definition_with_invalid_skill_parameters_item_contact_field_name_reserved():
-    """Test validation fails when skill parameters item contact_field is a reserved contact field name."""
+def test_validate_definition_with_invalid_tool_parameters_item_contact_field_name_reserved():
+    """Test validation fails when tool parameters item contact_field is a reserved contact field name."""
     invalid_definition = {
         "agents": {
             "test_agent": {
@@ -1529,13 +1529,13 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "skills": [
+                "tools": [
                     {
-                        "skill_1": {
-                            "name": "Skill 1",
-                            "description": "Skill description",
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
                             "source": {
-                                "path": "path/to/skill",
+                                "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
                                 "path_test": "path/to/test",
                             },
@@ -1558,7 +1558,7 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': skill 'skill_1': parameter 'id' name must not be a reserved contact field name in the agent definition file"
+        "Agent 'test_agent': tool 'tool_1': parameter 'id' name must not be a reserved contact field name in the agent definition file"
         in error
     )
 
@@ -1705,7 +1705,7 @@ def test_validate_definition_with_valid_component_instructions():
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
                 "components": [{"type": "cta_message", "instructions": "test"}],
-                "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {"path": "path/to/skill", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
+                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": "path/to/tool", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
             }
         }
     }
@@ -1724,7 +1724,7 @@ def test_validate_definition_with_valid_component_and_no_instructions():
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
                 "components": [{"type": "cta_message"}],
-                "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {"path": "path/to/skill", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
+                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": "path/to/tool", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
             }
         }
     }

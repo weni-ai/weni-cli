@@ -5,11 +5,11 @@ from pathlib import Path
 from weni_cli.cli import init
 from weni_cli.commands.init import (
     SAMPLE_AGENT_DEFINITION_FILE_NAME,
-    SKILLS_FOLDER,
-    SAMPLE_GET_ADDRESS_SKILL_NAME,
+    TOOLS_FOLDER,
+    SAMPLE_GET_ADDRESS_TOOL_NAME,
     DEFAULT_TEST_DEFINITION_FILE,
     SAMPLE_AGENT_DEFINITION_YAML,
-    SAMPLE_GET_ADDRESS_SKILL_PY,
+    SAMPLE_GET_ADDRESS_TOOL_PY,
     SAMPLE_TESTS_YAML,
     SAMPLE_GET_ADDRESS_REQUIREMENTS_TXT,
 )
@@ -46,21 +46,21 @@ def test_init_command_creates_agent_definition_file(cli_runner):
     assert f"Sample agent definition file created in: {SAMPLE_AGENT_DEFINITION_FILE_NAME}" in result.output
 
 
-def test_init_command_creates_skill_files(cli_runner):
-    """Test that the init command creates the skill files."""
+def test_init_command_creates_tool_files(cli_runner):
+    """Test that the init command creates the tool files."""
     result = cli_runner.invoke(init)
 
     # Check main.py
-    skill_file = Path(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}/main.py")
-    assert skill_file.exists(), f"Skill file not created: {skill_file}"
+    tool_file = Path(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}/main.py")
+    assert tool_file.exists(), f"Tool file not created: {tool_file}"
 
     # Check content of main.py
-    with open(skill_file, "r") as f:
+    with open(tool_file, "r") as f:
         content = f.read()
-    assert content == SAMPLE_GET_ADDRESS_SKILL_PY, "Skill file has incorrect content"
+    assert content == SAMPLE_GET_ADDRESS_TOOL_PY, "Tool file has incorrect content"
 
     # Check requirements.txt
-    requirements_file = Path(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}/requirements.txt")
+    requirements_file = Path(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}/requirements.txt")
     assert requirements_file.exists(), f"Requirements file not created: {requirements_file}"
 
     # Check content of requirements.txt
@@ -69,8 +69,8 @@ def test_init_command_creates_skill_files(cli_runner):
     assert content == SAMPLE_GET_ADDRESS_REQUIREMENTS_TXT, "Requirements file has incorrect content"
 
     # Check output messages
-    assert f"Sample skill {SAMPLE_GET_ADDRESS_SKILL_NAME} created in:" in result.output
-    assert f"Sample requirements file for {SAMPLE_GET_ADDRESS_SKILL_NAME} created in:" in result.output
+    assert f"Sample tool {SAMPLE_GET_ADDRESS_TOOL_NAME} created in:" in result.output
+    assert f"Sample requirements file for {SAMPLE_GET_ADDRESS_TOOL_NAME} created in:" in result.output
 
 
 def test_init_command_creates_test_files(cli_runner):
@@ -78,7 +78,7 @@ def test_init_command_creates_test_files(cli_runner):
     result = cli_runner.invoke(init)
 
     # Check test file
-    test_file = Path(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}/{DEFAULT_TEST_DEFINITION_FILE}")
+    test_file = Path(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}/{DEFAULT_TEST_DEFINITION_FILE}")
     assert test_file.exists(), f"Test file not created: {test_file}"
 
     # Check content of test file
@@ -87,20 +87,20 @@ def test_init_command_creates_test_files(cli_runner):
     assert content == SAMPLE_TESTS_YAML, "Test file has incorrect content"
 
     # Check output message
-    assert f"Sample tests file for {SAMPLE_GET_ADDRESS_SKILL_NAME} created in:" in result.output
+    assert f"Sample tests file for {SAMPLE_GET_ADDRESS_TOOL_NAME} created in:" in result.output
 
 
 def test_init_command_creates_required_directories(cli_runner):
     """Test that the init command creates all required directories."""
     cli_runner.invoke(init)
 
-    # Check skills directory
-    skills_dir = Path(SKILLS_FOLDER)
-    assert skills_dir.exists() and skills_dir.is_dir(), f"Skills directory not created: {skills_dir}"
+    # Check tools directory
+    tools_dir = Path(TOOLS_FOLDER)
+    assert tools_dir.exists() and tools_dir.is_dir(), f"Tools directory not created: {tools_dir}"
 
-    # Check skill-specific directory
-    skill_dir = Path(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}")
-    assert skill_dir.exists() and skill_dir.is_dir(), f"Skill directory not created: {skill_dir}"
+    # Check tool-specific directory
+    tool_dir = Path(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}")
+    assert tool_dir.exists() and tool_dir.is_dir(), f"Tool directory not created: {tool_dir}"
 
 
 def test_init_ensure_directory_error(cli_runner, mocker):

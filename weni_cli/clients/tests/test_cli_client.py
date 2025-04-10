@@ -246,10 +246,10 @@ def test_push_agents_success(client, requests_mock, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
 
     # Call the method
-    client.push_agents(project_uuid, agents_definition, skill_folders)
+    client.push_agents(project_uuid, agents_definition, tool_folders)
 
     # Verify progressbar was updated
     assert progress_instance.update.call_count == 2
@@ -278,11 +278,11 @@ def test_push_agents_error_response(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
 
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
-        client.push_agents(project_uuid, agents_definition, skill_folders)
+        client.push_agents(project_uuid, agents_definition, tool_folders)
 
     # Verify the exception message
     assert "Error pushing agents" in str(exc_info.value)
@@ -310,11 +310,11 @@ def test_push_agents_error_no_message(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
 
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
-        client.push_agents(project_uuid, agents_definition, skill_folders)
+        client.push_agents(project_uuid, agents_definition, tool_folders)
 
     # Verify the exception message
     assert "Unknown error during agent push" in str(exc_info.value)
@@ -335,11 +335,11 @@ def test_push_agents_http_error(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folders = {"test_skill": io.BytesIO(b"test skill content")}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
 
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
-        client.push_agents(project_uuid, agents_definition, skill_folders)
+        client.push_agents(project_uuid, agents_definition, tool_folders)
 
     # Verify the exception
     assert "500" in str(exc_info.value)
@@ -393,23 +393,23 @@ def test_run_test_success(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folder = io.BytesIO(b"test skill content")
-    skill_name = "Test Skill"
+    tool_folder = io.BytesIO(b"test tool content")
+    tool_name = "Test Tool"
     agent_name = "Test Agent"
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
-    skill_globals = {"REGION": "us-east-1"}
+    tool_globals = {"REGION": "us-east-1"}
 
     # Call the method
     test_logs = client.run_test(
         project_uuid,
         definition,
-        skill_folder,
-        skill_name,
+        tool_folder,
+        tool_name,
         agent_name,
         test_definition,
         credentials,
-        skill_globals,
+        tool_globals,
         result_callback,
         verbose=True,
     )
@@ -457,23 +457,23 @@ def test_run_test_non_verbose(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folder = io.BytesIO(b"test skill content")
-    skill_name = "Test Skill"
+    tool_folder = io.BytesIO(b"test tool content")
+    tool_name = "Test Tool"
     agent_name = "Test Agent"
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
-    skill_globals = {"REGION": "us-east-1"}
+    tool_globals = {"REGION": "us-east-1"}
 
     # Call the method with verbose=False
     test_logs = client.run_test(
         project_uuid,
         definition,
-        skill_folder,
-        skill_name,
+        tool_folder,
+        tool_name,
         agent_name,
         test_definition,
         credentials,
-        skill_globals,
+        tool_globals,
         result_callback,
         verbose=False,
     )
@@ -509,23 +509,23 @@ def test_run_test_error_message(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folder = io.BytesIO(b"test skill content")
-    skill_name = "Test Skill"
+    tool_folder = io.BytesIO(b"test tool content")
+    tool_name = "Test Tool"
     agent_name = "Test Agent"
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
-    skill_globals = {"REGION": "us-east-1"}
+    tool_globals = {"REGION": "us-east-1"}
 
     # Call the method
     test_logs = client.run_test(
         project_uuid,
         definition,
-        skill_folder,
-        skill_name,
+        tool_folder,
+        tool_name,
         agent_name,
         test_definition,
         credentials,
-        skill_globals,
+        tool_globals,
         result_callback,
         verbose=True,
     )
@@ -556,24 +556,24 @@ def test_run_test_http_error(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folder = io.BytesIO(b"test skill content")
-    skill_name = "Test Skill"
+    tool_folder = io.BytesIO(b"test tool content")
+    tool_name = "Test Tool"
     agent_name = "Test Agent"
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
-    skill_globals = {"REGION": "us-east-1"}
+    tool_globals = {"REGION": "us-east-1"}
 
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
         client.run_test(
             project_uuid,
             definition,
-            skill_folder,
-            skill_name,
+            tool_folder,
+            tool_name,
             agent_name,
             test_definition,
             credentials,
-            skill_globals,
+            tool_globals,
             result_callback,
             verbose=True,
         )
@@ -602,23 +602,23 @@ def test_run_test_unknown_error(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folder = io.BytesIO(b"test skill content")
-    skill_name = "Test Skill"
+    tool_folder = io.BytesIO(b"test tool content")
+    tool_name = "Test Tool"
     agent_name = "Test Agent"
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
-    skill_globals = {"REGION": "us-east-1"}
+    tool_globals = {"REGION": "us-east-1"}
 
     # Call the method
     test_logs = client.run_test(
         project_uuid,
         definition,
-        skill_folder,
-        skill_name,
+        tool_folder,
+        tool_name,
         agent_name,
         test_definition,
         credentials,
-        skill_globals,
+        tool_globals,
         result_callback,
         verbose=True,
     )
@@ -649,23 +649,23 @@ def test_run_test_success_false_no_message(client, mocker):
     # Create test data
     project_uuid = "test-project-uuid"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
-    skill_folder = io.BytesIO(b"test skill content")
-    skill_name = "Test Skill"
+    tool_folder = io.BytesIO(b"test tool content")
+    tool_name = "Test Tool"
     agent_name = "Test Agent"
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
-    skill_globals = {"REGION": "us-east-1"}
+    tool_globals = {"REGION": "us-east-1"}
 
     # Call the method
     test_logs = client.run_test(
         project_uuid,
         definition,
-        skill_folder,
-        skill_name,
+        tool_folder,
+        tool_name,
         agent_name,
         test_definition,
         credentials,
-        skill_globals,
+        tool_globals,
         result_callback,
         verbose=True,
     )

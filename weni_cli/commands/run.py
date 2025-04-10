@@ -13,7 +13,7 @@ from rich.console import group
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
-from weni_cli.packager.packager import create_skill_folder_zip
+from weni_cli.packager.packager import create_tool_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
 from weni_cli.validators.definition import format_definition, load_agent_definition, load_test_definition
 
@@ -25,7 +25,7 @@ class RunHandler(Handler):
     def execute(self, **kwargs):
         definition_path = kwargs.get("definition")
         agent_key = kwargs.get("agent_key")
-        skill_key = kwargs.get("skill_key")
+        tool_key = kwargs.get("tool_key")
         test_definition_path = kwargs.get("test_definition")
         verbose = kwargs.get("verbose", False)
         store = Store()
@@ -43,16 +43,16 @@ class RunHandler(Handler):
             return
 
         if not test_definition_path:
-            test_definition_path = self.load_default_test_definition(definition_data, agent_key, skill_key)
+            test_definition_path = self.load_default_test_definition(definition_data, agent_key, tool_key)
 
             if not test_definition_path:
                 click.echo(
-                    f"Error: Failed to get default test definition file: {DEFAULT_TEST_DEFINITION_FILE} in skill folder."
+                    f"Error: Failed to get default test definition file: {DEFAULT_TEST_DEFINITION_FILE} in tool folder."
                 )
                 click.echo("You can use the --file option to specify a different file.")
                 return
 
-        skill_folder, error = self.load_skill_folder(definition_data, agent_key, skill_key)
+        tool_folder, error = self.load_tool_folder(definition_data, agent_key, tool_key)
         if error:
             formatter.print_error_panel(error)
             return
@@ -64,64 +64,67 @@ class RunHandler(Handler):
 
         definition = format_definition(definition_data)
 
-        skill_source_path = self.get_skill_source_path(definition, agent_key, skill_key)
+        tool_source_path = self.get_tool_source_path(definition, agent_key, tool_key)
 
-        credentials = self.load_skill_credentials(skill_source_path)
+        credentials = self.load_tool_credentials(tool_source_path)
 
-        skill_globals = self.load_skill_globals(skill_source_path)
+        tool_globals = self.load_tool_globals(tool_source_path)
 
-        agent_name, skill_name = self.get_skill_and_agent_name(definition, agent_key, skill_key)
+        agent_name, tool_name = self.get_tool_and_agent_name(definition, agent_key, tool_key)
 
-        if not skill_name or not agent_name:
-            click.echo("Error: Failed to get skill or agent name")
+        if not tool_name or not agent_name:
+            click.echo("Error: Failed to get tool or agent name")
             return
 
         self.run_test(
             project_uuid,
             definition,
-            skill_folder,
-            skill_name,
+            tool_folder,
+            tool_name,
             agent_name,
             test_definition,
             credentials,
-            skill_globals,
+            tool_globals,
             verbose,
         )
 
-    def parse_agent_skill(self, agent_skill) -> tuple[Optional[str], Optional[str]]:
+    def parse_agent_tool(self, agent_tool) -> tuple[Optional[str], Optional[str]]:
         try:
-            return agent_skill.split(".")[0], agent_skill.split(".")[1]
+            return agent_tool.split(".")[0], agent_tool.split(".")[1]
         except Exception:
             return None, None
 
-    def get_skill_and_agent_name(self, definition, agent_key, skill_key) -> tuple[Optional[str], Optional[str]]:
+    def get_tool_and_agent_name(self, definition, agent_key, tool_key) -> tuple[Optional[str], Optional[str]]:
         agent_data = definition.get("agents", {}).get(agent_key)
+
+        print("Agent data: ", agent_data)
 
         if not agent_data:
             return None, None
 
-        skill_name = None
-        for skill in agent_data.get("skills", []):
-            if skill.get("key") == skill_key:
-                skill_name = skill.get("name")
+        tool_name = None
+        for tool in agent_data.get("tools", []):
+            print("Tool: ", tool)
+            if tool.get("key") == tool_key:
+                tool_name = tool.get("name")
 
-        return agent_data.get("name"), skill_name
+        return agent_data.get("name"), tool_name
 
-    def get_skill_source_path(self, definition, agent_key, skill_key) -> Optional[str]:
+    def get_tool_source_path(self, definition, agent_key, tool_key) -> Optional[str]:
         agent_data = definition.get("agents", {}).get(agent_key)
 
         if not agent_data:
             return None
 
-        for skill in agent_data.get("skills", []):
-            if skill.get("key") == skill_key:
-                return skill.get("source", {}).get("path")
+        for tool in agent_data.get("tools", []):
+            if tool.get("key") == tool_key:
+                return tool.get("source", {}).get("path")
         return None
 
-    def load_skill_credentials(self, skill_source_path: str) -> Optional[dict]:
+    def load_tool_credentials(self, tool_source_path: str) -> Optional[dict]:
         credentials = {}
         try:
-            with open(f"{skill_source_path}/.env", "r") as file:
+            with open(f"{tool_source_path}/.env", "r") as file:
                 for line in file:
                     key, value = line.strip().split("=")
                     credentials[key] = value
@@ -130,10 +133,10 @@ class RunHandler(Handler):
 
         return credentials
 
-    def load_skill_globals(self, skill_source_path: str) -> Optional[dict]:
+    def load_tool_globals(self, tool_source_path: str) -> Optional[dict]:
         globals = {}
         try:
-            with open(f"{skill_source_path}/.globals", "r") as file:
+            with open(f"{tool_source_path}/.globals", "r") as file:
                 for line in file:
                     key, value = line.strip().split("=")
                     globals[key] = value
@@ -142,7 +145,7 @@ class RunHandler(Handler):
 
         return globals
 
-    def load_default_test_definition(self, definition, agent_key, skill_key) -> Optional[str]:
+    def load_default_test_definition(self, definition, agent_key, tool_key) -> Optional[str]:
         try:
             definition_path = None
 
@@ -151,15 +154,15 @@ class RunHandler(Handler):
             if not agent_data:
                 return None
 
-            for skill in agent_data.get("skills", []):
-                for key, skill_data in skill.items():
-                    if key == skill_key:
-                        path_test = skill_data.get("source", {}).get("path_test")
-                        skill_path = skill_data.get("source", {}).get("path")
-                        if skill_data.get("source", {}).get("path_test"):
-                            definition_path = f"{skill_path}/{path_test}"
+            for tool in agent_data.get("tools", []):
+                for key, tool_data in tool.items():
+                    if key == tool_key:
+                        path_test = tool_data.get("source", {}).get("path_test")
+                        tool_path = tool_data.get("source", {}).get("path")
+                        if tool_data.get("source", {}).get("path_test"):
+                            definition_path = f"{tool_path}/{path_test}"
                         else:
-                            definition_path = f"{skill_path}/{DEFAULT_TEST_DEFINITION_FILE}"
+                            definition_path = f"{tool_path}/{DEFAULT_TEST_DEFINITION_FILE}"
 
             if not definition_path:
                 return None
@@ -169,29 +172,29 @@ class RunHandler(Handler):
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
 
-    def load_skill_folder(self, definition, agent_key, skill_key) -> tuple[Optional[BufferedReader], Optional[Exception]]:
+    def load_tool_folder(self, definition, agent_key, tool_key) -> tuple[Optional[BufferedReader], Optional[Exception]]:
         agent_data = definition.get("agents", {}).get(agent_key)
         if not agent_data:
             return None, Exception(f"Agent {agent_key} not found in definition")
 
-        skills = agent_data.get("skills", [])
+        tools = agent_data.get("tools", [])
 
-        skill_data = None
-        for skill in skills:
-            for key, data in skill.items():
-                if key == skill_key:
-                    skill_data = data
+        tool_data = None
+        for tool in tools:
+            for key, data in tool.items():
+                if key == tool_key:
+                    tool_data = data
                     break
 
-        if not skill_data:
-            return None, Exception(f"Skill {skill_key} not found in agent {agent_key}")
+        if not tool_data:
+            return None, Exception(f"Tool {tool_key} not found in agent {agent_key}")
 
-        skill_slug = slugify(skill_data.get("name"))
-        skill_folder, error = create_skill_folder_zip(skill_slug, skill_data.get("source").get("path"))
+        tool_slug = slugify(tool_data.get("name"))
+        tool_folder, error = create_tool_folder_zip(tool_slug, tool_data.get("source").get("path"))
         if error:
-            return None, Exception(f"Failed to create skill folder for skill {skill_key} in agent {agent_key}\n{error}")
+            return None, Exception(f"Failed to create tool folder for tool {tool_key} in agent {agent_key}\n{error}")
 
-        return skill_folder, None
+        return tool_folder, None
 
     def format_response_for_display(self, test_result):
         """Format response for better display"""
@@ -227,13 +230,13 @@ class RunHandler(Handler):
 
         return "❌"
 
-    def display_test_results(self, rows, skill_name, verbose=False):
+    def display_test_results(self, rows, tool_name, verbose=False):
         """
         Create a table to display test results.
 
         Args:
             rows (list): List of row dictionaries containing test results
-            skill_name (str): Name of the skill being tested
+            tool_name (str): Name of the tool being tested
             verbose (bool, optional): Whether to show verbose output. Defaults to False.
 
         Returns:
@@ -242,7 +245,7 @@ class RunHandler(Handler):
         if not rows:
             return None
 
-        table = Table(title=f"Test Results for {skill_name}", expand=True)
+        table = Table(title=f"Test Results for {tool_name}", expand=True)
         table.add_column("Test Name", justify="left")
         table.add_column("Status", justify="center")
         table.add_column("Response", ratio=2, no_wrap=True)
@@ -255,7 +258,7 @@ class RunHandler(Handler):
         return table
 
     def update_live_display(
-        self, test_rows, test_name, test_result, status_code, code, live_display, skill_name, verbose=False
+        self, test_rows, test_name, test_result, status_code, code, live_display, tool_name, verbose=False
     ):
         """
         Update the live display with test results.
@@ -267,7 +270,7 @@ class RunHandler(Handler):
             status_code (int): HTTP status code of the test result
             code (str): Test case status code (e.g., TEST_CASE_COMPLETED)
             live_display (Live): Rich Live object for updating the display
-            skill_name (str): Name of the skill being tested
+            tool_name (str): Name of the tool being tested
             verbose (bool, optional): Whether to show verbose output. Defaults to False.
         """
         # Check if test_name is already in test_rows, if not, add it
@@ -279,7 +282,7 @@ class RunHandler(Handler):
             test_rows[row_index]["response"] = test_result
             test_rows[row_index]["code"] = code
 
-        live_display.update(self.display_test_results(test_rows, skill_name, verbose), refresh=True)
+        live_display.update(self.display_test_results(test_rows, tool_name, verbose), refresh=True)
 
     def render_reponse_and_logs(self, logs):
         console = Console()
@@ -315,33 +318,33 @@ class RunHandler(Handler):
         self,
         project_uuid,
         definition,
-        skill_folder,
-        skill_name,
+        tool_folder,
+        tool_name,
         agent_name,
         test_definition,
         credentials,
-        skill_globals,
+        tool_globals,
         verbose=False,
     ):
         test_rows = []
         # Use the class method instead of a nested function
-        with Live(self.display_test_results([], skill_name, verbose), refresh_per_second=4) as live:
+        with Live(self.display_test_results([], tool_name, verbose), refresh_per_second=4) as live:
             # Create a callback function that will be passed to the CLIClient
             def update_live_callback(test_name, test_result, status_code, code, verbose):
                 self.update_live_display(
-                    test_rows, test_name, test_result, status_code, code, live, skill_name, verbose
+                    test_rows, test_name, test_result, status_code, code, live, tool_name, verbose
                 )
 
             client = CLIClient()
             test_logs = client.run_test(
                 project_uuid,
                 definition,
-                skill_folder,
-                skill_name,
+                tool_folder,
+                tool_name,
                 agent_name,
                 test_definition,
                 credentials,
-                skill_globals,
+                tool_globals,
                 update_live_callback,
                 verbose,
             )

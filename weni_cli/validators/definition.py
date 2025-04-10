@@ -8,7 +8,14 @@ from slugify import slugify
 MIN_INSTRUCTION_LENGTH = 40
 MIN_GUARDRAIL_LENGTH = 40
 MAX_AGENT_NAME_LENGTH = 55
-MAX_SKILL_NAME_LENGTH = 53
+MAX_SKILL_NAME_LENGTH = 40
+AVAILABLE_COMPONENTS = [
+    "cta_message",
+    "quick_replies",
+    "list_message",
+    "catalog",
+    "simple_text",
+]
 
 
 def validate_agent_definition_schema(data):
@@ -72,6 +79,29 @@ def validate_agent_definition_schema(data):
                     )
                 if len(guardrail) < MIN_GUARDRAIL_LENGTH:
                     return f"Agent '{agent_key}': guardrail at index {idx} must have at least {MIN_GUARDRAIL_LENGTH} characters in the agent definition file"
+
+        # Validate components, they are optional, but if present must be an array of objects
+        if "components" in agent_data:
+            if not isinstance(agent_data["components"], list):
+                return f"Agent '{agent_key}': 'components' must be an array in the agent definition file"
+
+            for idx, component in enumerate(agent_data["components"]):
+                if not isinstance(component, dict):
+                    return (
+                        f"Agent '{agent_key}': component at index {idx} must be an object in the agent definition file"
+                    )
+
+                # Validate type (required, must be string)
+                if "type" not in component:
+                    return f"Agent '{agent_key}': component at index {idx} must have a 'type' field in the agent definition file"
+
+                if component["type"] not in AVAILABLE_COMPONENTS:
+                    return f"Agent '{agent_key}': component at index {idx} must have a 'type' field with one of the following values: {', '.join(AVAILABLE_COMPONENTS)} in the agent definition file"  # noqa: F821
+
+                # Validate instructions if present (must be string)
+                if "instructions" in component:
+                    if not isinstance(component["instructions"], str):
+                        return f"Agent '{agent_key}': component at index {idx} must have a 'instructions' field with a string value in the agent definition file"
 
         # Validate skills
         if not agent_data.get("skills"):
@@ -171,7 +201,13 @@ def validate_agent_definition_schema(data):
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' type must be a string in the agent definition file"
 
                     # Check allowed types
-                    if param_data["type"] not in ["string", "number", "integer", "boolean", "array"]:
+                    if param_data["type"] not in [
+                        "string",
+                        "number",
+                        "integer",
+                        "boolean",
+                        "array",
+                    ]:
                         return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' type must be one of: string, number, integer, boolean, array in the agent definition file"
 
                     # Validate required if present (must be boolean)
@@ -237,7 +273,6 @@ def format_definition(definition: dict) -> Optional[dict]:
         agent_skills = []
         for skill in skills:
             for skill_name, skill_data in skill.items():
-
                 skill_slug = slugify(skill_data.get("name"))
                 agent_skills.append(
                     {

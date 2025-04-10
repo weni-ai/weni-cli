@@ -29,7 +29,7 @@ class ProjectPushHandler(Handler):
 
         definition_data, error = load_agent_definition(definition_path)
         if error:
-            formatter.print_error_panel(error, title="Failed to load definition file")
+            formatter.print_error_panel(f"Invalid agent definition YAML file format, error:\n{error}", title="Failed to load definition file")
             return
 
         skills_folders_map, error = self.load_skills_folders(definition_data)

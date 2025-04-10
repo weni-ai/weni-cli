@@ -3,6 +3,7 @@ import pytest
 import regex
 from click.testing import CliRunner
 from weni_cli.validators.definition import (
+    AVAILABLE_COMPONENTS,
     MAX_AGENT_NAME_LENGTH,
     MAX_SKILL_NAME_LENGTH,
     load_yaml_file,
@@ -1560,6 +1561,176 @@ def test_validate_definition_with_invalid_skill_parameters_item_contact_field_na
         "Agent 'test_agent': skill 'skill_1': parameter 'id' name must not be a reserved contact field name in the agent definition file"
         in error
     )
+
+
+def test_validate_definition_with_invalid_components_value():
+    """Test validation fails when components value is not a list."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": "not a list",
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': 'components' must be an array in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_component_value_type():
+    """Test validation fails when component value is not a list."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": ["catalog"],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': component at index 0 must be an object in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_component_type_missing():
+    """Test validation fails when component type is missing."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": [{"not_type": "cta_message"}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': component at index 0 must have a 'type' field in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_component_type():
+    """Test validation fails when component type is not a valid component type."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": [{"type": "not_a_valid_component_type"}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        f"Agent 'test_agent': component at index 0 must have a 'type' field with one of the following values: {', '.join(AVAILABLE_COMPONENTS)} in the agent definition file"  # noqa: F821
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_component_instructions():
+    """Test validation fails when component instructions is not a string."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": [{"type": "cta_message", "instructions": 1}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': component at index 0 must have a 'instructions' field with a string value in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_invalid_component_instructions_type():
+    """Test validation fails when component instructions is not a string."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": [{"type": "cta_message", "instructions": 1}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'test_agent': component at index 0 must have a 'instructions' field with a string value in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_valid_component_instructions():
+    """Test validation passes when component instructions is a string."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": [{"type": "cta_message", "instructions": "test"}],
+                "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {"path": "path/to/skill", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_valid_component_and_no_instructions():
+    """Test validation passes when component has no instructions."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "components": [{"type": "cta_message"}],
+                "skills": [{"skill_1": {"name": "Skill 1", "description": "Skill description", "source": {"path": "path/to/skill", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is None
 
 
 def test_load_test_definition_with_yaml_error_message(mocker):

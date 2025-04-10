@@ -33,13 +33,13 @@ SAMPLE_AGENT_DEFINITION_YAML = f"""agents:
                         required: true
 """
 
-SAMPLE_GET_ADDRESS_TOOL_PY = """from weni import Skill
+SAMPLE_GET_ADDRESS_TOOL_PY = """from weni import Tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 
 
-class GetAddress(Skill):
+class GetAddress(Tool):
     def execute(self, context: Context) -> TextResponse:
         cep = context.parameters.get("cep", "")
         print(cep)

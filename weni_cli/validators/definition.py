@@ -8,7 +8,7 @@ from slugify import slugify
 MIN_INSTRUCTION_LENGTH = 40
 MIN_GUARDRAIL_LENGTH = 40
 MAX_AGENT_NAME_LENGTH = 55
-MAX_SKILL_NAME_LENGTH = 53
+MAX_SKILL_NAME_LENGTH = 40
 AVAILABLE_COMPONENTS = [
     "cta_message",
     "quick_replies",

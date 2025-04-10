@@ -39,7 +39,7 @@ class RunHandler(Handler):
 
         definition_data, error = load_agent_definition(definition_path)
         if error:
-            formatter.print_error_panel(error)
+            formatter.print_error_panel(f"Invalid agent definition YAML file format, error:\n{error}", title="Error loading agent definition")
             return
 
         if not test_definition_path:

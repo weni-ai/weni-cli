@@ -192,8 +192,8 @@ class CLIClient:
         project_uuid: str,
         definition: Dict,
         tool_folder: BinaryIO,
-        tool_name: str,
-        agent_name: str,
+        tool_key: str,
+        agent_key: str,
         test_definition: Dict,
         credentials: Dict,
         tool_globals: Dict,
@@ -204,7 +204,7 @@ class CLIClient:
         test_logs = []
 
         data = self._prepare_test_data(
-            project_uuid, definition, test_definition, tool_name, agent_name, credentials, tool_globals
+            project_uuid, definition, test_definition, tool_key, agent_key, credentials, tool_globals
         )
         files = {"tool": tool_folder}
 
@@ -221,8 +221,8 @@ class CLIClient:
         project_uuid: str,
         definition: Dict,
         test_definition: Dict,
-        tool_name: str,
-        agent_name: str,
+        tool_key: str,
+        agent_key: str,
         credentials: Dict,
         tool_globals: Dict,
     ) -> Dict[str, str]:
@@ -231,8 +231,8 @@ class CLIClient:
         data.update(
             {
                 "test_definition": json.dumps(test_definition),
-                "tool_name": tool_name,
-                "agent_name": agent_name,
+                "tool_key": tool_key,
+                "agent_key": agent_key,
                 "tool_credentials": json.dumps(credentials),
                 "tool_globals": json.dumps(tool_globals),
             }

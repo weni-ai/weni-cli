@@ -5,8 +5,8 @@ from typing import Optional
 from zipfile import ZipFile
 
 
-def create_tool_folder_zip(tool_name, tool_path) -> tuple[Optional[BufferedReader], Optional[Exception]]:
-    zip_file_name = f"{tool_name}.zip"
+def create_tool_folder_zip(tool_key, tool_path) -> tuple[Optional[BufferedReader], Optional[Exception]]:
+    zip_file_name = f"{tool_key}.zip"
     zip_file_path = f"{tool_path}{os.sep}{zip_file_name}"
 
     if not os.path.exists(tool_path):

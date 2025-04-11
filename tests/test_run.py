@@ -174,10 +174,6 @@ def test_run_command_success(mocker, create_mocked_files, mock_cli_response, moc
         mocker.patch("weni_cli.commands.run.RunHandler.get_tool_source_path", return_value="tools/get_address")
         mocker.patch("weni_cli.commands.run.RunHandler.load_tool_credentials", return_value={"API_KEY": "test_key"})
         mocker.patch("weni_cli.commands.run.RunHandler.load_tool_globals", return_value={"REGION": "us-east-1"})
-        mocker.patch(
-            "weni_cli.commands.run.RunHandler.get_tool_and_agent_name",
-            return_value=("Get Address", "Get Address Tool"),
-        )
 
         # Mock the CLIClient.run_test before the test
         mock_client_run = mocker.patch("weni_cli.clients.cli_client.CLIClient.run_test")
@@ -399,43 +395,6 @@ def test_parse_agent_tool_failure():
         agent_key, tool_key = handler.parse_agent_tool("invalid_format")
         assert agent_key is None
         assert tool_key is None
-
-
-def test_get_tool_and_agent_name_success():
-    """Test get_tool_and_agent_name with valid input."""
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        handler = RunHandler()
-
-        # Mock the definition to match our expected structure
-        formatted_definition = {
-            "agents": {
-                "get_address": {
-                    "name": "Get Address",
-                    "tools": [
-                        {
-                            "name": "Get Address Tool",
-                            "key": "get_address"
-                        }
-                    ]
-                }
-            }
-        }
-
-        agent_name, tool_name = handler.get_tool_and_agent_name(formatted_definition, "get_address", "get_address")
-        assert agent_name == "Get Address"
-        assert tool_name == "Get Address Tool"
-
-
-def test_get_tool_and_agent_name_failure():
-    """Test get_tool_and_agent_name with invalid input."""
-    runner = CliRunner()
-    with runner.isolated_filesystem():
-        handler = RunHandler()
-        definition = {"agents": {}}
-        agent_name, tool_name = handler.get_tool_and_agent_name(definition, "nonexistent", "nonexistent")
-        assert agent_name is None
-        assert tool_name is None
 
 
 def test_get_tool_source_path_success():

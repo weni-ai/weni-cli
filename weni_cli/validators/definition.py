@@ -272,11 +272,11 @@ def format_definition(definition: dict) -> Optional[dict]:
         tools = agents[agent].get("tools", {})
         agent_tools = []
         for tool in tools:
-            for tool_name, tool_data in tool.items():
+            for tool_key, tool_data in tool.items():
                 tool_slug = slugify(tool_data.get("name"))
                 agent_tools.append(
                     {
-                        "key": tool_name,
+                        "key": tool_key,
                         "slug": tool_slug,
                         "name": tool_data.get("name"),
                         "source": tool_data.get("source"),

@@ -1,8 +1,6 @@
 from typing import Optional
 import rich_click as click
 
-from slugify import slugify
-
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.handler import Handler
@@ -51,17 +49,15 @@ class ProjectPushHandler(Handler):
 
         agents = definition.get("agents", {})
 
-        for _, agent_data in agents.items():
+        for agent_key, agent_data in agents.items():
             tools = agent_data.get("tools", {})
             for tool in tools:
-                for _, tool_data in tool.items():
-                    agent_name_slug = slugify(agent_data.get("name"))
-                    tool_slug = slugify(tool_data.get("name"))
-                    tool_folder, error = create_tool_folder_zip(tool_slug, tool_data.get("source").get("path"))
+                for tool_key, tool_data in tool.items():
+                    tool_folder, error = create_tool_folder_zip(tool_key, tool_data.get("source").get("path"))
                     if error:
                         return None, f"Failed to create tool folder for tool {tool_data.get('name')} in agent {agent_data.get('name')}\n{error}"
 
-                    tools_folder_map[f"{agent_name_slug}:{tool_slug}"] = tool_folder
+                    tools_folder_map[f"{agent_key}:{tool_key}"] = tool_folder
 
         return tools_folder_map, None
 

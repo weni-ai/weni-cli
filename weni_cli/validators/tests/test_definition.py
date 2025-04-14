@@ -487,7 +487,7 @@ def test_validate_definition_with_invalid_guardrails():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "'guardrails' must be an array" in error
+    assert "Agent 'test_agent': 'guardrails' must be an array in the agent definition file" in error
 
 
 def test_validate_definition_with_invalid_agent_data():
@@ -1761,3 +1761,272 @@ def test_load_test_definition_passes_correct_path(mocker):
 
     # Verify that load_yaml_file was called with the correct path
     mock_load_yaml.assert_called_once_with(test_path)
+
+
+def test_validate_definition_with_valid_credentials():
+    """Test validation passes when credentials are valid."""
+    valid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": {
+                        "label": "API Key",
+                        "placeholder": "Enter your API key",
+                        "is_confidential": True
+                    },
+                    "username": {
+                        "label": "Username",
+                        "placeholder": "Enter your username"
+                    }
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_invalid_credentials_type():
+    """Test validation fails when credentials is not an object."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": "Not an object",  # String instead of object
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'credentials' must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_credential_value_type():
+    """Test validation fails when credential value is not an object."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": "Not an object"  # String instead of object
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': value for credential 'api_key' must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_credential_label():
+    """Test validation fails when credential label is missing."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": {
+                        # No label
+                        "placeholder": "Enter your API key"
+                    }
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'label' for credential 'api_key' is missing in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_credential_label_type():
+    """Test validation fails when credential label is not a string."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": {
+                        "label": 123,  # Number instead of string
+                        "placeholder": "Enter your API key"
+                    }
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'label' for credential 'api_key' must be a string in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_credential_placeholder():
+    """Test validation fails when credential placeholder is missing."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": {
+                        "label": "API Key",
+                        # No placeholder
+                    }
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'placeholder' for credential 'api_key' is missing in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_credential_placeholder_type():
+    """Test validation fails when credential placeholder is not a string."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": {
+                        "label": "API Key",
+                        "placeholder": 123  # Number instead of string
+                    }
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'placeholder' for credential 'api_key' must be a string in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_credential_is_confidential_type():
+    """Test validation fails when credential is_confidential is not a boolean."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "credentials": {
+                    "api_key": {
+                        "label": "API Key",
+                        "placeholder": "Enter your API key",
+                        "is_confidential": "true"  # String instead of boolean
+                    }
+                },
+                "skills": [
+                    {
+                        "test_skill": {
+                            "name": "Test Skill",
+                            "description": "Test skill description",
+                            "source": {
+                                "path": "skills/test",
+                                "entrypoint": "main.TestSkill",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'is_confidential' for credential 'api_key' must be a boolean in the agent definition file" in error

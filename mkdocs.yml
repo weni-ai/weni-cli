@@ -88,11 +88,11 @@ nav:
     - Authentication: getting-started/authentication.md
   - Core Concepts:
     - Agents: core-concepts/agents.md
-    - Skills: core-concepts/skills.md
+    - Tools: core-concepts/tools.md
     - Credentials: core-concepts/credentials.md
     - Contact Fields: core-concepts/contact-fields.md
   - Run:
-    - Run: run/skill-run.md
+    - Tool: run/tool-run.md
   - Examples:
     - Example Gallery: examples/gallery.md
   - Utils:

@@ -8,27 +8,27 @@ Agents are defined using YAML files. Here's the basic structure:
 
 ```yaml
 agents:
-  agent_id:
-    name: "Agent Name"
-    description: "Agent Description"
-    instructions:
-      - "Instruction 1"
-      - "Instruction 2"
-    guardrails:
-      - "Guardrail 1"
-    skills:
-      - skill_name:
-          name: "Skill Name"
-          source:
-            path: "skills/skill_name"
-            entrypoint: "main.SkillClass"
-          description: "Skill Description"
-          parameters:
-            - param_name:
-                description: "Parameter Description"
-                type: "string"
-                required: true
-                contact_field: true
+   agent_id:
+      name: "Agent Name"
+      description: "Agent Description"
+      instructions:
+         - "Instruction 1"
+         - "Instruction 2"
+      guardrails:
+         - "Guardrail 1"
+      tools:
+         - tool_name:
+            name: "Tool Name"
+            source:
+               path: "tools/tool_name"
+               entrypoint: "main.ToolClass"
+            description: "Tool Description"
+            parameters:
+               - param_name:
+                  description: "Parameter Description"
+                  type: "string"
+                  required: true
+                  contact_field: true
 ```
 
 ### Key Components
@@ -50,22 +50,22 @@ agents:
    - Define boundaries and limitations
    - Prevent unwanted behavior
 
-5. **Skills**
+5. **Tools**
    - Custom functionalities
    - Implemented as Python classes using the Weni SDK
 
-### Skill Source Configuration
+### Tool Source Configuration
 
-The `source` field is critical for locating and executing your skill:
+The `source` field is critical for locating and executing your tool:
 
 ```yaml
 source:
-  path: "skills/skill_name"
-  entrypoint: "main.SkillClass"
+  path: "tools/tool_name"
+  entrypoint: "main.ToolClass"
 ```
 
-- **path**: Points to the directory containing your skill implementation
-  - Example: `skills/get_address` refers to a folder named `get_address` inside a `skills` directory
+- **path**: Points to the directory containing your tool implementation
+  - Example: `tools/get_address` refers to a folder named `get_address` inside a `tools` directory
   - This folder should contain your Python modules and requirements.txt
 
 - **entrypoint**: Specifies which class to use in which file
@@ -73,28 +73,28 @@ source:
   - Example: `main.GetAddress` means:
     - Look for a file named `main.py` in the path directory
     - Find a class named `GetAddress` inside that file
-    - This class must inherit from the `Skill` class
+    - This class must inherit from the `Tool` class
 
 Your directory structure should look like:
 ```
 project/
 ├── agents.yaml
-└── skills/
+└── tools/
     └── get_address/
         ├── main.py             # Contains GetAddress class
         └── requirements.txt    # Dependencies
 ```
 
-## Creating Skills
+## Creating Tools
 
-### Skill Implementation Structure
+### Tool Implementation Structure
 
 ```python
-from weni import Skill
+from weni import Tool
 from weni.context import Context
 from weni.responses import TextResponse
 
-class SkillName(Skill):
+class ToolName(Tool):
     def execute(self, context: Context) -> TextResponse:
         # Extract parameters
         parameters = context.parameters
@@ -112,7 +112,7 @@ class SkillName(Skill):
 ```
 
 #### Important Requirements
-- The class **must** inherit from `Skill`
+- The class **must** inherit from `Tool`
 - The class **must** implement the `execute` method
 - The class name **must** match the class name in your entrypoint
 
@@ -128,7 +128,7 @@ weni project push agents.yaml
 
 The command:
 1. Validates your YAML
-2. Uploads skills
+2. Uploads tools
 3. Creates/updates the agent
 
 ### Deployment Best Practices
@@ -140,7 +140,7 @@ The command:
 2. **Testing**
    - Test locally when possible
    - Start with staging environment
-   - Verify all skills work
+   - Verify all tools work
 
 3. **Organization**
    - Use clear file names
@@ -160,14 +160,14 @@ Available parameter types:
 
 ### Response Formats
 
-Skills can return:
+Tools can return:
 - Text responses via `TextResponse`
 - Structured data 
 - Error messages
 
 ### Error Handling
 
-Your skills should:
+Your tools should:
 1. Validate inputs
 2. Handle exceptions gracefully
 3. Return meaningful error messages
@@ -178,12 +178,12 @@ Your skills should:
 
 1. **Deployment Failures**
    - Check YAML syntax
-   - Verify skill paths
+   - Verify tool paths
    - Confirm project selection
 
-2. **Skill Errors**
-   - Verify skill entrypoint (class name)
-   - Test skill class locally
+2. **Tool Errors**
+   - Verify tool entrypoint (class name)
+   - Test tool class locally
    - Check parameter handling in context
    - Verify API endpoints
 
@@ -201,7 +201,7 @@ Your skills should:
 
 2. **Monitoring**
    - Keep deployment logs
-   - Monitor skill performance
+   - Monitor tool performance
    - Track user interactions
 
 3. **Updates**

@@ -25,25 +25,25 @@ agents:
             - "Maintain a professional and impartial tone when presenting news"
             - "Don't make assumptions or speculations about the news"
             - "Avoid sharing sensationalist or unverified news"
-        skills:
+        tools:
         - get_news:
             name: "Get News"
             source:
-                path: "skills/get_news"
+                path: "tools/get_news"
                 entrypoint: "main.GetNews"
                 path_test: "test_definition.yaml"
-            description: "Function to search news about a specific topic"
+            description: "Function to get the latest news from NewsAPI"
             parameters:
                 - topic:
-                    description: "topic to search news about"
+                    description: "Topic to search for news"
                     type: "string"
                     required: true
                     contact_field: true
 ```
 
-## Skill Implementation
+## Tool Implementation
 
-Create a file `skills/get_news/main.py`:
+Create a file `tools/get_news/main.py`:
 
 ```python
 from weni import Skill
@@ -99,13 +99,13 @@ class GetNews(Skill):
         return response.json()
 ```
 
-Create a file `skills/get_news/requirements.txt`:
+Create a file `tools/get_news/requirements.txt`:
 
 ```
 requests==2.32.3
 ```
 
-Create a file `skills/get_news/test_definition.yaml`:
+Create a file `tools/get_news/test_definition.yaml`:
 
 ```yaml
 tests:
@@ -125,23 +125,23 @@ For this agent to work properly, you'll need to get an API key from News API:
 3. Copy your API key from your account
 4. When deploying the agent, you'll need to provide this key as a credential
 
-## Testing the Skill Locally
+## Testing the Tool Locally
 
-Before deploying your agent, you can test the skill locally using the `weni run` command. This allows you to verify that your skill works correctly and debug any issues.
+Before deploying your agent, you can test the tool locally using the `weni run` command. This allows you to verify that your tool works correctly and debug any issues.
 
-Since this skill requires credentials, you'll need to create a `.env` file in the root of your project with your API key:
+Since this tool requires credentials, you'll need to create a `.env` file in the root of your project with your API key:
 
 ```
 apiKey=your_actual_news_api_key_here
 ```
 
-To test the News Agent skill:
+To test the News Agent tool:
 
 ```bash
 weni run agent_definition.yaml news_agent get_news
 ```
 
-This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your skill during execution.
+This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your tool during execution.
 
 If you need more detailed logs for debugging, you can add the `-v` flag:
 
@@ -149,7 +149,7 @@ If you need more detailed logs for debugging, you can add the `-v` flag:
 weni run agent_definition.yaml news_agent get_news -v
 ```
 
-The verbose output will show you more details about the execution process, helping you identify and fix any issues with your skill.
+The verbose output will show you more details about the execution process, helping you identify and fix any issues with your tool.
 
 ## Deployment Steps
 

@@ -10,9 +10,9 @@ Create a file called `agent_definition.yaml`:
 agents:
     news_agent:
         credentials:
-        - apiKey:
-            - label: "API Key"
-            - placeholder: "apiKey"
+            apiKey:
+                label: "API Key"
+                placeholder: "apiKey"
         name: "News Agent"
         description: "Expert in searching and providing news about any topic"
         instructions:

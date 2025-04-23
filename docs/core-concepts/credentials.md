@@ -15,17 +15,17 @@ In your agent definition file (YAML), credentials are defined in the `credential
 agents:
   my_agent:
     credentials:
-      - API_KEY:
-          - label: "API Key"
-          - placeholder: "your-api-key-here"
-          - is_confidential: true
-      - API_SECRET:
-          - label: "API Secret"
-          - placeholder: "your-api-secret-here"
-      - BASE_URL:
-          - label: "Base URL"
-          - placeholder: "https://api.example.com"
-          - is_confidential: false
+      API_KEY:
+        label: "API Key"
+        placeholder: "your-api-key-here"
+        is_confidential: true
+      API_SECRET:
+        label: "API Secret"
+        placeholder: "your-api-secret-here"
+      BASE_URL:
+        label: "Base URL"
+        placeholder: "https://api.example.com"
+        is_confidential: false
 ```
 
 Each credential has the following attributes:
@@ -113,9 +113,9 @@ For example, if your CEP Agent definition has the following credentials:
 agents:
   cep_agent:
     credentials:
-      - api_key:
-          - label: "API Key"
-          - placeholder: "Enter your API key"
+      api_key:
+        label: "API Key"
+        placeholder: "Enter your API key"
     # Rest of the agent definition...
 ```
 

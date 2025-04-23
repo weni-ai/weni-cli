@@ -10,9 +10,9 @@ Create a file called `agent_definition.yaml`:
 agents:
   movie_agent:
     credentials:
-      - movies_api_key:
-          - label: "api movies"
-          - placeholder: "movies_api_key"
+      movies_api_key:
+        label: "api movies"
+        placeholder: "movies_api_key"
     name: "Movie Agent"
     description: "Expert in searching for movie information"
     instructions:

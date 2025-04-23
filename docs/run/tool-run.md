@@ -92,9 +92,9 @@ First, update your agent definition to include credentials:
 agents:
   cep_agent:
     credentials:
-      - api_key:
-          - label: "API Key"
-          - placeholder: "Api Key"
+      api_key:
+        label: "API Key"
+        placeholder: "Api Key"
     name: "CEP Agent"
     description: "Weni's CEP agent"
     instructions:

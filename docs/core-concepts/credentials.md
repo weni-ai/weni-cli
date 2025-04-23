@@ -54,9 +54,9 @@ When your agent is deployed on the Weni Platform, credentials are securely manag
 > agents:
 >     cep_agent:
 >         credentials:
->             - api_key:
->                 - label: "API Key"
->                 - placeholder: "Enter your API key"
+>             api_key:
+>                 label: "API Key"
+>                 placeholder: "Enter your API key"
 >         name: "CEP Agent"
 >         description: "Weni's CEP agent with components"
 >         instructions:

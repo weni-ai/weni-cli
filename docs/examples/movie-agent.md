@@ -31,14 +31,14 @@ agents:
         - "Provide accurate and verified information"
         - "When translating, maintain fidelity to the original text meaning"
         - "If there's doubt in title translation, use the most internationally known name"
-    skills:
-    - get_movies_new:
-        name: "Search Movies New"
-        source:
-          path: "skills/get_movies"
+    tools:
+    - get_movies:
+        name: "Get Movies"
+        source: 
+          path: "tools/get_movies"
           entrypoint: "main.GetMovies"
           path_test: "test_definition.yaml"
-        description: "Function to search for movie information"
+        description: "Function to get movie information from TMDB API"
         parameters:
             - movie_title:
                 description: "movie title to search for (will be translated to English if in Portuguese)"
@@ -47,19 +47,18 @@ agents:
                 contact_field: true
 ```
 
-## Skill Implementation
+## Tool Implementation
 
-Create a file `skills/get_movies/main.py`:
+Create a file `tools/get_movies/main.py`:
 
 ```python
-from weni import Skill
+from weni import Tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 from datetime import datetime
 
-
-class GetMovies(Skill):
+class GetMovies(Tool):
     def execute(self, context: Context) -> TextResponse:
         movie_title = context.parameters.get("movie_title", "")
         api_key = context.credentials.get("movies_api_key")
@@ -117,13 +116,13 @@ class GetMovies(Skill):
         return response.json()
 ```
 
-Create a file `skills/get_movies/requirements.txt`:
+Create a file `tools/get_movies/requirements.txt`:
 
 ```
 requests==2.32.3
 ```
 
-Create a file `skills/get_movies/test_definition.yaml`:
+Create a file `tools/get_movies/test_definition.yaml`:
 
 ```yaml
 tests:
@@ -144,20 +143,20 @@ For this agent to work properly, you'll need to get an API key from The Movie Da
 4. Copy your API key
 5. When deploying the agent, you'll need to provide this key as a credential
 
-## Testing the Skill Locally
+## Testing the Tool Locally
 
-Before deploying your agent, you can test the skill locally using the `weni run` command. This allows you to verify that your skill works correctly and debug any issues.
+Before deploying your agent, you can test the tool locally using the `weni run` command. This allows you to verify that your tool works correctly and debug any issues.
 
-Since this skill requires credentials, you'll need to create a `.env` file in the root of your project with your TMDB API key:
+Since this tool requires credentials, you'll need to create a `.env` file in the root of your project with your TMDB API key:
 
 ```
 movies_api_key=your_actual_tmdb_api_key_here
 ```
 
-To test the Movie Agent skill:
+To test the Movie Agent tool:
 
 ```bash
-weni run agent_definition.yaml movie_agent get_movies_new
+weni run agent_definition.yaml movie_agent get_movies
 ```
 
 This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your skill during execution.
@@ -165,10 +164,10 @@ This command will execute the tests defined in the `test_definition.yaml` file a
 If you need more detailed logs for debugging, you can add the `-v` flag:
 
 ```bash
-weni run agent_definition.yaml movie_agent get_movies_new -v
+weni run agent_definition.yaml movie_agent get_movies -v
 ```
 
-The verbose output will show you more details about the execution process, including API requests and responses, helping you identify and fix any issues with your skill.
+The verbose output will show you more details about the execution process, including API requests and responses, helping you identify and fix any issues with your tool.
 
 ## Deployment Steps
 

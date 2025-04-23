@@ -16,11 +16,11 @@ agents:
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
-    skills:
+    tools:
       - get_address:
           name: "Get Address"
           source: 
-            path: "skills/get_address"
+            path: "tools/get_address"
             entrypoint: "main.GetAddress"
             path_test: "test_definition.yaml"
           description: "Function to get the address from the postal code"
@@ -32,18 +32,18 @@ agents:
                 contact_field: true
 ```
 
-## Skill Implementation
+## Tool Implementation
 
-Create a file `skills/get_address/main.py`:
+Create a file `tools/get_address/main.py`:
 
 ```python
-from weni import Skill
+from weni import Tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 
 
-class GetAddress(Skill):
+class GetAddress(Tool):
     def execute(self, context: Context) -> TextResponse:
         cep = context.parameters.get("cep", "")
         address_response = self.get_address_by_cep(cep=cep)
@@ -55,13 +55,13 @@ class GetAddress(Skill):
         return response.json()
 ```
 
-Create a file `skills/get_address/requirements.txt`:
+Create a file `tools/get_address/requirements.txt`:
 
 ```
 requests==2.31.0
 ```
 
-Create a file `skills/get_address/test_definition.yaml`:
+Create a file `tools/get_address/test_definition.yaml`:
 
 ```yaml
 tests:
@@ -76,14 +76,14 @@ tests:
             cep: "20050-090"
 ```
 
-## Testing the Skill Locally
+## Testing the Tool Locally
 
-Before deploying your agent, you can test the skill locally using the `weni run` command. This allows you to verify that your skill works correctly and debug any issues.
+Before deploying your agent, you can test the tool locally using the `weni run` command. This allows you to verify that your tool works correctly and debug any issues.
 
-To test the CEP Agent skill:
+To test the CEP Agent tool:
 
 ```bash
-weni run agents.yaml sample_agent get_address
+weni run agent_definition.yaml cep_agent get_address
 ```
 
 This command will execute the tests defined in the `test_definition.yaml` file and show you the output. You should see the address information for the Brazilian postal codes specified in the test cases.
@@ -91,10 +91,10 @@ This command will execute the tests defined in the `test_definition.yaml` file a
 If you need more detailed logs for debugging, you can add the `-v` flag:
 
 ```bash
-weni run agents.yaml sample_agent get_address -v
+weni run agent_definition.yaml cep_agent get_address -v
 ```
 
-The verbose output will show you more details about the execution process, including the API requests and responses, helping you identify and fix any issues with your skill.
+This will run the test cases defined in `test_definition.yaml` and show you the output, helping you identify and fix any issues with your tool.
 
 ## Deployment Steps
 

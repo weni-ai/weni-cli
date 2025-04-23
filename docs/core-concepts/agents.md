@@ -33,7 +33,7 @@ agents:
       - get_address:
           name: "Get Address"
           source: 
-            path: "skills/get_address"
+            path: "tools/get_address"
             entrypoint: "main.GetAddress"
             path_test: "tests.yaml"
           description: "Function to get the address from the postal code"
@@ -72,42 +72,42 @@ agents:
     :   You can list boundaries and limitations for your agent, such as topics it should not discuss.  
         **Limit**: :octicons-alert-24: Minimum of 40 characters.
 
-=== "Skill"
+=== "Tool"
 
     `Name`
 
-    :   The name of the skill that will be associated with the agent in the Weni Platform.  
+    :   The name of the tool that will be associated with the agent in the Weni Platform.  
         **Limit**: :octicons-alert-24: Maximum of 53 characters
 
     `Source`
 
-    :   The location or path where the skill can be found. It contains three important elements:
+    :   The location or path where the tool can be found. It contains three important elements:
         
-        - `path`: The directory path where your skill's code is located. This is typically a relative path from the root of your project.
+        - `path`: The directory path where your tool's code is located. This is typically a relative path from the root of your project.
         
-        - `entrypoint`: The specific class that will be executed when the skill is called. It follows the format "file_name.ClassName". You can see a practical example of the skill implementation for this entrypoint in the [example](/core-concepts/skills) page, where the GetAddress class from this example is implemented.
+        - `entrypoint`: The specific class that will be executed when the tool is called. It follows the format "file_name.ClassName". You can see a practical example of the tool implementation for this entrypoint in the [example](/core-concepts/skills) page, where the GetAddress class from this example is implemented.
         
-        - `path_test`: The location of the test file for your skill, which contains test cases to validate the skill's functionality.
+        - `path_test`: The location of the test file for your tool, which contains test cases to validate the tool's functionality.
 
     `Description`
 
-    :   Information about the skill, including its purpose and objectives.
+    :   Information about the tool, including its purpose and objectives.
 
     `Parameters`
 
-    :   The parameters or variables used in your agent's skill.
+    :   The parameters or variables used in your agent's tool.
         
         - `description`: A clear explanation of what the parameter is used for and what kind of data it expects.
         
         - `type`: The data type of the parameter (e.g., string, integer, boolean, object).
         
-        - `required`: A boolean value (true/false) indicating whether the parameter must be provided for the skill to function properly. If set to true, the agent will ask the user for this information if it's not available before proceeding with the request.
+        - `required`: A boolean value (true/false) indicating whether the parameter must be provided for the tool to function properly. If set to true, the agent will ask the user for this information if it's not available before proceeding with the request.
         
         - `contact_field`: Specifies if the parameter should be stored as a contact field in the user's profile for future reference. If set to true, the respective parameter will become information that persists for the user integrated with the Weni Platform. This brings benefits to the user experience because in future interactions, your agent may not need to request this information from the user again. Read more about contact fields in [Contact Fields](./contact-fields.md).
 
 ## Basic Structure
 
-The basic structure of your project should consist of your agent definition written in YAML and your agent's skills organized into directories. It is not mandatory to organize your skills in a 'skills' directory, but it is highly recommended as a best practice.
+The basic structure of your project should consist of your agent definition written in YAML and your agent's tools organized into directories. It is not mandatory to organize your tools in a 'tools' directory, but it is highly recommended as a best practice.
 
 Based on the definition example below:
 
@@ -125,7 +125,7 @@ agents:
       - get_address:
           name: "Get Address"
           source: 
-            path: "skills/get_address"
+            path: "tools/get_address"
             entrypoint: "main.GetAddress"
             path_test: "tests.yaml"
           description: "Function to get the address from the postal code"
@@ -140,7 +140,7 @@ agents:
 Your project should have the following structure:
 ```
 your-project-name/
-├── skills/
+├── tools/
 │   ├── get_address/main.py
 └── agent_definition.yaml
 ```

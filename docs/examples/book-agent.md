@@ -25,11 +25,11 @@ agents:
         - "Provide accurate and verified information"
         - "When translating, maintain fidelity to the original text meaning"
         - "Mention when rating or page count information is not available"
-      skills:
+      tools:
       - get_books:
           name: "Search Books"
           source:
-            path: "skills/get_books"
+            path: "tools/get_books"
             entrypoint: "books.GetBooks"
             path_test: "test_definition.yaml"
           description: "Function to search for book information"
@@ -41,25 +41,25 @@ agents:
                 contact_field: true
 ```
 
-## Skill Implementation
+## Tool Implementation
 
-Create a file `skills/get_books/books.py`:
+Create a file `tools/get_books/books.py`:
 
 ```python
-from weni import Skill
+from weni import Tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 from datetime import datetime
 
 
-class GetBooks(Skill):
+class GetBooks(Tool):
     def execute(self, context: Context) -> TextResponse:
         apiKey = context.credentials.get("apiKey")
         
         book_title = context.parameters.get("book_title", "")
         books_response = self.get_books_by_title(title=book_title)
-        
+
         # Format the response
         items = books_response.get("items", [])
         if not items:
@@ -102,13 +102,13 @@ class GetBooks(Skill):
         return response.json()
 ```
 
-Create a file `skills/get_books/requirements.txt`:
+Create a file `tools/get_books/requirements.txt`:
 
 ```
 requests==2.32.3
 ```
 
-Create a file `skills/get_books/test_definition.yaml`:
+Create a file `tools/get_books/test_definition.yaml`:
 
 ```yaml
 tests:
@@ -117,11 +117,11 @@ tests:
             book_title: "The Hobbit"
 ```
 
-## Testing the Skill Locally
+## Testing the Tool Locally
 
-Before deploying your agent, you can test the skill locally using the `weni run` command. This allows you to verify that your skill works correctly and debug any issues.
+Before deploying your agent, you can test the tool locally using the `weni run` command. This allows you to verify that your tool works correctly and debug any issues.
 
-To test the Book Agent skill:
+To test the Book Agent tool:
 
 ```bash
 weni run agent_definition.yaml book_agent get_books
@@ -135,7 +135,7 @@ If you need more detailed logs for debugging, you can add the `-v` flag:
 weni run agent_definition.yaml book_agent get_books -v
 ```
 
-The verbose output will show you more details about the execution process, helping you identify and fix any issues with your skill.
+The verbose output will show you more details about the execution process, helping you identify and fix any issues with your tool.
 
 ## Deployment Steps
 

@@ -1,5 +1,15 @@
 # Changelog
 
+## [2.2.1] - 2025-04-10
+
+### Added
+
+- Add component validation to agent definition schema ([#86](https://github.com/weni-ai/weni-cli/pull/86)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat/enhance definition validation ([#85](https://github.com/weni-ai/weni-cli/pull/85)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor ProjectPushHandler and improve error handling in skill folder creation ([#84](https://github.com/weni-ai/weni-cli/pull/84)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Enhance error handling in RunHandler and definition validation ([#83](https://github.com/weni-ai/weni-cli/pull/83)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: Add mypy ([#82](https://github.com/weni-ai/weni-cli/pull/82)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [2.2.0] - 2025-03-27
 
 ### Added

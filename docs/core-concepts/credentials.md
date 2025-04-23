@@ -64,11 +64,11 @@ When your agent is deployed on the Weni Platform, credentials are securely manag
 >         - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
 >         guardrails:
 >         - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
->         skills:
+>         tools:
 >         - get_address:
 >             name: "Get Address"
 >             source:
->                 path: "skills/get_address"
+>                 path: "tools/get_address"
 >                 entrypoint: "main.GetAddress"
 >                 path_test: "test_definition.yaml"
 >             description: "Function to get the address from the postal code"

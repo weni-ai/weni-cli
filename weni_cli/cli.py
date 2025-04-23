@@ -29,7 +29,7 @@ def login():
 # Init Command
 @cli.command("init")
 def init():
-    """Create a sample agent definition file and skills directory"""
+    """Create a sample agent definition file and tools directory"""
     from weni_cli.commands.init import InitHandler
 
     InitHandler().execute()
@@ -39,24 +39,24 @@ def init():
 @cli.command("run")
 @click.argument("definition", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument("agent_key", required=True, type=str)
-@click.argument("skill_key", required=True, type=str)
+@click.argument("tool_key", required=True, type=str)
 @click.option(
     "--file", "-f", help="The path to the test definition file", type=click.Path(exists=True, dir_okay=False)
 )
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
-def run_test(definition, agent_key, skill_key, file, verbose):
-    """Run tests for a specific agent skill
+def run_test(definition, agent_key, tool_key, file, verbose):
+    """Run tests for a specific agent tool
 
     DEFINITION: The path to the YAML agent definition file
     AGENT_KEY: The agent key to be tested
-    SKILL_KEY: The skill key to be tested
+    TOOL_KEY: The tool key to be tested
     FILE: The path to the test definition file
     """
     from weni_cli.commands.run import RunHandler
 
     try:
         RunHandler().execute(
-            definition=definition, agent_key=agent_key, skill_key=skill_key, test_definition=file, verbose=verbose
+            definition=definition, agent_key=agent_key, tool_key=tool_key, test_definition=file, verbose=verbose
         )
     except Exception as e:
         click.echo(f"Error: {e}")

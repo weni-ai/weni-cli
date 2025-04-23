@@ -8,7 +8,14 @@ from slugify import slugify
 MIN_INSTRUCTION_LENGTH = 40
 MIN_GUARDRAIL_LENGTH = 40
 MAX_AGENT_NAME_LENGTH = 55
-MAX_SKILL_NAME_LENGTH = 53
+MAX_TOOL_NAME_LENGTH = 40
+AVAILABLE_COMPONENTS = [
+    "cta_message",
+    "quick_replies",
+    "list_message",
+    "catalog",
+    "simple_text",
+]
 
 
 def validate_agent_definition_schema(data):
@@ -99,125 +106,154 @@ def validate_agent_definition_schema(data):
                 if "is_confidential" in credential_value and not isinstance(credential_value["is_confidential"], bool):
                     return f"Agent '{agent_key}': 'is_confidential' for credential '{credential_key}' must be a boolean in the agent definition file"
 
-        # Validate skills
-        if not agent_data.get("skills"):
-            return f"Agent '{agent_key}' is missing required field 'skills' in the agent definition file"
+        # Validate components, they are optional, but if present must be an array of objects
+        if "components" in agent_data:
+            if not isinstance(agent_data["components"], list):
+                return f"Agent '{agent_key}': 'components' must be an array in the agent definition file"
 
-        if not isinstance(agent_data["skills"], list):
-            return f"Agent '{agent_key}': 'skills' must be an array in the agent definition file"
+            for idx, component in enumerate(agent_data["components"]):
+                if not isinstance(component, dict):
+                    return (
+                        f"Agent '{agent_key}': component at index {idx} must be an object in the agent definition file"
+                    )
 
-        # Validate each skill
-        for skill_idx, skill_obj in enumerate(agent_data["skills"]):
-            if not isinstance(skill_obj, dict):
+                # Validate type (required, must be string)
+                if "type" not in component:
+                    return f"Agent '{agent_key}': component at index {idx} must have a 'type' field in the agent definition file"
+
+                if component["type"] not in AVAILABLE_COMPONENTS:
+                    return f"Agent '{agent_key}': component at index {idx} must have a 'type' field with one of the following values: {', '.join(AVAILABLE_COMPONENTS)} in the agent definition file"  # noqa: F821
+
+                # Validate instructions if present (must be string)
+                if "instructions" in component:
+                    if not isinstance(component["instructions"], str):
+                        return f"Agent '{agent_key}': component at index {idx} must have a 'instructions' field with a string value in the agent definition file"
+
+        # Validate tools
+        if not agent_data.get("tools"):
+            return f"Agent '{agent_key}' is missing required field 'tools' in the agent definition file"
+
+        if not isinstance(agent_data["tools"], list):
+            return f"Agent '{agent_key}': 'tools' must be an array in the agent definition file"
+
+        # Validate each tool
+        for tool_idx, tool_obj in enumerate(agent_data["tools"]):
+            if not isinstance(tool_obj, dict):
                 return (
-                    f"Agent '{agent_key}': skill at index {skill_idx} must be an object in the agent definition file"
+                    f"Agent '{agent_key}': tool at index {tool_idx} must be an object in the agent definition file"
                 )
 
-            # Each skill object should have one key that is the skill name
-            if len(skill_obj) != 1:
-                return f"Agent '{agent_key}': skill at index {skill_idx} must have exactly one key in the agent definition file"
+            # Each tool object should have one key that is the tool name
+            if len(tool_obj) != 1:
+                return f"Agent '{agent_key}': tool at index {tool_idx} must have exactly one key in the agent definition file"
 
-            skill_name = list(skill_obj.keys())[0]
-            skill_data = skill_obj[skill_name]
+            tool_name = list(tool_obj.keys())[0]
+            tool_data = tool_obj[tool_name]
 
-            if not isinstance(skill_data, dict):
-                return f"Agent '{agent_key}': skill '{skill_name}' data must be an object in the agent definition file"
+            if not isinstance(tool_data, dict):
+                return f"Agent '{agent_key}': tool '{tool_name}' data must be an object in the agent definition file"
 
-            # Check required skill fields
+            # Check required tool fields
             # Validate name (required, must be string)
-            if not skill_data.get("name"):
-                return f"Agent '{agent_key}': skill '{skill_name}' is missing required field 'name' in the agent definition file"
-            if not isinstance(skill_data["name"], str):
+            if not tool_data.get("name"):
+                return f"Agent '{agent_key}': tool '{tool_name}' is missing required field 'name' in the agent definition file"
+            if not isinstance(tool_data["name"], str):
                 return (
-                    f"Agent '{agent_key}': skill '{skill_name}': 'name' must be a string in the agent definition file"
+                    f"Agent '{agent_key}': tool '{tool_name}': 'name' must be a string in the agent definition file"
                 )
-            if len(skill_data["name"]) > MAX_SKILL_NAME_LENGTH:
-                return f"Agent '{agent_key}': skill '{skill_name}': 'name' must be less than {MAX_SKILL_NAME_LENGTH} characters in the agent definition file"
+            if len(tool_data["name"]) > MAX_TOOL_NAME_LENGTH:
+                return f"Agent '{agent_key}': tool '{tool_name}': 'name' must be less than {MAX_TOOL_NAME_LENGTH} characters in the agent definition file"
 
             # Validate description (required, must be string)
-            if not skill_data.get("description"):
-                return f"Agent '{agent_key}': skill '{skill_name}' is missing required field 'description' in the agent definition file"
-            if not isinstance(skill_data["description"], str):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'description' must be a string in the agent definition file"
+            if not tool_data.get("description"):
+                return f"Agent '{agent_key}': tool '{tool_name}' is missing required field 'description' in the agent definition file"
+            if not isinstance(tool_data["description"], str):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'description' must be a string in the agent definition file"
 
             # Validate source
-            if skill_data.get("source") is None:
-                return f"Agent '{agent_key}': skill '{skill_name}' is missing required field 'source' in the agent definition file"
+            if tool_data.get("source") is None:
+                return f"Agent '{agent_key}': tool '{tool_name}' is missing required field 'source' in the agent definition file"
 
-            if not isinstance(skill_data["source"], dict):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'source' must be an object in the agent definition file"
+            if not isinstance(tool_data["source"], dict):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'source' must be an object in the agent definition file"
 
             # Validate source path (required, must be string)
-            if not skill_data["source"].get("path"):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'source' is missing required field 'path' in the agent definition file"
-            if not isinstance(skill_data["source"]["path"], str):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'source.path' must be a string in the agent definition file"
+            if not tool_data["source"].get("path"):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'source' is missing required field 'path' in the agent definition file"
+            if not isinstance(tool_data["source"]["path"], str):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'source.path' must be a string in the agent definition file"
 
             # Validate source entrypoint (required, must be string)
-            if not skill_data["source"].get("entrypoint"):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'source' is missing required field 'entrypoint' in the agent definition file"
-            if not isinstance(skill_data["source"]["entrypoint"], str):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'source.entrypoint' must be a string in the agent definition file"
+            if not tool_data["source"].get("entrypoint"):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'source' is missing required field 'entrypoint' in the agent definition file"
+            if not isinstance(tool_data["source"]["entrypoint"], str):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'source.entrypoint' must be a string in the agent definition file"
 
             # Validate source path_test if present (must be string)
-            if "path_test" in skill_data["source"] and not isinstance(skill_data["source"]["path_test"], str):
-                return f"Agent '{agent_key}': skill '{skill_name}': 'source.path_test' must be a string in the agent definition file"
+            if "path_test" in tool_data["source"] and not isinstance(tool_data["source"]["path_test"], str):
+                return f"Agent '{agent_key}': tool '{tool_name}': 'source.path_test' must be a string in the agent definition file"
 
             # Validate parameters if present
-            if "parameters" in skill_data:
-                if not isinstance(skill_data["parameters"], list):
-                    return f"Agent '{agent_key}': skill '{skill_name}': 'parameters' must be an array in the agent definition file"
+            if "parameters" in tool_data:
+                if not isinstance(tool_data["parameters"], list):
+                    return f"Agent '{agent_key}': tool '{tool_name}': 'parameters' must be an array in the agent definition file"
 
                 # Validate each parameter
-                for param_idx, param_obj in enumerate(skill_data["parameters"]):
+                for param_idx, param_obj in enumerate(tool_data["parameters"]):
                     if not isinstance(param_obj, dict):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter at index {param_idx} must be an object in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter at index {param_idx} must be an object in the agent definition file"
 
                     # Each parameter object should have one key that is the parameter name
                     if len(param_obj) != 1:
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter at index {param_idx} must have exactly one key in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter at index {param_idx} must have exactly one key in the agent definition file"
 
                     param_name = list(param_obj.keys())[0]
                     param_data = param_obj[param_name]
 
                     if not isinstance(param_data, dict):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' data must be an object in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' data must be an object in the agent definition file"
 
                     # Check required parameter fields
                     # Validate description (required, must be string)
                     if not param_data.get("description"):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' is missing required field 'description' in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' is missing required field 'description' in the agent definition file"
                     if not isinstance(param_data["description"], str):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' description must be a string in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' description must be a string in the agent definition file"
 
                     # Validate type (required, must be string)
                     if not param_data.get("type"):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' is missing required field 'type' in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' is missing required field 'type' in the agent definition file"
                     if not isinstance(param_data["type"], str):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' type must be a string in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' type must be a string in the agent definition file"
 
                     # Check allowed types
-                    if param_data["type"] not in ["string", "number", "integer", "boolean", "array"]:
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' type must be one of: string, number, integer, boolean, array in the agent definition file"
+                    if param_data["type"] not in [
+                        "string",
+                        "number",
+                        "integer",
+                        "boolean",
+                        "array",
+                    ]:
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' type must be one of: string, number, integer, boolean, array in the agent definition file"
 
                     # Validate required if present (must be boolean)
                     if "required" in param_data and not isinstance(param_data["required"], bool):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' required field must be a boolean in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' required field must be a boolean in the agent definition file"
 
                     # Validate contact_field if present (must be boolean)
                     if "contact_field" in param_data and not isinstance(param_data["contact_field"], bool):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' contact_field must be a boolean in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' contact_field must be a boolean in the agent definition file"
 
                     # If contact_field is True, validate parameter name
 
                     if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_name(param_name):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file"
 
                     if param_data.get("contact_field") and not ContactFieldValidator.has_valid_contact_field_length(param_name):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must be {ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH} characters or less in the agent definition file"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' name must be {ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH} characters or less in the agent definition file"
 
                     if param_data.get("contact_field") and not ContactFieldValidator.has_allowed_parameter_name(param_name):
-                        return f"Agent '{agent_key}': skill '{skill_name}': parameter '{param_name}' name must not be a reserved contact field name in the agent definition file\nRestricted contact field names: {ContactFieldValidator.RESERVED_CONTACT_FIELDS}"
+                        return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' name must not be a reserved contact field name in the agent definition file\nRestricted contact field names: {ContactFieldValidator.RESERVED_CONTACT_FIELDS}"
 
     return None
 
@@ -254,28 +290,28 @@ def load_test_definition(path) -> tuple[Any, Optional[Exception]]:
     return data, None
 
 
-# Updates the skills in the definition to be an array of objects containing name, path and slug
+# Updates the tools in the definition to be an array of objects containing name, path and slug
 def format_definition(definition: dict) -> Optional[dict]:
     agents = definition.get("agents", {})
 
     for agent in agents:
-        skills = agents[agent].get("skills", {})
-        agent_skills = []
-        for skill in skills:
-            for skill_name, skill_data in skill.items():
-                skill_slug = slugify(skill_data.get("name"))
-                agent_skills.append(
+        tools = agents[agent].get("tools", {})
+        agent_tools = []
+        for tool in tools:
+            for tool_key, tool_data in tool.items():
+                tool_slug = slugify(tool_data.get("name"))
+                agent_tools.append(
                     {
-                        "key": skill_name,
-                        "slug": skill_slug,
-                        "name": skill_data.get("name"),
-                        "source": skill_data.get("source"),
-                        "description": skill_data.get("description"),
-                        "parameters": skill_data.get("parameters"),
+                        "key": tool_key,
+                        "slug": tool_slug,
+                        "name": tool_data.get("name"),
+                        "source": tool_data.get("source"),
+                        "description": tool_data.get("description"),
+                        "parameters": tool_data.get("parameters"),
                     }
                 )
 
-        agents[agent]["skills"] = agent_skills
+        agents[agent]["tools"] = agent_tools
         agents[agent]["slug"] = slugify(agents[agent].get("name"))
 
     return definition

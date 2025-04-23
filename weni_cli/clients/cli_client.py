@@ -152,14 +152,14 @@ class CLIClient:
         except RequestError as e:
             raise RequestError(f"Failed to check project permission: {e.message}")
 
-    def push_agents(self, project_uuid: str, agents_definition: Dict, skill_folders: Dict[str, BinaryIO]) -> None:
+    def push_agents(self, project_uuid: str, agents_definition: Dict, tool_folders: Dict[str, BinaryIO]) -> None:
         """Push agents to the API."""
         data = create_default_payload(project_uuid, agents_definition)
 
         with spinner():
             try:
                 with self._streaming_request(
-                    method="POST", endpoint="api/v1/agents", data=data, files=skill_folders
+                    method="POST", endpoint="api/v1/agents", data=data, files=tool_folders
                 ) as response:
                     self._handle_push_response(response)
             except RequestError as e:
@@ -191,22 +191,22 @@ class CLIClient:
         self,
         project_uuid: str,
         definition: Dict,
-        skill_folder: BinaryIO,
-        skill_name: str,
-        agent_name: str,
+        tool_folder: BinaryIO,
+        tool_key: str,
+        agent_key: str,
         test_definition: Dict,
         credentials: Dict,
-        skill_globals: Dict,
+        tool_globals: Dict,
         result_callback: Callable[[str, Any, int, Optional[str], bool], None],
         verbose: bool = False,
     ) -> List[Dict]:
-        """Run a test for a skill."""
+        """Run a test for a tool."""
         test_logs = []
 
         data = self._prepare_test_data(
-            project_uuid, definition, test_definition, skill_name, agent_name, credentials, skill_globals
+            project_uuid, definition, test_definition, tool_key, agent_key, credentials, tool_globals
         )
-        files = {"skill": skill_folder}
+        files = {"tool": tool_folder}
 
         try:
             with self._streaming_request(method="POST", endpoint="api/v1/runs", data=data, files=files) as response:
@@ -221,20 +221,20 @@ class CLIClient:
         project_uuid: str,
         definition: Dict,
         test_definition: Dict,
-        skill_name: str,
-        agent_name: str,
+        tool_key: str,
+        agent_key: str,
         credentials: Dict,
-        skill_globals: Dict,
+        tool_globals: Dict,
     ) -> Dict[str, str]:
         """Prepare data for the test run."""
         data = create_default_payload(project_uuid, definition)
         data.update(
             {
                 "test_definition": json.dumps(test_definition),
-                "skill_name": skill_name,
-                "agent_name": agent_name,
-                "skill_credentials": json.dumps(credentials),
-                "skill_globals": json.dumps(skill_globals),
+                "tool_key": tool_key,
+                "agent_key": agent_key,
+                "tool_credentials": json.dumps(credentials),
+                "tool_globals": json.dumps(tool_globals),
             }
         )
         return data

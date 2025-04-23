@@ -80,6 +80,32 @@ def validate_agent_definition_schema(data):
                 if len(guardrail) < MIN_GUARDRAIL_LENGTH:
                     return f"Agent '{agent_key}': guardrail at index {idx} must have at least {MIN_GUARDRAIL_LENGTH} characters in the agent definition file"
 
+        # Validate credentials if present (must be an object)
+        if "credentials" in agent_data:
+            if not isinstance(agent_data["credentials"], dict):
+                return f"Agent '{agent_key}': 'credentials' must be an object in the agent definition file"
+
+            # Validate each credential (must be an object)
+            for credential_key, credential_value in agent_data["credentials"].items():
+                if not isinstance(credential_value, dict):
+                    return f"Agent '{agent_key}': value for credential '{credential_key}' must be an object in the agent definition file"
+
+                # Validate label (required, must be a string)
+                if not credential_value.get("label"):
+                    return f"Agent '{agent_key}': 'label' for credential '{credential_key}' is missing in the agent definition file"
+                if not isinstance(credential_value["label"], str):
+                    return f"Agent '{agent_key}': 'label' for credential '{credential_key}' must be a string in the agent definition file"
+
+                # Validate placeholder (required, must be a string)
+                if not credential_value.get("placeholder"):
+                    return f"Agent '{agent_key}': 'placeholder' for credential '{credential_key}' is missing in the agent definition file"
+                if not isinstance(credential_value["placeholder"], str):
+                    return f"Agent '{agent_key}': 'placeholder' for credential '{credential_key}' must be a string in the agent definition file"
+
+                # Validate is_confidential if present (must be a boolean)
+                if "is_confidential" in credential_value and not isinstance(credential_value["is_confidential"], bool):
+                    return f"Agent '{agent_key}': 'is_confidential' for credential '{credential_key}' must be a boolean in the agent definition file"
+
         # Validate components, they are optional, but if present must be an array of objects
         if "components" in agent_data:
             if not isinstance(agent_data["components"], list):

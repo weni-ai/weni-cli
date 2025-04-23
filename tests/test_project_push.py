@@ -8,10 +8,10 @@ from click.testing import CliRunner
 from weni_cli.cli import project
 from weni_cli.commands.init import (
     SAMPLE_AGENT_DEFINITION_YAML,
-    SAMPLE_GET_ADDRESS_SKILL_NAME,
-    SAMPLE_GET_ADDRESS_SKILL_PY,
+    SAMPLE_GET_ADDRESS_TOOL_NAME,
+    SAMPLE_GET_ADDRESS_TOOL_PY,
     SAMPLE_GET_ADDRESS_REQUIREMENTS_TXT,
-    SKILLS_FOLDER,
+    TOOLS_FOLDER,
 )
 
 
@@ -35,18 +35,18 @@ def create_mocked_files():
         with open("agents.json", "w") as f:
             f.write(SAMPLE_AGENT_DEFINITION_YAML)
 
-        # Create skill directories
+        # Create tool directories
         try:
-            os.mkdir(SKILLS_FOLDER)
-            os.mkdir(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}")
+            os.mkdir(TOOLS_FOLDER)
+            os.mkdir(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}")
         except FileExistsError:
             pass
 
-        # Write skill files
-        with open(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}/main.py", "w") as f:
-            f.write(SAMPLE_GET_ADDRESS_SKILL_PY)
+        # Write tool files
+        with open(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}/main.py", "w") as f:
+            f.write(SAMPLE_GET_ADDRESS_TOOL_PY)
 
-        with open(f"{SKILLS_FOLDER}/{SAMPLE_GET_ADDRESS_SKILL_NAME}/requirements.txt", "w") as f:
+        with open(f"{TOOLS_FOLDER}/{SAMPLE_GET_ADDRESS_TOOL_NAME}/requirements.txt", "w") as f:
             f.write(SAMPLE_GET_ADDRESS_REQUIREMENTS_TXT)
 
     return _create
@@ -210,18 +210,18 @@ def test_project_push_empty_definition(mocker, mock_store_values, **kwargs):
 
 
 @requests_mock.Mocker(kw="requests_mock")
-def test_project_push_missing_skill_file(mocker, mock_store_values, **kwargs):
-    """Test that missing skill folders are properly handled."""
+def test_project_push_missing_tool_file(mocker, mock_store_values, **kwargs):
+    """Test that missing tool folders are properly handled."""
     mock_store_values(mocker)
 
     runner = CliRunner()
     with runner.isolated_filesystem():
-        # Create definition but don't create the skill folder
+        # Create definition but don't create the tool folder
         with open("agents.json", "w") as f:
             f.write(SAMPLE_AGENT_DEFINITION_YAML)
 
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
         assert result.exit_code == 0
-        assert "Failed to create skill folder for skill Get Address in agent CEP Agent" in result.output
-        assert "Folder skills/get_address not found" in result.output
+        assert "Failed to create tool folder for tool Get Address in agent CEP Agent" in result.output
+        assert "Folder tools/get_address not found" in result.output

@@ -160,9 +160,9 @@ To make credentials available to your tool, you need to define them in your agen
 agents:
   cep_agent:
    credentials:
-      - api_key:
-          - label: "API Key"
-          - placeholder: "Api Key"
+      api_key:
+        label: "API Key"
+        placeholder: "Api Key"
     name: "CEP Agent"
     description: "Weni's CEP agent"
     instructions:

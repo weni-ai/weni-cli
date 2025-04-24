@@ -5,6 +5,7 @@ import importlib.metadata
 from typing import Dict, List, Optional, Any, BinaryIO, Callable
 from contextlib import contextmanager
 
+from weni_cli.clients.common import ErrorMessage
 from weni_cli.spinner import spinner
 from weni_cli.store import STORE_CLI_BASE_URL, STORE_PROJECT_UUID_KEY, STORE_TOKEN_KEY, Store
 from weni_cli.clients.response_handlers import process_push_display_step, process_test_progress
@@ -139,7 +140,7 @@ class CLIClient:
                     request_id=error_data.get("request_id"),
                 )
             except json.JSONDecodeError:
-                raise RequestError(f"Request failed with status code {response.status_code}: {response.text}")
+                raise RequestError(message=f"Request failed with status code {response.status_code}: {response.text}")
 
         return response
 
@@ -265,3 +266,20 @@ class CLIClient:
                     )
 
         return test_logs
+
+    def get_tool_logs(self, agent: str, tool: str, start_time: str, end_time: str) -> tuple[Any, ErrorMessage]:
+        """Get logs for a tool."""
+
+        data = {
+            "agent_key": agent,
+            "tool_key": tool,
+            "start_time": str(start_time) if start_time else None,
+            "end_time": str(end_time) if end_time else None,
+        }
+
+        try:
+            response = self._make_request(method="GET", endpoint="api/v1/tool-logs", json_data=data)
+        except RequestError as e:
+            return {}, f"Error fetching logs: {e.message} - Request ID: {e.request_id}"
+
+        return response.json(), None

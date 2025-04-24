@@ -2,6 +2,8 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 from weni_cli.commands.logs.get import GetLogsHandler
+from click.testing import CliRunner
+from weni_cli.cli import cli
 
 
 @pytest.fixture
@@ -99,3 +101,102 @@ def test_get_logs_empty(mock_cli_client, mock_formatter, mock_console):
 
     # Verify error was printed
     mock_formatter.print_error_panel.assert_called_once_with("No logs found")
+
+
+# CLI Invocation Tests
+def test_cli_get_logs_success(mocker):
+    """Test CLI invocation of the get logs command with successful response."""
+    # Mock the GetLogsHandler
+    mock_handler = MagicMock()
+    mocker.patch("weni_cli.commands.logs.get.GetLogsHandler", return_value=mock_handler)
+
+    # Create CLI runner
+    runner = CliRunner()
+
+    # Invoke the CLI command
+    result = runner.invoke(
+        cli, ["get", "logs", "--agent", "test-agent", "--tool", "test-tool"]
+    )
+
+    # Verify CLI command executed successfully
+    assert result.exit_code == 0
+
+    # Verify handler was called with correct parameters
+    mock_handler.get_logs.assert_called_once_with(
+        agent="test-agent", tool="test-tool", start_time=None, end_time=None
+    )
+
+
+def test_cli_get_logs_with_time_range(mocker):
+    """Test CLI invocation with time range parameters."""
+    # Mock the GetLogsHandler
+    mock_handler = MagicMock()
+    mocker.patch("weni_cli.commands.logs.get.GetLogsHandler", return_value=mock_handler)
+
+    # Create CLI runner
+    runner = CliRunner()
+
+    # Invoke the CLI command with time range
+    result = runner.invoke(
+        cli, [
+            "get", "logs",
+            "--agent", "test-agent",
+            "--tool", "test-tool",
+            "--start-time", "2023-01-01T00:00:00",
+            "--end-time", "2023-01-02T00:00:00"
+        ]
+    )
+
+    # Verify CLI command executed successfully
+    assert result.exit_code == 0
+
+    # Verify handler was called with correct parameters
+    # Note: The DateTime objects will be parsed by click, so we check if they were passed
+    mock_handler.get_logs.assert_called_once()
+    call_args = mock_handler.get_logs.call_args[1]
+    assert call_args["agent"] == "test-agent"
+    assert call_args["tool"] == "test-tool"
+    assert call_args["start_time"] is not None  # DateTime object was created
+    assert call_args["end_time"] is not None    # DateTime object was created
+
+
+def test_cli_get_logs_error(mocker):
+    """Test CLI invocation with handler raising an exception."""
+    # Mock the GetLogsHandler to raise an exception
+    mock_handler = MagicMock()
+    mock_handler.get_logs.side_effect = Exception("Test error")
+    mocker.patch("weni_cli.commands.logs.get.GetLogsHandler", return_value=mock_handler)
+    
+    # Create CLI runner
+    runner = CliRunner()
+
+    # Invoke the CLI command
+    result = runner.invoke(
+        cli, ["get", "logs", "--agent", "test-agent", "--tool", "test-tool"]
+    )
+
+    # Verify CLI command executed successfully but handled the error
+    assert result.exit_code == 0
+    assert "Error: Test error" in result.output
+
+
+def test_cli_get_logs_missing_required_args():
+    """Test CLI invocation with missing required arguments."""
+    # Create CLI runner
+    runner = CliRunner()
+
+    # Invoke the CLI command without required agent
+    result = runner.invoke(cli, ["get", "logs", "--tool", "test-tool"])
+
+    # Verify CLI command failed due to missing required argument
+    assert result.exit_code != 0
+    assert "Missing option" in result.output
+    assert "--agent" in result.output
+
+    # Invoke the CLI command without required tool
+    result = runner.invoke(cli, ["get", "logs", "--agent", "test-agent"])
+
+    # Verify CLI command failed due to missing required argument
+    assert result.exit_code != 0
+    assert "Missing option" in result.output
+    assert "--tool" in result.output

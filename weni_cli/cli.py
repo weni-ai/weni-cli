@@ -1,5 +1,5 @@
 import rich_click as click
-from weni_cli.utils import print_version
+from weni_cli.utils import print_version, DATE_FORMATS
 
 
 # Main CLI Group
@@ -15,6 +15,13 @@ from weni_cli.utils import print_version
 )
 def cli():
     """Weni CLI"""
+
+
+# Get Group
+@cli.group()
+def get():  # pragma: no cover
+    """Get commands"""
+    pass
 
 
 # Login Command
@@ -110,6 +117,23 @@ def push_project(definition, force_update):
 
     try:
         ProjectPushHandler().execute(definition=definition, force_update=force_update)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@get.command("logs")
+@click.option("--agent", "-a", help="Agent to which the Tool belongs", type=str, required=True)
+@click.option("--tool", "-t", help="Tool to which the Logs belong", type=str, required=True)
+@click.option("--start-time", "-s", help="Filter by start time (ISO 8601)", type=click.DateTime(formats=DATE_FORMATS), required=False)
+@click.option("--end-time", "-e", help="Filter by end time (ISO 8601)", type=click.DateTime(formats=DATE_FORMATS), required=False)
+def get_logs(agent, tool, start_time, end_time):
+    """
+    Get logs for a specific agent tool, optionally filtered by start and end time
+    """
+    from weni_cli.commands.logs.get import GetLogsHandler
+
+    try:
+        GetLogsHandler().get_logs(agent=agent, tool=tool, start_time=start_time, end_time=end_time)
     except Exception as e:
         click.echo(f"Error: {e}")
 

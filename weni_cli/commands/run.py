@@ -97,14 +97,11 @@ class RunHandler(Handler):
     def get_tool_and_agent_name(self, definition, agent_key, tool_key) -> tuple[Optional[str], Optional[str]]:
         agent_data = definition.get("agents", {}).get(agent_key)
 
-        print("Agent data: ", agent_data)
-
         if not agent_data:
             return None, None
 
         tool_name = None
         for tool in agent_data.get("tools", []):
-            print("Tool: ", tool)
             if tool.get("key") == tool_key:
                 tool_name = tool.get("name")
 

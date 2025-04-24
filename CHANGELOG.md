@@ -1,5 +1,26 @@
 # Changelog
 
+## [3.0.0] - 2025-04-23
+
+### Added
+
+- Update YAML structure for API key credentials in documentation ([#94](https://github.com/weni-ai/weni-cli/pull/94)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor credential definitions in documentation for consistency ([#93](https://github.com/weni-ai/weni-cli/pull/93)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Update weni-agents-toolkit version to 2.0.0 in poetry.lock and pyproject.toml ([#92](https://github.com/weni-ai/weni-cli/pull/92)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor documentation and codebase to transition from 'skills' to 'tools' ([#91](https://github.com/weni-ai/weni-cli/pull/91)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor CLIClient and related handlers to use 'tool_key' and 'agent_key' terminology ([#90](https://github.com/weni-ai/weni-cli/pull/90)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor agent definition to replace 'skills' with 'tools' ([#89](https://github.com/weni-ai/weni-cli/pull/89)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
+## [2.2.1] - 2025-04-10
+
+### Added
+
+- Add component validation to agent definition schema ([#86](https://github.com/weni-ai/weni-cli/pull/86)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat/enhance definition validation ([#85](https://github.com/weni-ai/weni-cli/pull/85)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Refactor ProjectPushHandler and improve error handling in skill folder creation ([#84](https://github.com/weni-ai/weni-cli/pull/84)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Enhance error handling in RunHandler and definition validation ([#83](https://github.com/weni-ai/weni-cli/pull/83)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Feat: Add mypy ([#82](https://github.com/weni-ai/weni-cli/pull/82)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [2.2.0] - 2025-03-27
 
 ### Added

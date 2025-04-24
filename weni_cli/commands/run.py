@@ -2,8 +2,6 @@ from io import BufferedReader
 from typing import Optional
 import rich_click as click
 
-from slugify import slugify
-
 from rich.console import Console
 from rich.table import Table
 from rich.live import Live
@@ -70,18 +68,12 @@ class RunHandler(Handler):
 
         tool_globals = self.load_tool_globals(tool_source_path)
 
-        agent_name, tool_name = self.get_tool_and_agent_name(definition, agent_key, tool_key)
-
-        if not tool_name or not agent_name:
-            click.echo("Error: Failed to get tool or agent name")
-            return
-
         self.run_test(
             project_uuid,
             definition,
             tool_folder,
-            tool_name,
-            agent_name,
+            tool_key,
+            agent_key,
             test_definition,
             credentials,
             tool_globals,
@@ -93,19 +85,6 @@ class RunHandler(Handler):
             return agent_tool.split(".")[0], agent_tool.split(".")[1]
         except Exception:
             return None, None
-
-    def get_tool_and_agent_name(self, definition, agent_key, tool_key) -> tuple[Optional[str], Optional[str]]:
-        agent_data = definition.get("agents", {}).get(agent_key)
-
-        if not agent_data:
-            return None, None
-
-        tool_name = None
-        for tool in agent_data.get("tools", []):
-            if tool.get("key") == tool_key:
-                tool_name = tool.get("name")
-
-        return agent_data.get("name"), tool_name
 
     def get_tool_source_path(self, definition, agent_key, tool_key) -> Optional[str]:
         agent_data = definition.get("agents", {}).get(agent_key)
@@ -186,8 +165,7 @@ class RunHandler(Handler):
         if not tool_data:
             return None, Exception(f"Tool {tool_key} not found in agent {agent_key}")
 
-        tool_slug = slugify(tool_data.get("name"))
-        tool_folder, error = create_tool_folder_zip(tool_slug, tool_data.get("source").get("path"))
+        tool_folder, error = create_tool_folder_zip(tool_key, tool_data.get("source").get("path"))
         if error:
             return None, Exception(f"Failed to create tool folder for tool {tool_key} in agent {agent_key}\n{error}")
 
@@ -316,8 +294,8 @@ class RunHandler(Handler):
         project_uuid,
         definition,
         tool_folder,
-        tool_name,
-        agent_name,
+        tool_key,
+        agent_key,
         test_definition,
         credentials,
         tool_globals,
@@ -325,11 +303,11 @@ class RunHandler(Handler):
     ):
         test_rows = []
         # Use the class method instead of a nested function
-        with Live(self.display_test_results([], tool_name, verbose), refresh_per_second=4) as live:
+        with Live(self.display_test_results([], tool_key, verbose), refresh_per_second=4) as live:
             # Create a callback function that will be passed to the CLIClient
             def update_live_callback(test_name, test_result, status_code, code, verbose):
                 self.update_live_display(
-                    test_rows, test_name, test_result, status_code, code, live, tool_name, verbose
+                    test_rows, test_name, test_result, status_code, code, live, tool_key, verbose
                 )
 
             client = CLIClient()
@@ -337,8 +315,8 @@ class RunHandler(Handler):
                 project_uuid,
                 definition,
                 tool_folder,
-                tool_name,
-                agent_name,
+                tool_key,
+                agent_key,
                 test_definition,
                 credentials,
                 tool_globals,

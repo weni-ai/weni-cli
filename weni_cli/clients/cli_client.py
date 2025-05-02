@@ -280,7 +280,7 @@ class CLIClient:
         }
 
         try:
-            response = self._make_request(method="GET", endpoint="api/v1/tool-logs", json_data=data)
+            response = self._make_request(method="GET", endpoint="api/v1/tool-logs/", json_data=data)
         except RequestError as e:
             return {}, f"Error fetching logs: {e.message} - Request ID: {e.request_id}"
 

@@ -902,8 +902,9 @@ def test_get_tool_logs_success(client, mocker):
     tool = "test-tool"
     start_time = "2023-01-01T00:00:00"
     end_time = "2023-01-02T00:00:00"
+    pattern = "success"
 
-    logs, error = client.get_tool_logs(agent, tool, start_time, end_time)
+    logs, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern)
 
     # Verify the results
     assert logs == mock_logs_data
@@ -916,7 +917,9 @@ def test_get_tool_logs_success(client, mocker):
             "agent_key": agent,
             "tool_key": tool,
             "start_time": start_time,
-            "end_time": end_time
+            "end_time": end_time,
+            "pattern": pattern,
+            "next_token": None,
         }
     )
 
@@ -937,8 +940,9 @@ def test_get_tool_logs_error(client, mocker):
     tool = "test-tool"
     start_time = "2023-01-01T00:00:00"
     end_time = "2023-01-02T00:00:00"
+    pattern = "error"
 
-    logs, error = client.get_tool_logs(agent, tool, start_time, end_time)
+    logs, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern)
 
     # Verify the results
     assert logs == {}
@@ -960,8 +964,9 @@ def test_get_tool_logs_with_empty_times(client, mocker):
     tool = "test-tool"
     start_time = ""
     end_time = None
+    pattern = None
 
-    logs, error = client.get_tool_logs(agent, tool, start_time, end_time)
+    logs, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern)
 
     # Verify the results
     assert logs == mock_logs_data
@@ -974,6 +979,8 @@ def test_get_tool_logs_with_empty_times(client, mocker):
             "agent_key": agent,
             "tool_key": tool,
             "start_time": None,
-            "end_time": None
+            "end_time": None,
+            "pattern": pattern,
+            "next_token": None,
         }
     )

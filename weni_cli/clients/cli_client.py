@@ -267,7 +267,7 @@ class CLIClient:
 
         return test_logs
 
-    def get_tool_logs(self, agent: str, tool: str, start_time: str, end_time: str) -> tuple[Any, ErrorMessage]:
+    def get_tool_logs(self, agent: str, tool: str, start_time: str, end_time: str, pattern: str, next_token: str | None = None) -> tuple[Any, ErrorMessage]:
         """Get logs for a tool."""
 
         data = {
@@ -275,6 +275,8 @@ class CLIClient:
             "tool_key": tool,
             "start_time": str(start_time) if start_time else None,
             "end_time": str(end_time) if end_time else None,
+            "next_token": next_token,
+            "pattern": pattern,
         }
 
         try:

@@ -126,14 +126,15 @@ def push_project(definition, force_update):
 @click.option("--tool", "-t", help="Tool to which the Logs belong", type=str, required=True)
 @click.option("--start-time", "-s", help="Filter by start time (ISO 8601)", type=click.DateTime(formats=DATE_FORMATS), required=False)
 @click.option("--end-time", "-e", help="Filter by end time (ISO 8601)", type=click.DateTime(formats=DATE_FORMATS), required=False)
-def get_logs(agent, tool, start_time, end_time):
+@click.option("--pattern", "-p", help="Filter by pattern", type=str, required=False)
+def get_logs(agent, tool, start_time, end_time, pattern):
     """
-    Get logs for a specific agent tool, optionally filtered by start and end time
+    Get logs for a specific agent tool, optionally filtered by start and end time and pattern
     """
     from weni_cli.commands.logs.get import GetLogsHandler
 
     try:
-        GetLogsHandler().get_logs(agent=agent, tool=tool, start_time=start_time, end_time=end_time)
+        GetLogsHandler().get_logs(agent=agent, tool=tool, start_time=start_time, end_time=end_time, pattern=pattern)
     except Exception as e:
         click.echo(f"Error: {e}")
 

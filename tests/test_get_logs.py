@@ -53,17 +53,20 @@ def test_get_logs_success(mock_cli_client, mock_formatter, mock_console, mock_pr
 
     # Call the method
     handler = GetLogsHandler()
-    handler.get_logs("test-agent", "test-tool", "2022-01-01", "2022-01-02")
+    handler.get_logs("test-agent", "test-tool", "2022-01-01", "2022-01-02", pattern=None)
 
     # Verify client was called with correct parameters
-    mock_cli_client.get_tool_logs.assert_called_once_with(
-        "test-agent", "test-tool", "2022-01-01", "2022-01-02"
-    )
+    assert mock_cli_client.get_tool_logs.call_count == 1
+    args, kwargs = mock_cli_client.get_tool_logs.call_args
+    assert args == ("test-agent", "test-tool", "2022-01-01", "2022-01-02", None, None)
+    assert kwargs == {}
 
-    # Verify the logs were printed
-    mock_print.assert_called_once()
-    # Verify Panel was used (we can check args[0][0] is Panel)
-    assert "Panel" in str(mock_print.call_args[0][0])
+    # Verify the logs were printed via console.pager
+    # We check if console.print was called, implying the pager displayed something.
+    mock_console.print.assert_called_once()
+    printed_content = mock_console.print.call_args[0][0]
+    assert "First log message" in printed_content
+    assert "Second log message" in printed_content
 
 
 def test_get_logs_error(mock_cli_client, mock_formatter, mock_console):
@@ -74,12 +77,13 @@ def test_get_logs_error(mock_cli_client, mock_formatter, mock_console):
 
     # Call the method
     handler = GetLogsHandler()
-    handler.get_logs("test-agent", "test-tool", "2022-01-01", "2022-01-02")
+    handler.get_logs("test-agent", "test-tool", "2022-01-01", "2022-01-02", pattern=None)
 
     # Verify client was called with correct parameters
-    mock_cli_client.get_tool_logs.assert_called_once_with(
-        "test-agent", "test-tool", "2022-01-01", "2022-01-02"
-    )
+    assert mock_cli_client.get_tool_logs.call_count == 1
+    args, kwargs = mock_cli_client.get_tool_logs.call_args
+    assert args == ("test-agent", "test-tool", "2022-01-01", "2022-01-02", None, None)
+    assert kwargs == {}
 
     # Verify error was printed
     mock_formatter.print_error_panel.assert_called_once_with(error_message)
@@ -92,12 +96,13 @@ def test_get_logs_empty(mock_cli_client, mock_formatter, mock_console):
 
     # Call the method
     handler = GetLogsHandler()
-    handler.get_logs("test-agent", "test-tool", "2022-01-01", "2022-01-02")
+    handler.get_logs("test-agent", "test-tool", "2022-01-01", "2022-01-02", pattern=None)
 
     # Verify client was called with correct parameters
-    mock_cli_client.get_tool_logs.assert_called_once_with(
-        "test-agent", "test-tool", "2022-01-01", "2022-01-02"
-    )
+    assert mock_cli_client.get_tool_logs.call_count == 1
+    args, kwargs = mock_cli_client.get_tool_logs.call_args
+    assert args == ("test-agent", "test-tool", "2022-01-01", "2022-01-02", None, None)
+    assert kwargs == {}
 
     # Verify error was printed
     mock_formatter.print_error_panel.assert_called_once_with("No logs found")
@@ -123,12 +128,12 @@ def test_cli_get_logs_success(mocker):
 
     # Verify handler was called with correct parameters
     mock_handler.get_logs.assert_called_once_with(
-        agent="test-agent", tool="test-tool", start_time=None, end_time=None
+        agent="test-agent", tool="test-tool", start_time=None, end_time=None, pattern=None
     )
 
 
-def test_cli_get_logs_with_time_range(mocker):
-    """Test CLI invocation with time range parameters."""
+def test_cli_get_logs_with_time_range_and_pattern(mocker):
+    """Test CLI invocation with time range and pattern parameters."""
     # Mock the GetLogsHandler
     mock_handler = MagicMock()
     mocker.patch("weni_cli.commands.logs.get.GetLogsHandler", return_value=mock_handler)
@@ -136,14 +141,15 @@ def test_cli_get_logs_with_time_range(mocker):
     # Create CLI runner
     runner = CliRunner()
 
-    # Invoke the CLI command with time range
+    # Invoke the CLI command with time range and pattern
     result = runner.invoke(
         cli, [
             "get", "logs",
             "--agent", "test-agent",
             "--tool", "test-tool",
             "--start-time", "2023-01-01T00:00:00",
-            "--end-time", "2023-01-02T00:00:00"
+            "--end-time", "2023-01-02T00:00:00",
+            "--pattern", "error"
         ]
     )
 
@@ -151,13 +157,13 @@ def test_cli_get_logs_with_time_range(mocker):
     assert result.exit_code == 0
 
     # Verify handler was called with correct parameters
-    # Note: The DateTime objects will be parsed by click, so we check if they were passed
     mock_handler.get_logs.assert_called_once()
     call_args = mock_handler.get_logs.call_args[1]
     assert call_args["agent"] == "test-agent"
     assert call_args["tool"] == "test-tool"
     assert call_args["start_time"] is not None  # DateTime object was created
     assert call_args["end_time"] is not None    # DateTime object was created
+    assert call_args["pattern"] == "error"
 
 
 def test_cli_get_logs_error(mocker):
@@ -166,7 +172,7 @@ def test_cli_get_logs_error(mocker):
     mock_handler = MagicMock()
     mock_handler.get_logs.side_effect = Exception("Test error")
     mocker.patch("weni_cli.commands.logs.get.GetLogsHandler", return_value=mock_handler)
-    
+
     # Create CLI runner
     runner = CliRunner()
 
@@ -200,3 +206,102 @@ def test_cli_get_logs_missing_required_args():
     assert result.exit_code != 0
     assert "Missing option" in result.output
     assert "--tool" in result.output
+
+
+def test_get_logs_invalid_pattern(mock_cli_client, mock_formatter, mock_console):
+    """Test handling of invalid regex pattern."""
+    handler = GetLogsHandler()
+    handler.get_logs("test-agent", "test-tool", None, None, pattern="%invalid%")
+
+    mock_formatter.print_error_panel.assert_called_once_with("Regex patterns are not supported")
+    mock_cli_client.get_tool_logs.assert_not_called()
+
+
+@patch("weni_cli.commands.logs.get.Confirm.ask")
+def test_get_logs_pagination_no_more_logs(mock_confirm_ask, mock_cli_client, mock_formatter, mock_console, mock_print):
+    """Test pagination where the second page has no logs."""
+    # Mock Confirm.ask to continue fetching
+    mock_confirm_ask.return_value = True
+
+    # Mock client responses for two pages
+    first_page_logs = {
+        "logs": [{"timestamp": "1640995200000", "message": "Log page 1"}],
+        "next_token": "token_page_2"
+    }
+    second_page_logs = {"logs": []}  # Empty logs on the second page
+
+    mock_cli_client.get_tool_logs.side_effect = [
+        (first_page_logs, None),
+        (second_page_logs, None)
+    ]
+
+    handler = GetLogsHandler()
+    handler.get_logs("test-agent", "test-tool", None, None, pattern=None)
+
+    # Verify client called twice (once for each page)
+    assert mock_cli_client.get_tool_logs.call_count == 2
+    # Verify first call without token
+    call1_args, call1_kwargs = mock_cli_client.get_tool_logs.call_args_list[0]
+    assert call1_args == ("test-agent", "test-tool", None, None, None, None)
+    # Verify second call with token
+    call2_args, call2_kwargs = mock_cli_client.get_tool_logs.call_args_list[1]
+    assert call2_args == ("test-agent", "test-tool", None, None, None, "token_page_2")
+
+    # Verify first page logs printed via console
+    mock_console.print.assert_called_once()
+    printed_content = mock_console.print.call_args[0][0]
+    assert "Log page 1" in printed_content
+
+    # Verify "No more logs found" printed (using rich.print for this specific message)
+    mock_print.assert_called_once_with("[bold yellow]No more logs found.[/bold yellow]")
+
+    # Verify Confirm.ask was called once after the first page
+    mock_confirm_ask.assert_called_once_with("Fetch more logs?", default=True)
+
+
+@patch("weni_cli.commands.logs.get.Confirm.ask")
+@patch("weni_cli.commands.logs.get.CLIClient")
+def test_cli_get_logs_pagination_user_declines(mock_cli_client_class, mock_confirm_ask, mock_formatter, mock_console):
+    """Test CLI invocation with pagination where the user declines fetching more logs."""
+    # Mock Confirm.ask to stop fetching
+    mock_confirm_ask.return_value = False
+
+    # Configure the mock CLIClient instance
+    mock_client_instance = MagicMock()
+    mock_cli_client_class.return_value = mock_client_instance
+
+    # Mock client response for the first page
+    first_page_logs = {
+        "logs": [{"timestamp": "1640995200000", "message": "Log page 1 CLI"}],
+        "next_token": "token_page_2_cli"
+    }
+    mock_client_instance.get_tool_logs.return_value = (first_page_logs, None)
+
+    # Create CLI runner
+    runner = CliRunner()
+
+    # Invoke the CLI command
+    # We don't need mocker here as we patch dependencies directly
+    result = runner.invoke(
+        cli, ["get", "logs", "--agent", "test-agent-cli", "--tool", "test-tool-cli"]
+    )
+
+    # Verify CLI command executed successfully
+    assert result.exit_code == 0
+
+    # Verify client called only once (for the first page)
+    mock_client_instance.get_tool_logs.assert_called_once()
+    args, kwargs = mock_client_instance.get_tool_logs.call_args
+    assert args == ("test-agent-cli", "test-tool-cli", None, None, None, None)
+
+    # Verify first page logs printed via console's pager
+    # Check that console.print was called within the pager context
+    mock_console.print.assert_called_once()
+    printed_content = mock_console.print.call_args[0][0]
+    assert "Log page 1 CLI" in printed_content
+
+    # Verify Confirm.ask was called
+    mock_confirm_ask.assert_called_once_with("Fetch more logs?", default=True)
+
+    # Verify no error panels were printed
+    mock_formatter.print_error_panel.assert_not_called()

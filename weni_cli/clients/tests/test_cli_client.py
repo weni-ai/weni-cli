@@ -913,7 +913,7 @@ def test_get_tool_logs_success(client, mocker):
     # Verify the method was called with correct parameters
     client._make_request.assert_called_once_with(
         method="GET", endpoint="api/v1/tool-logs/",
-        json_data={
+        params={
             "agent_key": agent,
             "tool_key": tool,
             "start_time": start_time,
@@ -975,7 +975,7 @@ def test_get_tool_logs_with_empty_times(client, mocker):
     # Verify the method was called with correct parameters (None values for times)
     client._make_request.assert_called_once_with(
         method="GET", endpoint="api/v1/tool-logs/",
-        json_data={
+        params={
             "agent_key": agent,
             "tool_key": tool,
             "start_time": None,

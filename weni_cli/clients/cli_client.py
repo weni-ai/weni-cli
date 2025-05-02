@@ -120,13 +120,14 @@ class CLIClient:
         data: Optional[Any] = None,
         json_data: Optional[Dict] = None,
         files: Optional[Dict] = None,
+        params: Optional[Dict] = None,
         timeout: tuple = (10, None),
     ) -> requests.Response:
         """Make a non-streaming request to the API with error handling."""
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
 
         response = self.session.request(
-            method=method, url=url, headers=self.headers, data=data, json=json_data, files=files, stream=False, timeout=timeout
+            method=method, url=url, headers=self.headers, data=data, json=json_data, files=files, stream=False, timeout=timeout, params=params
         )
 
         if response.status_code != 200:
@@ -280,7 +281,7 @@ class CLIClient:
         }
 
         try:
-            response = self._make_request(method="GET", endpoint="api/v1/tool-logs/", json_data=data)
+            response = self._make_request(method="GET", endpoint="api/v1/tool-logs/", params=data)
         except RequestError as e:
             return {}, f"Error fetching logs: {e.message} - Request ID: {e.request_id}"
 

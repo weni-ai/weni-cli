@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.1.0] - 2025-05-05
+
+### Added
+
+- Agent tool logs visualization ([#96](https://github.com/weni-ai/weni-cli/pull/96)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [3.0.0] - 2025-04-23
 
 ### Added

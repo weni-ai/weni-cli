@@ -39,7 +39,7 @@ class GetLogsHandler:
                 log_time = datetime.fromtimestamp(int(log.get("timestamp")) / 1000)
                 formatted_logs_str += f"[{log_time.strftime('%Y-%m-%d %H:%M:%S')}] {log.get('message').strip()}\n"
 
-            with console.pager(styles=True, links=True):
+            with console.pager(links=True):
                 console.print(formatted_logs_str.strip())
 
             current_token = logs_response.get("next_token")

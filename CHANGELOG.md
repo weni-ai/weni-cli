@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.1.1] - 2025-05-08
+
+### Added
+
+- Refactor log retrieval CLI command ([#98](https://github.com/weni-ai/weni-cli/pull/98)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [3.1.0] - 2025-05-05
 
 ### Added

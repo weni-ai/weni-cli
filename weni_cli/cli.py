@@ -17,13 +17,6 @@ def cli():
     """Weni CLI"""
 
 
-# Get Group
-@cli.group()
-def get():  # pragma: no cover
-    """Get commands"""
-    pass
-
-
 # Login Command
 @cli.command("login")
 def login():
@@ -121,7 +114,7 @@ def push_project(definition, force_update):
         click.echo(f"Error: {e}")
 
 
-@get.command("logs")
+@cli.command("logs")
 @click.option("--agent", "-a", help="Agent to which the Tool belongs", type=str, required=True)
 @click.option("--tool", "-t", help="Tool to which the Logs belong", type=str, required=True)
 @click.option("--start-time", "-s", help="Filter by start time (ISO 8601)", type=click.DateTime(formats=DATE_FORMATS), required=False)
@@ -131,7 +124,7 @@ def get_logs(agent, tool, start_time, end_time, pattern):
     """
     Get logs for a specific agent tool, optionally filtered by start and end time and pattern
     """
-    from weni_cli.commands.logs.get import GetLogsHandler
+    from weni_cli.commands.logs import GetLogsHandler
 
     try:
         GetLogsHandler().get_logs(agent=agent, tool=tool, start_time=start_time, end_time=end_time, pattern=pattern)

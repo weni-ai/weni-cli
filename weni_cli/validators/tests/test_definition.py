@@ -10,6 +10,7 @@ from weni_cli.validators.definition import (
     load_agent_definition,
     format_definition,
     validate_agent_definition_schema,
+    validate_active_agent_definition_schema,
     load_test_definition,
     ContactFieldValidator,
 )
@@ -342,7 +343,10 @@ def test_validate_definition_with_invalid_agent_name_length():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert f"Agent 'test_agent': 'name' must be less than {MAX_AGENT_NAME_LENGTH} characters in the agent definition file" in error
+    assert (
+        f"Agent 'test_agent': 'name' must be less than {MAX_AGENT_NAME_LENGTH} characters in the agent definition file"
+        in error
+    )
 
 
 def test_validate_definition_without_instructions():
@@ -457,7 +461,10 @@ def test_validate_definition_file_with_short_instruction():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': instruction at index 0 must have at least 40 characters in the agent definition file" in error
+    assert (
+        "Agent 'test_agent': instruction at index 0 must have at least 40 characters in the agent definition file"
+        in error
+    )
 
 
 def test_validate_definition_with_invalid_guardrails():
@@ -619,7 +626,10 @@ def test_validate_agent_definition_with_short_guardrail():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': guardrail at index 0 must have at least 40 characters in the agent definition file" in error
+    assert (
+        "Agent 'test_agent': guardrail at index 0 must have at least 40 characters in the agent definition file"
+        in error
+    )
 
 
 def test_validate_definition_with_missing_tools():
@@ -769,14 +779,23 @@ def test_validate_definition_with_invalid_tool_name_length():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "tools": [{"tool_1": {"name": "Tool Name with a really really really really really really really really really really really really long name"}}],
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool Name with a really really really really really really really really really really really really long name"
+                        }
+                    }
+                ],
             }
         }
     }
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert f"Agent 'test_agent': tool 'tool_1': 'name' must be less than {MAX_TOOL_NAME_LENGTH} characters in the agent definition file" in error
+    assert (
+        f"Agent 'test_agent': tool 'tool_1': 'name' must be less than {MAX_TOOL_NAME_LENGTH} characters in the agent definition file"
+        in error
+    )
 
 
 def test_validate_definition_with_missing_tool_description():
@@ -836,9 +855,7 @@ def test_validate_definition_with_missing_tool_source():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert (
-        "Agent 'test_agent': tool 'tool_1' is missing required field 'source' in the agent definition file" in error
-    )
+    assert "Agent 'test_agent': tool 'tool_1' is missing required field 'source' in the agent definition file" in error
 
 
 def test_validate_definition_with_invalid_tool_source():
@@ -893,9 +910,7 @@ def test_validate_definition_with_invalid_tool_source_path():
                 "description": "Test description",
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
-                "tools": [
-                    {"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": 123}}}
-                ],
+                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": 123}}}],
             }
         }
     }
@@ -960,8 +975,7 @@ def test_validate_definition_with_invalid_tool_source_entrypoint():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': tool 'tool_1': 'source.entrypoint' must be a string in the agent definition file"
-        in error
+        "Agent 'test_agent': tool 'tool_1': 'source.entrypoint' must be a string in the agent definition file" in error
     )
 
 
@@ -990,8 +1004,7 @@ def test_validate_definition_with_invalid_tool_source_path_test():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'test_agent': tool 'tool_1': 'source.path_test' must be a string in the agent definition file"
-        in error
+        "Agent 'test_agent': tool 'tool_1': 'source.path_test' must be a string in the agent definition file" in error
     )
 
 
@@ -1433,7 +1446,7 @@ def test_validate_definition_with_invalid_tool_parameters_item_contact_field_nam
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        f"Agent 'test_agent': tool 'tool_1': parameter 'Param_1' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file" # noqa W605
+        f"Agent 'test_agent': tool 'tool_1': parameter 'Param_1' name must match the regex of a valid contact field: {re.escape(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX)} in the agent definition file"  # noqa W605
         in error
     )
 
@@ -1579,10 +1592,7 @@ def test_validate_definition_with_invalid_components_value():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert (
-        "Agent 'test_agent': 'components' must be an array in the agent definition file"
-        in error
-    )
+    assert "Agent 'test_agent': 'components' must be an array in the agent definition file" in error
 
 
 def test_validate_definition_with_invalid_component_value_type():
@@ -1601,10 +1611,7 @@ def test_validate_definition_with_invalid_component_value_type():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert (
-        "Agent 'test_agent': component at index 0 must be an object in the agent definition file"
-        in error
-    )
+    assert "Agent 'test_agent': component at index 0 must be an object in the agent definition file" in error
 
 
 def test_validate_definition_with_invalid_component_type_missing():
@@ -1623,10 +1630,7 @@ def test_validate_definition_with_invalid_component_type_missing():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert (
-        "Agent 'test_agent': component at index 0 must have a 'type' field in the agent definition file"
-        in error
-    )
+    assert "Agent 'test_agent': component at index 0 must have a 'type' field in the agent definition file" in error
 
 
 def test_validate_definition_with_invalid_component_type():
@@ -1705,7 +1709,19 @@ def test_validate_definition_with_valid_component_instructions():
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
                 "components": [{"type": "cta_message", "instructions": "test"}],
-                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": "path/to/tool", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                                "path_test": "path/to/test",
+                            },
+                        }
+                    }
+                ],
             }
         }
     }
@@ -1724,7 +1740,19 @@ def test_validate_definition_with_valid_component_and_no_instructions():
                 "instructions": SAMPLE_INSTRUCTIONS,
                 "guardrails": SAMPLE_GUARDRAILS,
                 "components": [{"type": "cta_message"}],
-                "tools": [{"tool_1": {"name": "Tool 1", "description": "Tool description", "source": {"path": "path/to/tool", "entrypoint": "entrypoint", "path_test": "path/to/test"}}}],
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                                "path_test": "path/to/test",
+                            },
+                        }
+                    }
+                ],
             }
         }
     }
@@ -1771,15 +1799,8 @@ def test_validate_definition_with_valid_credentials():
                 "name": "Test Agent",
                 "description": "Test description",
                 "credentials": {
-                    "api_key": {
-                        "label": "API Key",
-                        "placeholder": "Enter your API key",
-                        "is_confidential": True
-                    },
-                    "username": {
-                        "label": "Username",
-                        "placeholder": "Enter your username"
-                    }
+                    "api_key": {"label": "API Key", "placeholder": "Enter your API key", "is_confidential": True},
+                    "username": {"label": "Username", "placeholder": "Enter your username"},
                 },
                 "tools": [
                     {
@@ -1837,9 +1858,7 @@ def test_validate_definition_with_invalid_credential_value_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "credentials": {
-                    "api_key": "Not an object"  # String instead of object
-                },
+                "credentials": {"api_key": "Not an object"},  # String instead of object
                 "skills": [
                     {
                         "test_skill": {
@@ -1903,10 +1922,7 @@ def test_validate_definition_with_invalid_credential_label_type():
                 "name": "Test Agent",
                 "description": "Test description",
                 "credentials": {
-                    "api_key": {
-                        "label": 123,  # Number instead of string
-                        "placeholder": "Enter your API key"
-                    }
+                    "api_key": {"label": 123, "placeholder": "Enter your API key"}  # Number instead of string
                 },
                 "skills": [
                     {
@@ -1926,7 +1942,9 @@ def test_validate_definition_with_invalid_credential_label_type():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': 'label' for credential 'api_key' must be a string in the agent definition file" in error
+    assert (
+        "Agent 'test_agent': 'label' for credential 'api_key' must be a string in the agent definition file" in error
+    )
 
 
 def test_validate_definition_with_missing_credential_placeholder():
@@ -1960,7 +1978,9 @@ def test_validate_definition_with_missing_credential_placeholder():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': 'placeholder' for credential 'api_key' is missing in the agent definition file" in error
+    assert (
+        "Agent 'test_agent': 'placeholder' for credential 'api_key' is missing in the agent definition file" in error
+    )
 
 
 def test_validate_definition_with_invalid_credential_placeholder_type():
@@ -1970,12 +1990,7 @@ def test_validate_definition_with_invalid_credential_placeholder_type():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test description",
-                "credentials": {
-                    "api_key": {
-                        "label": "API Key",
-                        "placeholder": 123  # Number instead of string
-                    }
-                },
+                "credentials": {"api_key": {"label": "API Key", "placeholder": 123}},  # Number instead of string
                 "skills": [
                     {
                         "test_skill": {
@@ -1994,7 +2009,10 @@ def test_validate_definition_with_invalid_credential_placeholder_type():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': 'placeholder' for credential 'api_key' must be a string in the agent definition file" in error
+    assert (
+        "Agent 'test_agent': 'placeholder' for credential 'api_key' must be a string in the agent definition file"
+        in error
+    )
 
 
 def test_validate_definition_with_invalid_credential_is_confidential_type():
@@ -2008,7 +2026,7 @@ def test_validate_definition_with_invalid_credential_is_confidential_type():
                     "api_key": {
                         "label": "API Key",
                         "placeholder": "Enter your API key",
-                        "is_confidential": "true"  # String instead of boolean
+                        "is_confidential": "true",  # String instead of boolean
                     }
                 },
                 "skills": [
@@ -2029,4 +2047,392 @@ def test_validate_definition_with_invalid_credential_is_confidential_type():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': 'is_confidential' for credential 'api_key' must be a boolean in the agent definition file" in error
+    assert (
+        "Agent 'test_agent': 'is_confidential' for credential 'api_key' must be a boolean in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_valid_rules_type():
+    """Test validation passes when rules is an dictionary and contains two rules, each rule is an object with template and source, with source having entrypoint and path."""
+    valid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "first_rule": {
+                        "template": "first_template",
+                        "source": {"entrypoint": "main.FirstRule", "path": "rules/first_rule"},
+                    },
+                    "second_rule": {
+                        "template": "second_template",
+                        "source": {
+                            "entrypoint": "main.SecondRule",
+                            "path": "tools/second_rule",
+                        },
+                    },
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_invalid_rules_type():
+    """Test validation fails when rules is not a dictionary."""
+    invalid_definition = {"agents": {"my_agent": {"rules": "not a dictionary"}}}
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'rules' must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_rule_data_type():
+    """Test validation fails when rule data is not a dictionary."""
+    invalid_definition = {"agents": {"my_agent": {"rules": {"invalid_rule": "not a dictionary"}}}}
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule' data must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_rule_template():
+    """Test validation fails when rule template is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        # No template
+                        "source": {"entrypoint": "main.Rule", "path": "rules/rule"}
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule' is missing required field 'template'" in error
+
+
+def test_validate_definition_with_invalid_rule_template_type():
+    """Test validation fails when rule template is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        "template": 123,  # Not a string
+                        "source": {"entrypoint": "main.Rule", "path": "rules/rule"},
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule': 'template' must be a string" in error
+
+
+def test_validate_definition_with_missing_rule_source():
+    """Test validation fails when rule source is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        "template": "template"
+                        # No source
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule' is missing required field 'source'" in error
+
+
+def test_validate_definition_with_invalid_rule_source_type():
+    """Test validation fails when rule source is not a dictionary."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {"invalid_rule": {"template": "template", "source": "not a dictionary"}}  # Not a dictionary
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule': 'source' must be an object" in error
+
+
+def test_validate_definition_with_missing_rule_source_path():
+    """Test validation fails when rule source path is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        "template": "template",
+                        "source": {
+                            "entrypoint": "main.Rule"
+                            # No path
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule': 'source' is missing required field 'path'" in error
+
+
+def test_validate_definition_with_invalid_rule_source_path_type():
+    """Test validation fails when rule source path is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        "template": "template",
+                        "source": {"entrypoint": "main.Rule", "path": 123},  # Not a string
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule': 'source.path' must be a string" in error
+
+
+def test_validate_definition_with_missing_rule_source_entrypoint():
+    """Test validation fails when rule source entrypoint is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        "template": "template",
+                        "source": {
+                            "path": "rules/rule"
+                            # No entrypoint
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'invalid_rule': 'source' is missing required field 'entrypoint'" in error
+
+
+def test_validate_definition_with_invalid_rule_source_entrypoint_type():
+    """Test validation fails when rule source entrypoint is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "rules": {
+                    "invalid_rule": {
+                        "template": "template",
+                        "source": {"path": "rules/rule", "entrypoint": 123},  # Not a string
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'my_agent': rule 'invalid_rule': 'source.entrypoint' must be a string in the agent definition file"
+        in error
+    )
+
+
+def test_validate_definition_with_valid_preprocessing_type():
+    """Test validation passes when pre-processing is an dictionary and contains source, with source having entrypoint and path."""
+    valid_definition = {
+        "agents": {
+            "my_agent": {
+                "pre-processing": {
+                    "source": {"entrypoint": "preprocessing.PreProcessor", "path": "pre_processor/processor"}
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_invalid_preprocessing_type():
+    """Test validation fails when pre-processing is not a dictionary."""
+    invalid_definition = {"agents": {"my_agent": {"pre-processing": "not a dictionary"}}}
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing' must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_preprocessing_source():
+    """Test validation fails when pre-processing source is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "pre-processing": {
+                    # Missing source
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing' is missing required field 'source'" in error
+
+
+def test_validate_definition_with_invalid_preprocessing_source_type():
+    """Test validation fails when pre-processing source is not a dictionary."""
+    invalid_definition = {"agents": {"my_agent": {"pre-processing": {"source": "not a dictionary"}}}}
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing.source' must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_preprocessing_source_path():
+    """Test validation fails when pre-processing source path is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "pre-processing": {
+                    "source": {
+                        "entrypoint": "preprocessing.PreProcessor"
+                        # Missing path
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing.source' is missing required field 'path'" in error
+
+
+def test_validate_definition_with_invalid_preprocessing_source_path_type():
+    """Test validation fails when pre-processing source path is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "pre-processing": {"source": {"entrypoint": "preprocessing.PreProcessor", "path": 123}}  # Not a string
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing.source.path' must be a string in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_preprocessing_source_entrypoint():
+    """Test validation fails when pre-processing source entrypoint is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "pre-processing": {
+                    "source": {
+                        "path": "pre_processor/processor"
+                        # Missing entrypoint
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing.source' is missing required field 'entrypoint'" in error
+
+
+def test_validate_definition_with_invalid_preprocessing_source_entrypoint_type():
+    """Test validation fails when pre-processing source entrypoint is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "pre-processing": {"source": {"path": "pre_processor/processor", "entrypoint": 123}}  # Not a string
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert (
+        "Agent 'my_agent': 'pre-processing.source.entrypoint' must be a string in the agent definition file" in error
+    )
+
+
+def test_validate_definition_with_valid_webhook_type():
+    """Test validation passes when webhook is an dictionary and contains source, with source having file."""
+    valid_definition = {
+        "agents": {
+            "my_agent": {
+                "webhook_example": [
+                    "example1.json",
+                    "example2.json",
+                ]
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_invalid_webhook_example_type():
+    """Test validation fails when webhook_example is not a list."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "webhook_example": "not a list",  # Not a list
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'webhook_example' must be an array in the agent definition file" in error
+
+
+def test_validate_definition_with_empty_webhook_example():
+    """Test validation fails when webhook_example is an empty list."""
+    invalid_definition = {"agents": {"my_agent": {"webhook_example": []}}}  # Empty list
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'webhook_example' must have at least one element in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_webhook_example_item_type():
+    """Test validation fails when webhook_example item is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {"webhook_example": [123]},  # Not a string
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'webhook_example' must be an array of strings in the agent definition file" in error

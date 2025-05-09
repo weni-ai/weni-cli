@@ -11,7 +11,7 @@ from rich.console import group
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
-from weni_cli.packager.packager import create_tool_folder_zip
+from weni_cli.packager.packager import create_agent_resource_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
 from weni_cli.validators.definition import format_definition, load_agent_definition, load_test_definition
 
@@ -165,7 +165,7 @@ class RunHandler(Handler):
         if not tool_data:
             return None, Exception(f"Tool {tool_key} not found in agent {agent_key}")
 
-        tool_folder, error = create_tool_folder_zip(tool_key, tool_data.get("source").get("path"))
+        tool_folder, error = create_agent_resource_folder_zip(tool_key, tool_data.get("source").get("path"))
         if error:
             return None, Exception(f"Failed to create tool folder for tool {tool_key} in agent {agent_key}\n{error}")
 

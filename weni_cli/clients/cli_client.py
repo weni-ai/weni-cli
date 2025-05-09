@@ -152,14 +152,14 @@ class CLIClient:
         except RequestError as e:
             raise RequestError(f"Failed to check project permission: {e.message}")
 
-    def push_agents(self, project_uuid: str, agents_definition: Dict, tool_folders: Dict[str, BinaryIO]) -> None:
+    def push_agents(self, project_uuid: str, agents_definition: Dict, resources_folder: Dict[str, BinaryIO]) -> None:
         """Push agents to the API."""
         data = create_default_payload(project_uuid, agents_definition)
 
         with spinner():
             try:
                 with self._streaming_request(
-                    method="POST", endpoint="api/v1/agents", data=data, files=tool_folders
+                    method="POST", endpoint="api/v1/agents", data=data, files=resources_folder
                 ) as response:
                     self._handle_push_response(response)
             except RequestError as e:

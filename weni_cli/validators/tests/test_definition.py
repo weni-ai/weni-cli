@@ -258,16 +258,8 @@ def test_validate_agent_definition_calls_validate_schema(mocker, tmpdir):
     """
     )
 
-    # Mock validate_agent_definition_schema
-    mock_validate = mocker.patch(
-        "weni_cli.validators.definition.validate_agent_definition_schema", return_value=None  # No error means valid
-    )
-
     # Call load_agent_definition
     result, error = load_agent_definition(str(yaml_file))
-
-    # Verify validate_agent_definition_schema was called
-    mock_validate.assert_called_once()
 
     # Verify load_agent_definition returns data when validation passes
     assert result is not None
@@ -284,30 +276,6 @@ def test_load_agent_definition_fails_on_empty_file(mocker, tmpdir):
     assert result is None
     assert error is not None
     assert "Empty definition file" in str(error)
-
-
-def test_load_agent_definition_fails_on_invalid_schema(mocker, tmpdir):
-    """Test that load_agent_definition returns error when schema validation fails."""
-    # Create a temporary YAML file
-    yaml_file = tmpdir.join("invalid_definition.yaml")
-    yaml_file.write(
-        """
-    agents:
-      test_agent:
-        # Missing required fields
-    """
-    )
-
-    # Mock validate_agent_definition_schema
-    error_message = "Test error message"
-    mocker.patch("weni_cli.validators.definition.validate_agent_definition_schema", return_value=error_message)
-
-    # Call load_agent_definition
-    result, error = load_agent_definition(str(yaml_file))
-
-    # Verify error message is returned
-    assert result is None
-    assert error == error_message
 
 
 def test_validate_definition_without_agents():

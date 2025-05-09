@@ -2,7 +2,7 @@ import os
 import pytest
 from zipfile import ZipFile
 from click.testing import CliRunner
-from weni_cli.packager.packager import create_tool_folder_zip
+from weni_cli.packager.packager import create_agent_resource_folder_zip
 
 
 @pytest.fixture
@@ -45,7 +45,7 @@ def test_create_tool_folder_zip_success(tool_setup, mocker):
     tool_name, tool_path = tool_setup
 
     # Call the function
-    result, error = create_tool_folder_zip(tool_name, tool_path)
+    result, error = create_agent_resource_folder_zip(tool_name, tool_path)
 
     # Verify the result is a file-like object
     assert result is not None
@@ -78,7 +78,7 @@ def test_create_tool_folder_zip_success(tool_setup, mocker):
 def test_create_tool_folder_zip_nonexistent_path(mocker):
     """Test handling of non-existent tool path."""
     # Call with non-existent path
-    result, error = create_tool_folder_zip("test-tool", "nonexistent_path")
+    result, error = create_agent_resource_folder_zip("test-tool", "nonexistent_path")
 
     # Verify the result is None
     assert result is None
@@ -106,7 +106,7 @@ def test_create_tool_folder_zip_overwrites_existing(tool_setup):
     time.sleep(0.1)
 
     # Call the function which should overwrite the existing zip
-    result, error = create_tool_folder_zip(tool_name, tool_path)
+    result, error = create_agent_resource_folder_zip(tool_name, tool_path)
     assert result is not None
     result.close()
 
@@ -132,14 +132,14 @@ def test_create_tool_folder_zip_exception_handling(tool_setup, mocker):
     mock_zipfile.side_effect = Exception("Simulated error")
 
     # Call the function
-    result, error = create_tool_folder_zip(tool_name, tool_path)
+    result, error = create_agent_resource_folder_zip(tool_name, tool_path)
 
     # Verify the result is None due to the exception
     assert result is None
 
     # Verify the error is not None
     assert error is not None
-    assert "Failed to create tool zip file for tool path" in str(error)
+    assert "Failed to create resource zip file for resource path" in str(error)
     assert "Simulated error" in str(error)
 
 
@@ -151,7 +151,7 @@ def test_create_tool_folder_zip_skips_zip_file(tool_setup, mocker):
     spy_write = mocker.spy(ZipFile, "write")
 
     # Call the function
-    result, error = create_tool_folder_zip(tool_name, tool_path)
+    result, error = create_agent_resource_folder_zip(tool_name, tool_path)
     assert result is not None
     result.close()
 
@@ -173,7 +173,7 @@ def test_create_tool_folder_zip_with_empty_folder(mocker):
         os.makedirs(tool_path, exist_ok=True)
 
         # Call the function
-        result, error = create_tool_folder_zip("empty-tool", tool_path)
+        result, error = create_agent_resource_folder_zip("empty-tool", tool_path)
 
         # Verify the result is not None
         assert result is not None
@@ -204,7 +204,7 @@ def test_create_tool_folder_zip_with_relative_path(mocker):
 
         try:
             # Call the function with a relative path
-            result, error = create_tool_folder_zip("my-tool", "tools/my_tool")
+            result, error = create_agent_resource_folder_zip("my-tool", "tools/my_tool")
 
             # Verify the result is not None
             assert result is not None
@@ -245,7 +245,7 @@ def test_create_tool_folder_zip_with_nested_duplicate_filenames(mocker):
             f.write("# Main file")
 
         # Call the function
-        result, error = create_tool_folder_zip("tool-with-dupes", tool_path)
+        result, error = create_agent_resource_folder_zip("tool-with-dupes", tool_path)
 
         # Verify the result is not None
         assert result is not None

@@ -372,11 +372,6 @@ def load_agent_definition(path) -> tuple[Any, Optional[Exception]]:
     if not data:
         return None, Exception("Empty definition file")
 
-    # Validate the schema
-    error = validate_agent_definition_schema(data)
-    if error:
-        return None, error
-
     return data, None
 
 

@@ -1,8 +1,10 @@
-# Agents
+# Passive Agents
+
+This page describes Passive Agents, which are AI-powered workers designed to operate autonomously by reacting to user input or specific triggers within a defined context.
 
 ## Overview
 
-Agents are AI-powered workers designed to operate autonomously within specific contexts, using generative AI to make decisions based on given problems. In the context of Weni CLI, agents are specifically optimized for customer service operations, serving as the frontline communication interface between companies and their customers.
+Passive Agents are AI-powered workers designed to operate autonomously within specific contexts, using generative AI to make decisions based on given problems. In the context of Weni CLI, these agents are specifically optimized for customer service operations, serving as the frontline communication interface between companies and their customers by responding to inquiries and executing tasks based on their configured skills.
 
 Key features:
 
@@ -13,9 +15,9 @@ Key features:
 
 With Weni CLI, you can define and deploy multiple agents that work together to solve real-world problems with precision, quality, and security. These agents can be equipped with various skills that enable them to interact with the external world within defined boundaries.
 
-## Creating an Agent
+## Creating a Passive Agent
 
-An agent consists of an agent definition. In Weni CLI, this definition is made using a YAML file, where you can write your agent however you want.
+A Passive Agent consists of an agent definition. In Weni CLI, this definition is made using a YAML file, where you can specify its behavior, instructions, and skills.
 
 Here is an example of how you can define your agent in a YAML file:
 

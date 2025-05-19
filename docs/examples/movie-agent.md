@@ -159,7 +159,7 @@ To test the Movie Agent tool:
 weni run agent_definition.yaml movie_agent get_movies
 ```
 
-This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your skill during execution.
+This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your tool during execution.
 
 If you need more detailed logs for debugging, you can add the `-v` flag:
 

@@ -1,10 +1,10 @@
 # Credentials
 
-Credentials are confidential information that your agents can use when invoking a specific skill. To fully understand how to incorporate credentials into your agents, we recommend reading this entire content and the following complementary resources: [Agents](./agents.md) and [Skills](./skills.md).
+Credentials are confidential information that your agents can use when invoking a specific tool. To fully understand how to incorporate credentials into your agents, we recommend reading this entire content and the following complementary resources: [Agents](./agents.md) and [tools](./tools.md).
 
 Credentials are extremely important at two stages of your agents' development cycle:
 
-- [x] For local testing of skills during development
+- [x] For local testing of tools during development
 - [x] For your agent to be used in production on channels integrated with the Weni platform, such as WhatsApp or any other
 
 ## Credential Structure
@@ -46,7 +46,7 @@ When your agent is deployed on the Weni Platform, credentials are securely manag
 
 3. **Configure values in the interface**: Administrators will be able to configure the actual credential values through the Weni Platform interface, without needing to modify the code.
 
-4. **Associate credentials with skills**: Ensure that each skill that needs credentials is correctly configured to access them through the `context.credentials` object.
+4. **Associate credentials with tools**: Ensure that each tool that needs credentials is correctly configured to access them through the `context.credentials` object.
 
 > **Note**: When you assign your agent in the Weni Platform, the credentials defined in your YAML file will be displayed in the interface for configuration. For example, if you have the following agent definition:
 > 
@@ -97,7 +97,7 @@ In the Weni Platform, credentials are:
 
 ## Credentials for Local Testing
 
-During development and local testing of your skills, you'll need to provide credentials for your skills to work correctly without depending on the Weni Platform infrastructure.
+During development and local testing of your tools, you'll need to provide credentials for your tools to work correctly without depending on the Weni Platform infrastructure.
 
 ### Configuring Credentials for Local Development
 
@@ -105,7 +105,7 @@ For local testing, you can use environment variables or local configuration file
 
 #### Using Environment Variables
 
-For local testing, you need to configure a `.env` file with the same credential names that were declared in your agent definition. This ensures that your skill can access the credentials in the same way during local testing as it would in production.
+For local testing, you need to configure a `.env` file with the same credential names that were declared in your agent definition. This ensures that your tool can access the credentials in the same way during local testing as it would in production.
 
 For example, if your CEP Agent definition has the following credentials:
 

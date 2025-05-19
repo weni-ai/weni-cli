@@ -46,14 +46,14 @@ agents:
 Create a file `tools/get_news/main.py`:
 
 ```python
-from weni import Skill
+from weni import tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 from datetime import datetime
 
 
-class GetNews(Skill):
+class GetNews(tool):
     def execute(self, context: Context) -> TextResponse:
         apiKey = context.credentials.get("apiKey")
         

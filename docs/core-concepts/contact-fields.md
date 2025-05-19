@@ -2,11 +2,11 @@
 
 ## Overview
 
-Contact fields are persistent information about contacts who interact with your agents. By enabling contact fields in your skills, you elevate the user experience to a new level, as your agents can interact with the Weni Platform to accurately obtain information about the contact.
+Contact fields are persistent information about contacts who interact with your agents. By enabling contact fields in your tools, you elevate the user experience to a new level, as your agents can interact with the Weni Platform to accurately obtain information about the contact.
 
 ## How Contact Fields Work
 
-When you mark a parameter as a contact field in your skill definition, that information becomes persistent in the user's profile within the Weni Platform. This creates several advantages:
+When you mark a parameter as a contact field in your tool definition, that information becomes persistent in the user's profile within the Weni Platform. This creates several advantages:
 
 1. **Improved User Experience**: Users don't need to repeatedly provide the same information in future interactions
 2. **Personalized Interactions**: Agents can address users with personalized information from previous conversations
@@ -14,11 +14,11 @@ When you mark a parameter as a contact field in your skill definition, that info
 
 ## Implementing Contact Fields
 
-To implement a contact field in your skill, you need to set the `contact_field` parameter to `true` in your agent definition YAML file:
+To implement a contact field in your tool, you need to set the `contact_field` parameter to `true` in your agent definition YAML file:
 
 ```yaml
 parameters:
-  - skill_parameter:
+  - tool_parameter:
       description: "User's full name"
       type: "string"
       required: true

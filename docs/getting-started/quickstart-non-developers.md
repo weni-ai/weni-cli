@@ -58,7 +58,7 @@ weni init
 This command will:
 1. Create the necessary folder structure
 2. Generate a basic agent configuration
-3. Set up a pre-built CEP skill
+3. Set up a pre-built CEP tool
 
 ### 6. Deploy Your Agent
 

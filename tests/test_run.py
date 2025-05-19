@@ -765,8 +765,8 @@ def test_run_test_uses_new_methods(mocker):
         # Have the client.run_test method call the callback directly
         def fake_run_test(*args, **kwargs):
             # Directly call the callback function with test data
-            # The callback is the 9th positional argument (index 8)
-            callback = args[8]
+            # The callback is the 10th positional argument (index 9)
+            callback = args[9]
             # Call the callback with some test data
             callback(
                 "Test Name",
@@ -834,9 +834,9 @@ def test_run_test_verbose_triggers_render_logs(mocker):
         # Have the client.run_test method call the callback directly
         def fake_run_test(*args, **kwargs):
             # Directly call the callback function with test data
-            # The callback is the 9th positional argument (index 8)
-            if len(args) > 8:
-                callback = args[8]
+            # The callback is the 10th positional argument (index 9)
+            if len(args) > 9:
+                callback = args[9]
                 # Call the callback with some test data
                 callback(
                     "Test Name",

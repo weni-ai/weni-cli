@@ -70,7 +70,7 @@ class ProjectPushHandler(Handler):
             return
 
         definition = format_definition(definition)
-        self.push_definition(force_update, project_uuid, definition, tools_folders_map)
+        self.push_definition(force_update, "passive", project_uuid, definition, tools_folders_map)
 
     def push_active_agent(self, force_update, project_uuid, definition):
         formatter = Formatter()
@@ -80,7 +80,6 @@ class ProjectPushHandler(Handler):
                 f"Invalid agent definition YAML file format, error:\n{error}", title="Failed to load definition file"
             )
             return
-
         rules_folders_map, error = self.load_rules_folders(definition)
         if error:
             formatter.print_error_panel(error)
@@ -95,7 +94,7 @@ class ProjectPushHandler(Handler):
         rules_folders_map.update(preprocessing_folders_map)
         resources_folders_map = rules_folders_map
         definition = format_definition(definition)
-        self.push_definition(force_update, project_uuid, definition, resources_folders_map)
+        self.push_definition(force_update, "active", project_uuid, definition, resources_folders_map)
 
     def load_param(self, params, key, default=None, required=False):
         value = params.get(key, default)
@@ -131,18 +130,17 @@ class ProjectPushHandler(Handler):
         agents = definition.get("agents", {})
         for agent_key, agent_data in agents.items():
             rules = agent_data.get("rules", {})
-            for rule in rules:
-                for rule_key, rule_data in rule.items():
-                    rule_folder, error = create_agent_resource_folder_zip(
-                        rule_key, rule_data.get("source").get("path")
+            for rule_key, rule_data in rules.items():
+                rule_folder, error = create_agent_resource_folder_zip(
+                    rule_key, rule_data.get("source").get("path")
+                )
+                if error:
+                    return (
+                        None,
+                        f"Failed to create rule folder for rule {rule_data.get('name')} in agent {agent_data.get('name')}\n{error}",
                     )
-                    if error:
-                        return (
-                            None,
-                            f"Failed to create rule folder for rule {rule_data.get('name')} in agent {agent_data.get('name')}\n{error}",
-                        )
 
-                    rules_folder_map[f"{agent_key}:{rule_key}"] = rule_folder
+                rules_folder_map[f"{agent_key}:{rule_key}"] = rule_folder
 
         return rules_folder_map, None
 
@@ -166,9 +164,9 @@ class ProjectPushHandler(Handler):
 
         return preprocessing_folder_map, None
 
-    def push_definition(self, force_update, project_uuid, definition, resources_folder_map):
+    def push_definition(self, force_update, agent_type, project_uuid, definition, resources_folder_map):
         client = CLIClient()
 
-        client.push_agents(project_uuid, definition, resources_folder_map)
+        client.push_agents(project_uuid, definition, resources_folder_map, agent_type)
 
         click.echo("Definition pushed successfully")

@@ -322,6 +322,7 @@ class RunHandler(Handler):
                 test_definition,
                 credentials,
                 tool_globals,
+                "active",
                 update_live_callback,
                 verbose,
             )

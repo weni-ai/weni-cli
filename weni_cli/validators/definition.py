@@ -277,17 +277,19 @@ def validate_active_agent_definition_schema(data):
         if not isinstance(agent_data, dict):
             return f"Agent '{agent_key}' must be an object in the agent definition file"
 
-        # Validate webhook_example if present (must be a list with at least one element)
-        if "webhook_example" in agent_data:
-            if not isinstance(agent_data["webhook_example"], list):
-                return f"Agent '{agent_key}': 'webhook_example' must be an array in the agent definition file"
+        # Validate name (required, must be string)
+        if not agent_data.get("name"):
+            return f"Agent '{agent_key}' is missing required field 'name' in the agent definition file"
+        if not isinstance(agent_data["name"], str):
+            return f"Agent '{agent_key}': 'name' must be a string in the agent definition file"
+        if len(agent_data["name"]) > MAX_AGENT_NAME_LENGTH:
+            return f"Agent '{agent_key}': 'name' must be less than {MAX_AGENT_NAME_LENGTH} characters in the agent definition file"
 
-            if len(agent_data["webhook_example"]) == 0:
-                return f"Agent '{agent_key}': 'webhook_example' must have at least one element in the agent definition file"
-
-            for example in agent_data["webhook_example"]:
-                if not isinstance(example, str):
-                    return f"Agent '{agent_key}': 'webhook_example' must be an array of strings in the agent definition file"
+        # Validate description (required, must be string)
+        if not agent_data.get("description"):
+            return f"Agent '{agent_key}' is missing required field 'description' in the agent definition file"
+        if not isinstance(agent_data["description"], str):
+            return f"Agent '{agent_key}': 'description' must be a string in the agent definition file"
 
         # Validate rules if present (must be a dictionary)
         if "rules" in agent_data:
@@ -327,7 +329,19 @@ def validate_active_agent_definition_schema(data):
                 if not isinstance(rule_data["source"]["entrypoint"], str):
                     return f"Agent '{agent_key}': rule '{rule_key}': 'source.entrypoint' must be a string in the agent definition file"
 
-        # Validate pre-processing if present (must be a dictionary)
+                # Validate start_condition (required, must be a string)
+                if not rule_data.get("start_condition"):
+                    return f"Agent '{agent_key}': rule '{rule_key}' is missing required field 'start_condition' in the agent definition file"
+                if not isinstance(rule_data["start_condition"], str):
+                    return f"Agent '{agent_key}': rule '{rule_key}': 'start_condition' must be a string in the agent definition file"
+
+                # Validate display_name (required, must be a string)
+                if not rule_data.get("display_name"):
+                    return f"Agent '{agent_key}': rule '{rule_key}' is missing required field 'display_name' in the agent definition file"
+                if not isinstance(rule_data["display_name"], str):
+                    return f"Agent '{agent_key}': rule '{rule_key}': 'display_name' must be a string in the agent definition file"
+
+        # Validate pre-processing (required, must be a dictionary)
         if "pre-processing" in agent_data:
             if not isinstance(agent_data["pre-processing"], dict):
                 return f"Agent '{agent_key}': 'pre-processing' must be an object in the agent definition file"
@@ -352,6 +366,14 @@ def validate_active_agent_definition_schema(data):
                 return f"Agent '{agent_key}': 'pre-processing.source' is missing required field 'entrypoint' in the agent definition file"
             if not isinstance(agent_data["pre-processing"]["source"]["entrypoint"], str):
                 return f"Agent '{agent_key}': 'pre-processing.source.entrypoint' must be a string in the agent definition file"
+
+            # Validate result_examples_file (required, must be a string with a .json in suffix)
+            if "result_examples_file" not in agent_data["pre-processing"]:
+                return f"Agent '{agent_key}': 'pre-processing' is missing required field 'result_examples_file' in the agent definition file"
+
+            result_examples_file = agent_data["pre-processing"]["result_examples_file"]
+            if not isinstance(result_examples_file, str) or not result_examples_file.endswith(".json"):
+                return f"Agent '{agent_key}': 'pre-processing.result_examples_file' must be a string with a .json in suffix in the agent definition file"
 
     return None
 

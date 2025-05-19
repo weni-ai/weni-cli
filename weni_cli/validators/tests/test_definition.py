@@ -2026,19 +2026,25 @@ def test_validate_definition_with_valid_rules_type():
     valid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with rules",
                 "rules": {
                     "first_rule": {
                         "template": "first_template",
+                        "display_name": "First Rule",
+                        "start_condition": "contact.name is not None",
                         "source": {"entrypoint": "main.FirstRule", "path": "rules/first_rule"},
                     },
                     "second_rule": {
                         "template": "second_template",
+                        "display_name": "Second Rule",
+                        "start_condition": "contact.field_value == 'test'",
                         "source": {
                             "entrypoint": "main.SecondRule",
                             "path": "tools/second_rule",
                         },
                     },
-                }
+                },
             }
         }
     }
@@ -2049,7 +2055,15 @@ def test_validate_definition_with_valid_rules_type():
 
 def test_validate_definition_with_invalid_rules_type():
     """Test validation fails when rules is not a dictionary."""
-    invalid_definition = {"agents": {"my_agent": {"rules": "not a dictionary"}}}
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rules",
+                "rules": "not a dictionary",
+            }
+        }
+    }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
@@ -2058,7 +2072,15 @@ def test_validate_definition_with_invalid_rules_type():
 
 def test_validate_definition_with_invalid_rule_data_type():
     """Test validation fails when rule data is not a dictionary."""
-    invalid_definition = {"agents": {"my_agent": {"rules": {"invalid_rule": "not a dictionary"}}}}
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rule data",
+                "rules": {"invalid_rule": "not a dictionary"},
+            }
+        }
+    }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
@@ -2070,12 +2092,14 @@ def test_validate_definition_with_missing_rule_template():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing rule template",
                 "rules": {
                     "invalid_rule": {
                         # No template
                         "source": {"entrypoint": "main.Rule", "path": "rules/rule"}
                     }
-                }
+                },
             }
         }
     }
@@ -2090,12 +2114,14 @@ def test_validate_definition_with_invalid_rule_template_type():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rule template type",
                 "rules": {
                     "invalid_rule": {
                         "template": 123,  # Not a string
                         "source": {"entrypoint": "main.Rule", "path": "rules/rule"},
                     }
-                }
+                },
             }
         }
     }
@@ -2110,12 +2136,14 @@ def test_validate_definition_with_missing_rule_source():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing rule source",
                 "rules": {
                     "invalid_rule": {
                         "template": "template"
                         # No source
                     }
-                }
+                },
             }
         }
     }
@@ -2130,7 +2158,9 @@ def test_validate_definition_with_invalid_rule_source_type():
     invalid_definition = {
         "agents": {
             "my_agent": {
-                "rules": {"invalid_rule": {"template": "template", "source": "not a dictionary"}}  # Not a dictionary
+                "name": "My Agent",
+                "description": "A test agent with invalid rule source type",
+                "rules": {"invalid_rule": {"template": "template", "source": "not a dictionary"}},  # Not a dictionary
             }
         }
     }
@@ -2145,6 +2175,8 @@ def test_validate_definition_with_missing_rule_source_path():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing rule source path",
                 "rules": {
                     "invalid_rule": {
                         "template": "template",
@@ -2153,7 +2185,7 @@ def test_validate_definition_with_missing_rule_source_path():
                             # No path
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -2168,12 +2200,14 @@ def test_validate_definition_with_invalid_rule_source_path_type():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rule source path type",
                 "rules": {
                     "invalid_rule": {
                         "template": "template",
                         "source": {"entrypoint": "main.Rule", "path": 123},  # Not a string
                     }
-                }
+                },
             }
         }
     }
@@ -2188,6 +2222,8 @@ def test_validate_definition_with_missing_rule_source_entrypoint():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing rule source entrypoint",
                 "rules": {
                     "invalid_rule": {
                         "template": "template",
@@ -2196,7 +2232,7 @@ def test_validate_definition_with_missing_rule_source_entrypoint():
                             # No entrypoint
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -2211,22 +2247,21 @@ def test_validate_definition_with_invalid_rule_source_entrypoint_type():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rule source entrypoint type",
                 "rules": {
                     "invalid_rule": {
                         "template": "template",
                         "source": {"path": "rules/rule", "entrypoint": 123},  # Not a string
                     }
-                }
+                },
             }
         }
     }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert (
-        "Agent 'my_agent': rule 'invalid_rule': 'source.entrypoint' must be a string in the agent definition file"
-        in error
-    )
+    assert "Agent 'my_agent': rule 'invalid_rule': 'source.entrypoint' must be a string" in error
 
 
 def test_validate_definition_with_valid_preprocessing_type():
@@ -2234,9 +2269,12 @@ def test_validate_definition_with_valid_preprocessing_type():
     valid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with valid preprocessing",
                 "pre-processing": {
-                    "source": {"entrypoint": "preprocessing.PreProcessor", "path": "pre_processor/processor"}
-                }
+                    "source": {"entrypoint": "preprocessing.PreProcessor", "path": "pre_processor/processor"},
+                    "result_examples_file": "examples.json",
+                },
             }
         }
     }
@@ -2247,7 +2285,15 @@ def test_validate_definition_with_valid_preprocessing_type():
 
 def test_validate_definition_with_invalid_preprocessing_type():
     """Test validation fails when pre-processing is not a dictionary."""
-    invalid_definition = {"agents": {"my_agent": {"pre-processing": "not a dictionary"}}}
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid preprocessing type",
+                "pre-processing": "not a dictionary",
+            }
+        }
+    }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
@@ -2259,9 +2305,12 @@ def test_validate_definition_with_missing_preprocessing_source():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing preprocessing source",
                 "pre-processing": {
                     # Missing source
-                }
+                    "result_examples_file": "examples.json"
+                },
             }
         }
     }
@@ -2273,7 +2322,15 @@ def test_validate_definition_with_missing_preprocessing_source():
 
 def test_validate_definition_with_invalid_preprocessing_source_type():
     """Test validation fails when pre-processing source is not a dictionary."""
-    invalid_definition = {"agents": {"my_agent": {"pre-processing": {"source": "not a dictionary"}}}}
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid preprocessing source type",
+                "pre-processing": {"source": "not a dictionary", "result_examples_file": "examples.json"},
+            }
+        }
+    }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
@@ -2285,12 +2342,15 @@ def test_validate_definition_with_missing_preprocessing_source_path():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing preprocessing source path",
                 "pre-processing": {
                     "source": {
                         "entrypoint": "preprocessing.PreProcessor"
                         # Missing path
-                    }
-                }
+                    },
+                    "result_examples_file": "examples.json",
+                },
             }
         }
     }
@@ -2305,7 +2365,12 @@ def test_validate_definition_with_invalid_preprocessing_source_path_type():
     invalid_definition = {
         "agents": {
             "my_agent": {
-                "pre-processing": {"source": {"entrypoint": "preprocessing.PreProcessor", "path": 123}}  # Not a string
+                "name": "My Agent",
+                "description": "A test agent with invalid preprocessing source path type",
+                "pre-processing": {
+                    "source": {"entrypoint": "preprocessing.PreProcessor", "path": 123},  # Not a string
+                    "result_examples_file": "examples.json",
+                },
             }
         }
     }
@@ -2320,12 +2385,15 @@ def test_validate_definition_with_missing_preprocessing_source_entrypoint():
     invalid_definition = {
         "agents": {
             "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing preprocessing source entrypoint",
                 "pre-processing": {
                     "source": {
                         "path": "pre_processor/processor"
                         # Missing entrypoint
-                    }
-                }
+                    },
+                    "result_examples_file": "examples.json",
+                },
             }
         }
     }
@@ -2340,7 +2408,12 @@ def test_validate_definition_with_invalid_preprocessing_source_entrypoint_type()
     invalid_definition = {
         "agents": {
             "my_agent": {
-                "pre-processing": {"source": {"path": "pre_processor/processor", "entrypoint": 123}}  # Not a string
+                "name": "My Agent",
+                "description": "A test agent with invalid preprocessing source entrypoint type",
+                "pre-processing": {
+                    "source": {"path": "pre_processor/processor", "entrypoint": 123},  # Not a string
+                    "result_examples_file": "examples.json",
+                },
             }
         }
     }
@@ -2352,55 +2425,174 @@ def test_validate_definition_with_invalid_preprocessing_source_entrypoint_type()
     )
 
 
-def test_validate_definition_with_valid_webhook_type():
-    """Test validation passes when webhook is an dictionary and contains source, with source having file."""
-    valid_definition = {
+def test_validate_definition_with_missing_rule_start_condition():
+    """Test validation fails when rule start_condition is missing."""
+    invalid_definition = {
         "agents": {
             "my_agent": {
-                "webhook_example": [
-                    "example1.json",
-                    "example2.json",
-                ]
+                "name": "My Agent",
+                "description": "A test agent with missing rule start_condition",
+                "rules": {
+                    "test_rule": {
+                        "template": "template",
+                        "display_name": "Test Rule",
+                        "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
+                        # Missing start_condition
+                    }
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'test_rule' is missing required field 'start_condition'" in error
+
+
+def test_validate_definition_with_invalid_rule_start_condition_type():
+    """Test validation fails when rule start_condition is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rule start_condition type",
+                "rules": {
+                    "test_rule": {
+                        "template": "template",
+                        "display_name": "Test Rule",
+                        "start_condition": 123,  # Not a string
+                        "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
+                    }
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'test_rule': 'start_condition' must be a string" in error
+
+
+def test_validate_definition_with_missing_rule_display_name():
+    """Test validation fails when rule display_name is missing."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing rule display_name",
+                "rules": {
+                    "test_rule": {
+                        "template": "template",
+                        "start_condition": "contact.name is not None",
+                        "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
+                        # Missing display_name
+                    }
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'test_rule' is missing required field 'display_name'" in error
+
+
+def test_validate_definition_with_invalid_rule_display_name_type():
+    """Test validation fails when rule display_name is not a string."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid rule display_name type",
+                "rules": {
+                    "test_rule": {
+                        "template": "template",
+                        "display_name": 123,  # Not a string
+                        "start_condition": "contact.name is not None",
+                        "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
+                    }
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': rule 'test_rule': 'display_name' must be a string" in error
+
+
+def test_validate_definition_with_missing_preprocessing_result_examples_file():
+    """Test validation fails when pre-processing result_examples_file is missing."""
+    # Test a pre-processing config missing the result_examples_file
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with missing preprocessing result_examples_file",
+                "pre-processing": {
+                    "source": {"path": "pre_processor/processor", "entrypoint": "preprocessing.PreProcessor"}
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing' is missing required field 'result_examples_file'" in error
+
+
+def test_validate_definition_with_invalid_preprocessing_result_examples_file_suffix():
+    """Test validation fails when pre-processing result_examples_file doesn't end with .json."""
+    invalid_definition = {
+        "agents": {
+            "my_agent": {
+                "name": "My Agent",
+                "description": "A test agent with invalid preprocessing result_examples_file suffix",
+                "pre-processing": {
+                    "source": {
+                        "path": "pre_processor/processor",
+                        "entrypoint": "preprocessing.PreProcessor",
+                    },
+                    "result_examples_file": "examples.txt",  # Not a .json file
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'my_agent': 'pre-processing.result_examples_file' must be a string with a .json in suffix" in error
+
+
+def test_validate_definition_with_valid_complete_active_agent():
+    """Test validation passes with a complete valid active agent definition containing all fields."""
+    valid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "webhook_example": ["example1.json", "example2.json"],
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                    }
+                },
+                "pre-processing": {
+                    "source": {
+                        "path": "pre_processor/processor",
+                        "entrypoint": "preprocessing.PreProcessor",
+                    },
+                    "result_examples_file": "examples.json",
+                },
             }
         }
     }
 
     error = validate_active_agent_definition_schema(valid_definition)
     assert error is None
-
-
-def test_validate_definition_with_invalid_webhook_example_type():
-    """Test validation fails when webhook_example is not a list."""
-    invalid_definition = {
-        "agents": {
-            "my_agent": {
-                "webhook_example": "not a list",  # Not a list
-            }
-        }
-    }
-
-    error = validate_active_agent_definition_schema(invalid_definition)
-    assert error is not None
-    assert "Agent 'my_agent': 'webhook_example' must be an array in the agent definition file" in error
-
-
-def test_validate_definition_with_empty_webhook_example():
-    """Test validation fails when webhook_example is an empty list."""
-    invalid_definition = {"agents": {"my_agent": {"webhook_example": []}}}  # Empty list
-
-    error = validate_active_agent_definition_schema(invalid_definition)
-    assert error is not None
-    assert "Agent 'my_agent': 'webhook_example' must have at least one element in the agent definition file" in error
-
-
-def test_validate_definition_with_invalid_webhook_example_item_type():
-    """Test validation fails when webhook_example item is not a string."""
-    invalid_definition = {
-        "agents": {
-            "my_agent": {"webhook_example": [123]},  # Not a string
-        }
-    }
-
-    error = validate_active_agent_definition_schema(invalid_definition)
-    assert error is not None
-    assert "Agent 'my_agent': 'webhook_example' must be an array of strings in the agent definition file" in error

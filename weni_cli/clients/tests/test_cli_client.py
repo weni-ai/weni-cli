@@ -880,3 +880,107 @@ def test_run_test_verbose_with_callback(client, mocker):
     """Test run_test method with verbose=True and a callback."""
     # This test is a placeholder and can be implemented if needed
     pass
+
+
+def test_get_tool_logs_success(client, mocker):
+    """Test successful tool logs retrieval."""
+    # Mock response data
+    mock_logs_data = {
+        "logs": [
+            {"timestamp": "2023-01-01T12:00:00", "level": "INFO", "message": "Tool executed successfully"},
+            {"timestamp": "2023-01-01T12:01:00", "level": "DEBUG", "message": "Processing data"}
+        ]
+    }
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = mock_logs_data
+
+    # Mock the _make_request method
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    # Call the method
+    agent = "test-agent"
+    tool = "test-tool"
+    start_time = "2023-01-01T00:00:00"
+    end_time = "2023-01-02T00:00:00"
+    pattern = "success"
+
+    logs, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern)
+
+    # Verify the results
+    assert logs == mock_logs_data
+    assert error is None
+
+    # Verify the method was called with correct parameters
+    client._make_request.assert_called_once_with(
+        method="GET", endpoint="api/v1/tool-logs/",
+        params={
+            "agent_key": agent,
+            "tool_key": tool,
+            "start_time": start_time,
+            "end_time": end_time,
+            "pattern": pattern,
+            "next_token": None,
+        }
+    )
+
+
+def test_get_tool_logs_error(client, mocker):
+    """Test tool logs retrieval with error."""
+    # Mock the _make_request method to raise RequestError
+    error_message = "Failed to fetch tool logs"
+    request_id = "req-12345"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, request_id=request_id)
+    )
+
+    # Call the method
+    agent = "test-agent"
+    tool = "test-tool"
+    start_time = "2023-01-01T00:00:00"
+    end_time = "2023-01-02T00:00:00"
+    pattern = "error"
+
+    logs, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern)
+
+    # Verify the results
+    assert logs == {}
+    assert error == f"Error fetching logs: {error_message} - Request ID: {request_id}"
+
+
+def test_get_tool_logs_with_empty_times(client, mocker):
+    """Test tool logs retrieval with empty start/end times."""
+    # Mock response data
+    mock_logs_data = {"logs": []}
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = mock_logs_data
+
+    # Mock the _make_request method
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    # Call the method with empty times
+    agent = "test-agent"
+    tool = "test-tool"
+    start_time = ""
+    end_time = None
+    pattern = None
+
+    logs, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern)
+
+    # Verify the results
+    assert logs == mock_logs_data
+    assert error is None
+
+    # Verify the method was called with correct parameters (None values for times)
+    client._make_request.assert_called_once_with(
+        method="GET", endpoint="api/v1/tool-logs/",
+        params={
+            "agent_key": agent,
+            "tool_key": tool,
+            "start_time": None,
+            "end_time": None,
+            "pattern": pattern,
+            "next_token": None,
+        }
+    )

@@ -11,7 +11,7 @@ from rich.console import group
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
-from weni_cli.packager.packager import create_tool_folder_zip
+from weni_cli.packager.packager import create_agent_resource_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
 from weni_cli.validators.definition import format_definition, load_agent_definition, load_test_definition
 
@@ -37,7 +37,9 @@ class RunHandler(Handler):
 
         definition_data, error = load_agent_definition(definition_path)
         if error:
-            formatter.print_error_panel(f"Invalid agent definition YAML file format, error:\n{error}", title="Error loading agent definition")
+            formatter.print_error_panel(
+                f"Invalid agent definition YAML file format, error:\n{error}", title="Error loading agent definition"
+            )
             return
 
         if not test_definition_path:
@@ -148,7 +150,9 @@ class RunHandler(Handler):
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
 
-    def load_tool_folder(self, definition, agent_key, tool_key) -> tuple[Optional[BufferedReader], Optional[Exception]]:
+    def load_tool_folder(
+        self, definition, agent_key, tool_key
+    ) -> tuple[Optional[BufferedReader], Optional[Exception]]:
         agent_data = definition.get("agents", {}).get(agent_key)
         if not agent_data:
             return None, Exception(f"Agent {agent_key} not found in definition")
@@ -165,7 +169,7 @@ class RunHandler(Handler):
         if not tool_data:
             return None, Exception(f"Tool {tool_key} not found in agent {agent_key}")
 
-        tool_folder, error = create_tool_folder_zip(tool_key, tool_data.get("source").get("path"))
+        tool_folder, error = create_agent_resource_folder_zip(tool_key, tool_data.get("source").get("path"))
         if error:
             return None, Exception(f"Failed to create tool folder for tool {tool_key} in agent {agent_key}\n{error}")
 
@@ -306,9 +310,7 @@ class RunHandler(Handler):
         with Live(self.display_test_results([], tool_key, verbose), refresh_per_second=4) as live:
             # Create a callback function that will be passed to the CLIClient
             def update_live_callback(test_name, test_result, status_code, code, verbose):
-                self.update_live_display(
-                    test_rows, test_name, test_result, status_code, code, live, tool_key, verbose
-                )
+                self.update_live_display(test_rows, test_name, test_result, status_code, code, live, tool_key, verbose)
 
             client = CLIClient()
             test_logs = client.run_test(
@@ -320,6 +322,7 @@ class RunHandler(Handler):
                 test_definition,
                 credentials,
                 tool_globals,
+                "active",
                 update_live_callback,
                 verbose,
             )

@@ -82,29 +82,8 @@ def validate_agent_definition_schema(data):
 
         # Validate credentials if present (must be an object)
         if "credentials" in agent_data:
-            if not isinstance(agent_data["credentials"], dict):
-                return f"Agent '{agent_key}': 'credentials' must be an object in the agent definition file"
-
-            # Validate each credential (must be an object)
-            for credential_key, credential_value in agent_data["credentials"].items():
-                if not isinstance(credential_value, dict):
-                    return f"Agent '{agent_key}': value for credential '{credential_key}' must be an object in the agent definition file"
-
-                # Validate label (required, must be a string)
-                if not credential_value.get("label"):
-                    return f"Agent '{agent_key}': 'label' for credential '{credential_key}' is missing in the agent definition file"
-                if not isinstance(credential_value["label"], str):
-                    return f"Agent '{agent_key}': 'label' for credential '{credential_key}' must be a string in the agent definition file"
-
-                # Validate placeholder (required, must be a string)
-                if not credential_value.get("placeholder"):
-                    return f"Agent '{agent_key}': 'placeholder' for credential '{credential_key}' is missing in the agent definition file"
-                if not isinstance(credential_value["placeholder"], str):
-                    return f"Agent '{agent_key}': 'placeholder' for credential '{credential_key}' must be a string in the agent definition file"
-
-                # Validate is_confidential if present (must be a boolean)
-                if "is_confidential" in credential_value and not isinstance(credential_value["is_confidential"], bool):
-                    return f"Agent '{agent_key}': 'is_confidential' for credential '{credential_key}' must be a boolean in the agent definition file"
+            if error := validate_agent_credentials(agent_key, agent_data["credentials"]):
+                return error
 
         # Validate components, they are optional, but if present must be an array of objects
         if "components" in agent_data:
@@ -291,6 +270,11 @@ def validate_active_agent_definition_schema(data):
         if not isinstance(agent_data["description"], str):
             return f"Agent '{agent_key}': 'description' must be a string in the agent definition file"
 
+        # Validate credentials if present (must be an object)
+        if "credentials" in agent_data:
+            if error := validate_agent_credentials(agent_key, agent_data["credentials"]):
+                return error
+
         # Validate rules if present (must be a dictionary)
         if "rules" in agent_data:
             if not isinstance(agent_data["rules"], dict):
@@ -378,6 +362,35 @@ def validate_active_agent_definition_schema(data):
     return None
 
 
+def validate_agent_credentials(agent_key: str, credentials: Any) -> Optional[str]:
+    # Validate credentials if present (must be an object)
+    if not isinstance(credentials, dict):
+        return f"Agent '{agent_key}': 'credentials' must be an object in the agent definition file"
+
+    # Validate each credential (must be an object)
+    for credential_key, credential_value in credentials.items():
+        if not isinstance(credential_value, dict):
+            return f"Agent '{agent_key}': value for credential '{credential_key}' must be an object in the agent definition file"
+
+        # Validate label (required, must be a string)
+        if not credential_value.get("label"):
+            return f"Agent '{agent_key}': 'label' for credential '{credential_key}' is missing in the agent definition file"
+        if not isinstance(credential_value["label"], str):
+            return f"Agent '{agent_key}': 'label' for credential '{credential_key}' must be a string in the agent definition file"
+
+        # Validate placeholder (required, must be a string)
+        if not credential_value.get("placeholder"):
+            return f"Agent '{agent_key}': 'placeholder' for credential '{credential_key}' is missing in the agent definition file"
+        if not isinstance(credential_value["placeholder"], str):
+            return f"Agent '{agent_key}': 'placeholder' for credential '{credential_key}' must be a string in the agent definition file"
+
+        # Validate is_confidential if present (must be a boolean)
+        if "is_confidential" in credential_value and not isinstance(credential_value["is_confidential"], bool):
+            return f"Agent '{agent_key}': 'is_confidential' for credential '{credential_key}' must be a boolean in the agent definition file"
+
+    return None
+
+
 def load_yaml_file(path) -> tuple[Any, Optional[Exception]]:
     try:
         with open(path, "r") as file:
@@ -393,11 +406,6 @@ def load_agent_definition(path) -> tuple[Any, Optional[Exception]]:
 
     if not data:
         return None, Exception("Empty definition file")
-
-    # Validate the schema
-    error = validate_agent_definition_schema(data)
-    if error:
-        return None, error
 
     return data, None
 

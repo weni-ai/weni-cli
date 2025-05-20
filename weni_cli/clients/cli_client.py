@@ -50,12 +50,13 @@ def get_cli_version() -> str:
     return importlib.metadata.version("weni-cli")
 
 
-def create_default_payload(project_uuid: str, definition: Dict) -> Dict[str, str]:
+def create_default_payload(project_uuid: str, definition: Dict, agent_type: str) -> Dict[str, str]:
     """Create a default payload for API requests."""
     return {
         "project_uuid": project_uuid,
         "definition": json.dumps(definition),
         "toolkit_version": get_toolkit_version(),
+        "type": agent_type,
     }
 
 
@@ -127,7 +128,15 @@ class CLIClient:
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
 
         response = self.session.request(
-            method=method, url=url, headers=self.headers, data=data, json=json_data, files=files, stream=False, timeout=timeout, params=params
+            method=method,
+            url=url,
+            headers=self.headers,
+            data=data,
+            json=json_data,
+            files=files,
+            stream=False,
+            timeout=timeout,
+            params=params,
         )
 
         if response.status_code != 200:
@@ -154,14 +163,14 @@ class CLIClient:
         except RequestError as e:
             raise RequestError(f"Failed to check project permission: {e.message}")
 
-    def push_agents(self, project_uuid: str, agents_definition: Dict, tool_folders: Dict[str, BinaryIO]) -> None:
+    def push_agents(self, project_uuid: str, agents_definition: Dict, resources_folder: Dict[str, BinaryIO], agent_type: str) -> None:
         """Push agents to the API."""
-        data = create_default_payload(project_uuid, agents_definition)
+        data = create_default_payload(project_uuid, agents_definition, agent_type)
 
         with spinner():
             try:
                 with self._streaming_request(
-                    method="POST", endpoint="api/v1/agents", data=data, files=tool_folders
+                    method="POST", endpoint="api/v1/agents", data=data, files=resources_folder
                 ) as response:
                     self._handle_push_response(response)
             except RequestError as e:
@@ -199,6 +208,7 @@ class CLIClient:
         test_definition: Dict,
         credentials: Dict,
         tool_globals: Dict,
+        agent_type: str,
         result_callback: Callable[[str, Any, int, Optional[str], bool], None],
         verbose: bool = False,
     ) -> List[Dict]:
@@ -206,7 +216,7 @@ class CLIClient:
         test_logs = []
 
         data = self._prepare_test_data(
-            project_uuid, definition, test_definition, tool_key, agent_key, credentials, tool_globals
+            project_uuid, definition, test_definition, tool_key, agent_key, credentials, tool_globals, agent_type
         )
         files = {"tool": tool_folder}
 
@@ -227,9 +237,10 @@ class CLIClient:
         agent_key: str,
         credentials: Dict,
         tool_globals: Dict,
+        agent_type: str,
     ) -> Dict[str, str]:
         """Prepare data for the test run."""
-        data = create_default_payload(project_uuid, definition)
+        data = create_default_payload(project_uuid, definition, agent_type)
         data.update(
             {
                 "test_definition": json.dumps(test_definition),

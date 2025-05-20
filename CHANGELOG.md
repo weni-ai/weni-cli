@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.0] - 2025-05-20
+
+### Added
+
+- Feat: Add push for active agents ([#100](https://github.com/weni-ai/weni-cli/pull/100)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- add validation for active agents ([#99](https://github.com/weni-ai/weni-cli/pull/99)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [3.1.1] - 2025-05-08
 
 ### Added

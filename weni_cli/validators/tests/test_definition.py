@@ -2571,6 +2571,7 @@ def test_validate_definition_with_valid_complete_active_agent():
             "test_agent": {
                 "name": "Test Agent",
                 "description": "Test Description",
+                "language": "pt_BR",  # Added required language field
                 "webhook_example": ["example1.json", "example2.json"],
                 "rules": {
                     "test_rule": {
@@ -2596,3 +2597,140 @@ def test_validate_definition_with_valid_complete_active_agent():
 
     error = validate_active_agent_definition_schema(valid_definition)
     assert error is None
+
+
+def test_validate_definition_with_missing_language():
+    """Test validation fails when language field is missing."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent' is missing required field 'language' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_language_type():
+    """Test validation fails when language is not a string."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "language": 123,  # Not a string
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'language' must be a string" in error
+
+
+def test_validate_definition_with_invalid_language_code():
+    """Test validation fails when language code is not in the allowed list."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "language": "invalid_lang",  # Invalid language code
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'language' must be one of the following values:" in error
+
+
+def test_validate_definition_with_valid_language():
+    """Test validation passes when language is a valid language code."""
+    valid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "language": "pt_BR",
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_missing_language():
+    """Test validation fails when language field is missing."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                    }
+                }
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent' is missing required field 'language' in the agent definition file" in error

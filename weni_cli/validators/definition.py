@@ -270,6 +270,14 @@ def validate_active_agent_definition_schema(data):
         if not isinstance(agent_data["description"], str):
             return f"Agent '{agent_key}': 'description' must be a string in the agent definition file"
 
+        # Validate language (required, must be a string and valid language code)
+        if not agent_data.get("language"):
+            return f"Agent '{agent_key}' is missing required field 'language' in the agent definition file"
+        if not isinstance(agent_data["language"], str):
+            return f"Agent '{agent_key}': 'language' must be a string in the agent definition file"
+        if not LanguageValidator.is_valid_language(agent_data["language"]):
+            return f"Agent '{agent_key}': 'language' must be one of the following values: {', '.join(LanguageValidator.AVAILABLE_LANGUAGES)} in the agent definition file"
+
         # Validate credentials if present (must be an object)
         if "credentials" in agent_data:
             if error := validate_agent_credentials(agent_key, agent_data["credentials"]):
@@ -501,3 +509,19 @@ class ContactFieldValidator:
         if len(parameter_name) > ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH:
             return False
         return True
+
+
+class LanguageValidator:
+    AVAILABLE_LANGUAGES = [
+        "af", "sq", "ar", "az", "bn", "bg", "ca", "zh_CN", "zh_HK", "zh_TW",
+        "hr", "cs", "da", "nl", "en", "en_GB", "en_US", "et", "fil", "fi",
+        "fr", "de", "el", "gu", "ha", "he", "hi", "hu", "id", "ga", "it",
+        "ja", "kn", "kk", "ko", "ky_KG", "lo", "lv", "lt", "ml", "mk", "ms",
+        "mr", "nb", "fa", "pl", "pt_BR", "pt_PT", "pa", "ro", "ru", "sr",
+        "sk", "sl", "es", "es_AR", "es_ES", "es_MX", "sw", "sv", "ta", "te",
+        "th", "tr", "uk", "ur", "uz", "vi", "zu"
+    ]
+
+    @staticmethod
+    def is_valid_language(language_code: str) -> bool:
+        return language_code in LanguageValidator.AVAILABLE_LANGUAGES

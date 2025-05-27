@@ -2616,7 +2616,7 @@ def test_validate_definition_with_missing_language():
                             "entrypoint": "main.TestRule",
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -2644,7 +2644,7 @@ def test_validate_definition_with_invalid_language_type():
                             "entrypoint": "main.TestRule",
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -2672,7 +2672,7 @@ def test_validate_definition_with_invalid_language_code():
                             "entrypoint": "main.TestRule",
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -2700,7 +2700,7 @@ def test_validate_definition_with_valid_language():
                             "entrypoint": "main.TestRule",
                         },
                     }
-                }
+                },
             }
         }
     }
@@ -2726,7 +2726,7 @@ def test_validate_definition_with_missing_language():
                             "entrypoint": "main.TestRule",
                         },
                     }
-                }
+                },
             }
         }
     }

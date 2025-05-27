@@ -96,11 +96,11 @@ class CLIClient:
             )
 
             if response.status_code != 200:
+                if response.status_code == 401:
+                    raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                 try:
                     error_data = response.json()
                     message = error_data.get("message", f"Request failed with status code {response.status_code}")
-                    if response.status_code == 401:
-                        message = "Invalid authentication token. Please login again using 'weni login'"
                     raise RequestError(
                         message=message,
                         status_code=response.status_code,
@@ -108,8 +108,6 @@ class CLIClient:
                         request_id=error_data.get("request_id"),
                     )
                 except json.JSONDecodeError:
-                    if response.status_code == 401:
-                        raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                     raise RequestError(f"Request failed with status code {response.status_code}: {response.text}")
 
             yield response
@@ -144,11 +142,11 @@ class CLIClient:
         )
 
         if response.status_code != 200:
+            if response.status_code == 401:
+                raise RequestError("Invalid authentication token. Please login again using 'weni login'")
             try:
                 error_data = response.json()
                 message = error_data.get("message", f"Request failed with status code {response.status_code}")
-                if response.status_code == 401:
-                    message = "Invalid authentication token. Please login again using 'weni login'"
                 raise RequestError(
                     message=message,
                     status_code=response.status_code,
@@ -156,8 +154,6 @@ class CLIClient:
                     request_id=error_data.get("request_id"),
                 )
             except json.JSONDecodeError:
-                if response.status_code == 401:
-                    raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                 raise RequestError(f"Request failed with status code {response.status_code}: {response.text}")
 
         return response

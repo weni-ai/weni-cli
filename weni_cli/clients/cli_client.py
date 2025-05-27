@@ -99,6 +99,8 @@ class CLIClient:
                 try:
                     error_data = response.json()
                     message = error_data.get("message", f"Request failed with status code {response.status_code}")
+                    if response.status_code == 401:
+                        message = "Invalid authentication token. Please login again using 'weni login'"
                     raise RequestError(
                         message=message,
                         status_code=response.status_code,
@@ -106,6 +108,8 @@ class CLIClient:
                         request_id=error_data.get("request_id"),
                     )
                 except json.JSONDecodeError:
+                    if response.status_code == 401:
+                        raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                     raise RequestError(f"Request failed with status code {response.status_code}: {response.text}")
 
             yield response
@@ -143,6 +147,8 @@ class CLIClient:
             try:
                 error_data = response.json()
                 message = error_data.get("message", f"Request failed with status code {response.status_code}")
+                if response.status_code == 401:
+                    message = "Invalid authentication token. Please login again using 'weni login'"
                 raise RequestError(
                     message=message,
                     status_code=response.status_code,
@@ -150,7 +156,9 @@ class CLIClient:
                     request_id=error_data.get("request_id"),
                 )
             except json.JSONDecodeError:
-                raise RequestError(message=f"Request failed with status code {response.status_code}: {response.text}")
+                if response.status_code == 401:
+                    raise RequestError("Invalid authentication token. Please login again using 'weni login'")
+                raise RequestError(f"Request failed with status code {response.status_code}: {response.text}")
 
         return response
 
@@ -163,7 +171,9 @@ class CLIClient:
         except RequestError as e:
             raise RequestError(f"Failed to check project permission: {e.message}")
 
-    def push_agents(self, project_uuid: str, agents_definition: Dict, resources_folder: Dict[str, BinaryIO], agent_type: str) -> None:
+    def push_agents(
+        self, project_uuid: str, agents_definition: Dict, resources_folder: Dict[str, BinaryIO], agent_type: str
+    ) -> None:
         """Push agents to the API."""
         data = create_default_payload(project_uuid, agents_definition, agent_type)
 
@@ -279,7 +289,9 @@ class CLIClient:
 
         return test_logs
 
-    def get_tool_logs(self, agent: str, tool: str, start_time: str, end_time: str, pattern: str, next_token: str | None = None) -> tuple[Any, ErrorMessage]:
+    def get_tool_logs(
+        self, agent: str, tool: str, start_time: str, end_time: str, pattern: str, next_token: str | None = None
+    ) -> tuple[Any, ErrorMessage]:
         """Get logs for a tool."""
 
         data = {

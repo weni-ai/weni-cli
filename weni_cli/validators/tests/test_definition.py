@@ -2731,3 +2731,53 @@ def test_validate_definition_with_invalid_rule_display_name_type():
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
     assert "Agent 'my_agent': rule 'test_rule': 'display_name' must be a string" in error
+
+
+def test_validate_definition_with_whitespace_in_template():
+    """Test that a template with whitespace is rejected."""
+    definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "language": "pt_BR",
+                "rules": {
+                    "test_rule": {
+                        "template": "template with spaces",
+                        "source": {"path": "test/path", "entrypoint": "test.entrypoint"},
+                        "start_condition": "test condition",
+                        "display_name": "Test Rule",
+                    }
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(definition)
+    assert error is not None
+    assert "Agent 'test_agent': rule 'test_rule': 'template' must not contain whitespace" in error
+    assert "Use underscores instead in the agent definition file" in error
+
+
+def test_validate_definition_with_valid_template_name():
+    """Test that a template without whitespace is accepted."""
+    definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "language": "pt_BR",
+                "rules": {
+                    "test_rule": {
+                        "template": "template_without_spaces",
+                        "source": {"path": "test/path", "entrypoint": "test.entrypoint"},
+                        "start_condition": "test condition",
+                        "display_name": "Test Rule",
+                    }
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(definition)
+    assert error is None

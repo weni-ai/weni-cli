@@ -294,6 +294,10 @@ def validate_active_agent_definition_schema(data):
                 if not isinstance(rule_data["template"], str):
                     return f"Agent '{agent_key}': rule '{rule_key}': 'template' must be a string in the agent definition file"
 
+                # Validate template has no whitespace
+                if " " in rule_data["template"]:
+                    return f"Agent '{agent_key}': rule '{rule_key}': 'template' must not contain whitespace. Use underscores instead in the agent definition file"
+
                 # Validate source
                 if rule_data.get("source") is None:
                     return f"Agent '{agent_key}': rule '{rule_key}' is missing required field 'source' in the agent definition file"

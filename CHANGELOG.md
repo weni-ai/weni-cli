@@ -1,11 +1,17 @@
 # Changelog
 
+## [3.3.1] - 2025-05-28
+
+### Added
+
+- Update weni-agents-toolkit to version 2.2.1 ([#110](https://github.com/weni-ai/weni-cli/pull/110)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [3.3.0] - 2025-05-27
 
 ### Added
 
-- Update Flask to version 3.1.1 in pyproject.toml ([#108](https://github.com/weni-ai/weni-cli/pull/100)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
-- Update weni-agents-toolkit to version 2.2.0 ([#107](https://github.com/weni-ai/weni-cli/pull/99)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Update Flask to version 3.1.1 in pyproject.toml ([#108](https://github.com/weni-ai/weni-cli/pull/108)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Update weni-agents-toolkit to version 2.2.0 ([#107](https://github.com/weni-ai/weni-cli/pull/107)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
 - Update message when user get a 401 error ([#106](https://github.com/weni-ai/weni-cli/pull/106)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
 - Validation to avoid whitespaces in template name ([#105](https://github.com/weni-ai/weni-cli/pull/105)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
 - Validation to language in active agent definition ([#104](https://github.com/weni-ai/weni-cli/pull/104)) ([**@lucaslinhares**](https://github.com/lucaslinhares))

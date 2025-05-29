@@ -42,6 +42,27 @@ class RunHandler(Handler):
             )
             return
 
+        # Validate agent existence
+        if agent_key not in definition_data.get("agents", {}):
+            formatter.print_error_panel(
+                f"Agent '{agent_key}' not found in the definition file.",
+                title="Invalid Agent"
+            )
+            return
+
+        # Validate tool existence
+        agent_tools = []
+        for tool in definition_data["agents"][agent_key].get("tools", []):
+            if isinstance(tool, dict):
+                agent_tools.extend(tool.keys())
+
+        if tool_key not in agent_tools:
+            formatter.print_error_panel(
+                f"Tool '{tool_key}' not found in agent '{agent_key}'.\nAvailable tools: {', '.join(agent_tools)}",
+                title="Invalid Tool"
+            )
+            return
+
         if not test_definition_path:
             test_definition_path = self.load_default_test_definition(definition_data, agent_key, tool_key)
 

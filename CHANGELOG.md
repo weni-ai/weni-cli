@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.3.2] - 2025-05-30
+
+## Added
+
+- Improve errors messages in test definition ([#111](https://github.com/weni-ai/weni-cli/pull/111)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+
 ## [3.3.1] - 2025-05-28
 
 ### Added

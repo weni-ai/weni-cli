@@ -93,8 +93,7 @@ The `result_example.json` (and assumed `pre_result_example.json`) file should fo
 ```json title="result_example.json"
 [
     {
-        "contact_urn": "<identifier_for_contact>",
-        "language": "<language_code>",
+        "urn": "<identifier_for_contact>",
         "data": {
             "key1": "value1",
             "key2": "value2"
@@ -102,8 +101,7 @@ The `result_example.json` (and assumed `pre_result_example.json`) file should fo
         }
     },
     {
-        "contact_urn": "<another_contact_identifier>",
-        "language": "<another_language_code>",
+        "urn": "<another_contact_identifier>",
         "data": {
             "fieldA": "dataA",
             "fieldB": "dataB"
@@ -113,8 +111,7 @@ The `result_example.json` (and assumed `pre_result_example.json`) file should fo
 ]
 ```
 Each object in the array represents a test case or an example scenario.
-- `contact_urn`: A unique identifier for the contact (e.g., a phone number, user ID).
-- `language`: The language code for the contact (e.g., "pt-BR", "en-US").
+- `urn`: A unique identifier for the contact (e.g., a phone number, user ID).
 - `data`: An object containing the data relevant to this specific example. The structure of this `data` object will depend on your agent's specific needs and the information it processes.
 
 ## Basic Structure

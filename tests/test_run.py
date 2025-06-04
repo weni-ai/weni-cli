@@ -142,25 +142,25 @@ def mock_store_values():
 
 
 @pytest.fixture
-def mock_tool_folder():
-    """Mock the tool folder creation."""
+def mock_agent_resource_folder_zip():
+    """Mock the agent resource folder zip creation."""
 
     def _mock(mocker):
-        mock_zip = mocker.patch("weni_cli.packager.packager.create_tool_folder_zip")
+        mock_zip = mocker.patch("weni_cli.packager.packager.create_agent_resource_folder_zip")
         mock_zip.return_value = io.BytesIO(b"mock zip content")
         return mock_zip
 
     return _mock
 
 
-def test_run_command_success(mocker, create_mocked_files, mock_cli_response, mock_store_values, mock_tool_folder):
+def test_run_command_success(mocker, create_mocked_files, mock_cli_response, mock_store_values, mock_agent_resource_folder_zip):
     """Test running a tool test successfully."""
 
     runner = CliRunner()
     with runner.isolated_filesystem():
         agent_file = create_mocked_files()
         mock_store_values(mocker)
-        mock_tool_folder(mocker)
+        mock_agent_resource_folder_zip(mocker)
         mock_cli_response(mocker)
 
         # Mock the methods directly
@@ -221,14 +221,14 @@ def test_run_handler_execute_no_project(mocker, mock_store_values):
 
 
 def test_run_command_with_external_test_file(
-    mocker, create_mocked_files, mock_cli_response, mock_store_values, mock_tool_folder
+    mocker, create_mocked_files, mock_cli_response, mock_store_values, mock_agent_resource_folder_zip
 ):
     """Test running a tool test with an external test definition file."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         agent_file = create_mocked_files()
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
-        mock_tool_folder(mocker)
+        mock_agent_resource_folder_zip(mocker)
         mock_cli_response(mocker)
 
         # Create an external test file
@@ -280,21 +280,28 @@ def test_run_command_missing_definition(mocker, mock_store_values):
         assert "does not exist" in result.output
 
 
-def test_run_command_missing_test_definition(mocker, create_mocked_files, mock_store_values, mock_tool_folder):
+def test_run_command_missing_test_definition(mocker, create_mocked_files, mock_store_values, mock_agent_resource_folder_zip):
     """Test running a command with a missing test definition file."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         agent_file = create_mocked_files()
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
-        mock_tool_folder(mocker)
+        mock_agent_resource_folder_zip(mocker)
 
         # Remove the test definition file
         os.remove("tools/get_address/test_definition.yaml")
 
-        # Mock load_agent_definition to return valid data
+        # Mock load_agent_definition to return valid data with proper tool structure
         mocker.patch(
             "weni_cli.commands.run.load_agent_definition",
-            return_value=({"agents": {"get_address": {"description": "Test", "tools": []}}}, None),
+            return_value=({
+                "agents": {
+                    "get_address": {
+                        "description": "Test",
+                        "tools": [{"get_address": {"source": {"path": "tools/get_address"}}}]
+                    }
+                }
+            }, None),
         )
 
         # Patch the load_default_test_definition to return None
@@ -315,10 +322,17 @@ def test_run_command_tool_folder_failure(mocker, create_mocked_files, mock_store
         agent_file = create_mocked_files()
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
 
-        # Mock load_agent_definition to return valid data
+        # Mock load_agent_definition to return valid data with proper tool structure
         mocker.patch(
             "weni_cli.commands.run.load_agent_definition",
-            return_value=({"agents": {"get_address": {"description": "Test", "tools": []}}}, None),
+            return_value=({
+                "agents": {
+                    "get_address": {
+                        "description": "Test",
+                        "tools": [{"get_address": {"source": {"path": "tools/get_address"}}}]
+                    }
+                }
+            }, None),
         )
 
         # Patch the load_default_test_definition to return a valid file
@@ -337,18 +351,25 @@ def test_run_command_tool_folder_failure(mocker, create_mocked_files, mock_store
         assert "Failed to load tool folder" in result.output
 
 
-def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_store_values, mock_tool_folder):
+def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_store_values, mock_agent_resource_folder_zip):
     """Test running a command when test definition file is invalid."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         agent_file = create_mocked_files()
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
-        mock_tool_folder(mocker)
+        mock_agent_resource_folder_zip(mocker)
 
-        # Mock load_agent_definition to return valid data
+        # Mock load_agent_definition to return valid data with proper tool structure
         mocker.patch(
             "weni_cli.commands.run.load_agent_definition",
-            return_value=({"agents": {"get_address": {"description": "Test", "tools": []}}}, None),
+            return_value=({
+                "agents": {
+                    "get_address": {
+                        "description": "Test",
+                        "tools": [{"get_address": {"source": {"path": "tools/get_address"}}}]
+                    }
+                }
+            }, None),
         )
 
         # Mock load_test_definition to return an error
@@ -362,11 +383,18 @@ def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_s
         )
 
         # Patch the load_tool_folder to return a mock folder
-        mocker.patch("weni_cli.commands.run.RunHandler.load_tool_folder", return_value=(b"mock_tool_folder", None))
+        mocker.patch("weni_cli.commands.run.RunHandler.load_tool_folder", return_value=(b"mock_agent_resource_folder_zip", None))
 
-        # Patch the format_definition to return a valid definition
+        # Patch the format_definition to return a valid definition with proper tool structure
         mocker.patch(
-            "weni_cli.commands.run.format_definition", return_value=({"agents": {"get_address": {"tools": []}}}, None)
+            "weni_cli.commands.run.format_definition",
+            return_value=({
+                "agents": {
+                    "get_address": {
+                        "tools": [{"key": "get_address", "source": {"path": "tools/get_address"}}]
+                    }
+                }
+            }, None)
         )
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
@@ -536,8 +564,8 @@ def test_load_tool_folder_success(mocker, create_mocked_files):
         create_mocked_files()
         handler = RunHandler()
 
-        # Mock create_tool_folder_zip to return a bytesIO object
-        mock_zip = mocker.patch("weni_cli.commands.run.create_tool_folder_zip")
+        # Mock create_agent_resource_folder_zip to return a bytesIO object
+        mock_zip = mocker.patch("weni_cli.commands.run.create_agent_resource_folder_zip")
         mock_zip.return_value = (io.BytesIO(b"mock zip content"), None)
 
         definition = {
@@ -673,8 +701,8 @@ def test_load_default_test_definition_exception_handling(mocker):
         assert result is None
 
 
-def test_load_tool_folder_zip_creation_failure(mocker):
-    """Test load_tool_folder when create_tool_folder_zip returns None."""
+def test_load_agent_resource_folder_zip_creation_failure(mocker):
+    """Test load_agent_resource_folder_zip when create_agent_resource_folder_zip returns None."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         handler = RunHandler()
@@ -689,14 +717,14 @@ def test_load_tool_folder_zip_creation_failure(mocker):
         }
 
         # Mock create_tool_folder_zip to return None, simulating a failure
-        mocker.patch("weni_cli.commands.run.create_tool_folder_zip", return_value=(None, "Failed to create tool folder for tool get_address in agent get_address"))
+        mocker.patch("weni_cli.commands.run.create_agent_resource_folder_zip", return_value=(None, "Failed to create agent resource folder for agent get_address"))
 
         # Call the method directly and check the result
         result, error = handler.load_tool_folder(definition, "get_address", "get_address")
 
         # Verify the function returns None on failure
         assert result is None
-        assert "Failed to create tool folder for tool get_address in agent get_address" in str(error)
+        assert "Failed to create agent resource folder for agent get_address" in str(error)
 
 
 def test_render_response_and_logs(capsys):
@@ -765,8 +793,8 @@ def test_run_test_uses_new_methods(mocker):
         # Have the client.run_test method call the callback directly
         def fake_run_test(*args, **kwargs):
             # Directly call the callback function with test data
-            # The callback is the 9th positional argument (index 8)
-            callback = args[8]
+            # The callback is the 10th positional argument (index 9)
+            callback = args[9]
             # Call the callback with some test data
             callback(
                 "Test Name",
@@ -834,9 +862,9 @@ def test_run_test_verbose_triggers_render_logs(mocker):
         # Have the client.run_test method call the callback directly
         def fake_run_test(*args, **kwargs):
             # Directly call the callback function with test data
-            # The callback is the 9th positional argument (index 8)
-            if len(args) > 8:
-                callback = args[8]
+            # The callback is the 10th positional argument (index 9)
+            if len(args) > 9:
+                callback = args[9]
                 # Call the callback with some test data
                 callback(
                     "Test Name",
@@ -1057,7 +1085,7 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
 
         # Mock load_tool_folder to return a mock tool folder
         load_tool_folder_mock = mocker.patch.object(handler, "load_tool_folder")
-        load_tool_folder_mock.return_value = (b"mock_tool_folder_content", None)
+        load_tool_folder_mock.return_value = (b"mock_agent_resource_folder_zip_content", None)
 
         # Spy on methods that should not be called if we exit early
         get_tool_source_path_spy = mocker.spy(handler, "get_tool_source_path")
@@ -1141,13 +1169,13 @@ def test_project_push_command_unhandled_exception(mocker):
         assert kwargs["force_update"] is False
 
 
-def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock_store_values, mock_tool_folder):
+def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock_store_values, mock_agent_resource_folder_zip):
     """Test running a command when format_definition returns None."""
     runner = CliRunner()
     with runner.isolated_filesystem():
         agent_file = create_mocked_files()
         _ = mock_store_values(mocker)  # Project UUID is saved in the mock
-        mock_tool_folder(mocker)
+        mock_agent_resource_folder_zip(mocker)
 
         # Mock load_agent_definition to return valid data
         mocker.patch(
@@ -1166,3 +1194,48 @@ def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
 
         assert result.exit_code == 0
+
+
+def test_run_command_invalid_agent(mocker, create_mocked_files, mock_store_values):
+    """Test running a command with an invalid agent name."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        result = runner.invoke(cli, ["run", agent_file, "invalid_agent", "get_address"])
+
+        assert result.exit_code == 0
+        assert "Invalid Agent" in result.output
+        assert "not found in the definition file" in result.output
+
+
+def test_run_command_invalid_tool(mocker, create_mocked_files, mock_store_values):
+    """Test running a command with an invalid tool name."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "invalid_tool"])
+
+        assert result.exit_code == 0
+        assert "Invalid Tool" in result.output
+        assert "not found in agent" in result.output
+        assert "Available tools: get_address" in result.output
+
+
+def test_run_command_invalid_agent_and_tool(mocker, create_mocked_files, mock_store_values):
+    """Test running a command with both invalid agent and tool names."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        result = runner.invoke(cli, ["run", agent_file, "invalid_agent", "invalid_tool"])
+
+        assert result.exit_code == 0
+        assert "Invalid Agent" in result.output
+        assert "not found in the definition file" in result.output
+        # Should not see tool validation error since agent validation fails first
+        assert "Invalid Tool" not in result.output

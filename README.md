@@ -1,6 +1,6 @@
 # Weni-CLI
 
-Weni CLI is a highly powerful tool for creating customized AI multi-agents. This command-line interface enables developers to build, deploy, and manage sophisticated AI agents with tailored skills and functionalities across various communication channels. With Weni CLI, you can rapidly prototype, develop, and deploy agents that perfectly match your business requirements and use cases.
+Weni CLI is a highly powerful tool for creating customized AI multi-agents. This command-line interface enables developers to build, deploy, and manage sophisticated AI agents with tailored tools and functionalities across various communication channels. With Weni CLI, you can rapidly prototype, develop, and deploy agents that perfectly match your business requirements and use cases.
 
 For comprehensive guidance and detailed documentation, we strongly recommend visiting our official documentation:
 [https://weni-ai.github.io/weni-cli/](https://weni-ai.github.io/weni-cli/)
@@ -76,11 +76,11 @@ agents:
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
-    skills:
+    tools:
       - get_address:
           name: "Get Address"
           source: 
-            path: "skills/get_address"
+            path: "tools/get_address"
             entrypoint: "main.GetAddress"
           description: "Function to get the address from the postal code"
           parameters:
@@ -91,22 +91,22 @@ agents:
                 contact_field: true
 ```
 
-### 6. Create Your Skill Folder
-Create a folder for your skill:
+### 6. Create Your tool Folder
+Create a folder for your tool:
 ```bash
-mkdir -p skills/get_address
+mkdir -p tools/get_address
 ```
 
-### 7. Create the Skill Class
-Create a file in `skills/get_address` named `main.py` with this content:
+### 7. Create the tool Class
+Create a file in `tools/get_address` named `main.py` with this content:
 ```python
-from weni import Skill
+from weni import tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 
 
-class GetAddress(Skill):
+class GetAddress(tool):
     def execute(self, context: Context) -> TextResponse:
         cep = context.parameters.get("cep", "")
         address_response = self.get_address_by_cep(cep=cep)
@@ -122,7 +122,7 @@ Make sure the file folder matches the `path` specified in your `agents.yaml` fil
 
 ### 7.1 Create the requirements.txt file
 
-Create a `requirements.txt` file in the same folder as your skill with the necessary dependencies:
+Create a `requirements.txt` file in the same folder as your tool with the necessary dependencies:
 
 ```txt
 requests==2.31.0
@@ -133,11 +133,11 @@ requests==2.31.0
 weni project push agents.yaml
 ```
 
-That's it! You've just created your first agent with a custom skill using Weni-CLI. 
+That's it! You've just created your first agent with a custom tool using Weni-CLI. 
 
 The agent will now be able to:
 1. Receive a CEP (postal code) from the user
-2. Call the ViaCEP API through your skill
+2. Call the ViaCEP API through your tool
 3. Return the address information to the user
 
 ## Features
@@ -197,11 +197,11 @@ agents:
       - "If you don't know the answer, don't lie. Tell the user you don't know."              # Minimum of 40 characters
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."  # Minimum of 40 characters
-    skills:
+    tools:
       - get_order_status:
           name: "Get Order Status"                                                            # Maximum of 53 characters
           source: 
-            path: "skills/order_status"
+            path: "tools/order_status"
             entrypoint: "main.GetOrderStatus"
           description: "Function to get the order status"
           parameters:
@@ -212,7 +212,7 @@ agents:
       - get_order_details:
           name: "Get Order Details"                                                           # Maximum of 53 characters
           source: 
-            path: "skills/order_details"
+            path: "tools/order_details"
             entrypoint: "main.GetOrderDetails"
           description: "Function to get the order details"
           parameters:

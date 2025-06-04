@@ -112,9 +112,10 @@ def test_create_default_payload(mock_toolkit_version):
     """Test creating default payload."""
     version = mock_toolkit_version()
     project_uuid = "test-project-uuid"
+    agent_type = "passive"
     definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
 
-    payload = create_default_payload(project_uuid, definition)
+    payload = create_default_payload(project_uuid, definition, agent_type)
 
     assert payload["project_uuid"] == project_uuid
     assert payload["definition"] == json.dumps(definition)
@@ -247,9 +248,10 @@ def test_push_agents_success(client, requests_mock, mocker):
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
     tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
+    agent_type = "passive"
 
     # Call the method
-    client.push_agents(project_uuid, agents_definition, tool_folders)
+    client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
 
     # Verify progressbar was updated
     assert progress_instance.update.call_count == 2
@@ -279,10 +281,11 @@ def test_push_agents_error_response(client, mocker):
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
     tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
+    agent_type = "passive"
 
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
-        client.push_agents(project_uuid, agents_definition, tool_folders)
+        client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
 
     # Verify the exception message
     assert "Error pushing agents" in str(exc_info.value)
@@ -311,10 +314,10 @@ def test_push_agents_error_no_message(client, mocker):
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
     tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
-
+    agent_type = "passive"
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
-        client.push_agents(project_uuid, agents_definition, tool_folders)
+        client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
 
     # Verify the exception message
     assert "Unknown error during agent push" in str(exc_info.value)
@@ -336,10 +339,10 @@ def test_push_agents_http_error(client, mocker):
     project_uuid = "test-project-uuid"
     agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
     tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
-
+    agent_type = "passive"
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
-        client.push_agents(project_uuid, agents_definition, tool_folders)
+        client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
 
     # Verify the exception
     assert "500" in str(exc_info.value)
@@ -399,6 +402,7 @@ def test_run_test_success(client, mocker):
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
     tool_globals = {"REGION": "us-east-1"}
+    agent_type = "passive"
 
     # Call the method
     test_logs = client.run_test(
@@ -410,6 +414,7 @@ def test_run_test_success(client, mocker):
         test_definition,
         credentials,
         tool_globals,
+        agent_type,
         result_callback,
         verbose=True,
     )
@@ -463,7 +468,7 @@ def test_run_test_non_verbose(client, mocker):
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
     tool_globals = {"REGION": "us-east-1"}
-
+    agent_type = "passive"
     # Call the method with verbose=False
     test_logs = client.run_test(
         project_uuid,
@@ -474,6 +479,7 @@ def test_run_test_non_verbose(client, mocker):
         test_definition,
         credentials,
         tool_globals,
+        agent_type,
         result_callback,
         verbose=False,
     )
@@ -515,6 +521,7 @@ def test_run_test_error_message(client, mocker):
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
     tool_globals = {"REGION": "us-east-1"}
+    agent_type = "passive"
 
     # Call the method
     test_logs = client.run_test(
@@ -526,6 +533,7 @@ def test_run_test_error_message(client, mocker):
         test_definition,
         credentials,
         tool_globals,
+        agent_type,
         result_callback,
         verbose=True,
     )
@@ -562,7 +570,7 @@ def test_run_test_http_error(client, mocker):
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
     tool_globals = {"REGION": "us-east-1"}
-
+    agent_type = "passive"
     # Call the method and expect exception
     with pytest.raises(RequestError) as exc_info:
         client.run_test(
@@ -574,6 +582,7 @@ def test_run_test_http_error(client, mocker):
             test_definition,
             credentials,
             tool_globals,
+            agent_type,
             result_callback,
             verbose=True,
         )
@@ -608,7 +617,7 @@ def test_run_test_unknown_error(client, mocker):
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
     tool_globals = {"REGION": "us-east-1"}
-
+    agent_type = "passive"
     # Call the method
     test_logs = client.run_test(
         project_uuid,
@@ -619,6 +628,7 @@ def test_run_test_unknown_error(client, mocker):
         test_definition,
         credentials,
         tool_globals,
+        agent_type,
         result_callback,
         verbose=True,
     )
@@ -655,7 +665,7 @@ def test_run_test_success_false_no_message(client, mocker):
     test_definition = {"test_cases": [{"name": "Test 1", "input": "Test input"}]}
     credentials = {"API_KEY": "test-key"}
     tool_globals = {"REGION": "us-east-1"}
-
+    agent_type = "passive"
     # Call the method
     test_logs = client.run_test(
         project_uuid,
@@ -666,6 +676,7 @@ def test_run_test_success_false_no_message(client, mocker):
         test_definition,
         credentials,
         tool_globals,
+        agent_type,
         result_callback,
         verbose=True,
     )

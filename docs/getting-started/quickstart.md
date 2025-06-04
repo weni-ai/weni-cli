@@ -24,7 +24,7 @@ Based on your experience level, choose one of the following guides:
 
 - :computer: **[For Developers](quickstart-developers.md)**
     - Full control over agent creation
-    - Custom skill development
+    - Custom tool development
     - Advanced configuration options
 
 </div>

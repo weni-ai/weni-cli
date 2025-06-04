@@ -13,7 +13,7 @@ Key features:
 - [x] Built-in generative AI processing
 - [x] Customer service optimization
 
-With Weni CLI, you can define and deploy multiple agents that work together to solve real-world problems with precision, quality, and security. These agents can be equipped with various skills that enable them to interact with the external world within defined boundaries.
+With Weni CLI, you can define and deploy multiple agents that work together to solve real-world problems with precision, quality, and security. These agents can be equipped with various tools that enable them to interact with the external world within defined boundaries.
 
 ## Creating a Passive Agent
 
@@ -31,7 +31,7 @@ agents:
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
-    skills:
+    tools:
       - get_address:
           name: "Get Address"
           source: 
@@ -58,7 +58,7 @@ agents:
 
     `Credentials`
 
-    :   The credentials used in the skills you define for your agent. For more detailed information about this definition, see [Credentials](./credentials.md).
+    :   The credentials used in the tools you define for your agent. For more detailed information about this definition, see [Credentials](./credentials.md).
 
     `Description`
 
@@ -87,7 +87,7 @@ agents:
         
         - `path`: The directory path where your tool's code is located. This is typically a relative path from the root of your project.
         
-        - `entrypoint`: The specific class that will be executed when the tool is called. It follows the format "file_name.ClassName". You can see a practical example of the tool implementation for this entrypoint in the [example](/core-concepts/skills) page, where the GetAddress class from this example is implemented.
+        - `entrypoint`: The specific class that will be executed when the tool is called. It follows the format "file_name.ClassName". You can see a practical example of the tool implementation for this entrypoint in the [example](/core-concepts/tools) page, where the GetAddress class from this example is implemented.
         
         - `path_test`: The location of the test file for your tool, which contains test cases to validate the tool's functionality.
 
@@ -123,7 +123,7 @@ agents:
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
     guardrails:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
-    skills:
+    tools:
       - get_address:
           name: "Get Address"
           source: 

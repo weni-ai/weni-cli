@@ -167,6 +167,10 @@ class ProjectPushHandler(Handler):
     def push_definition(self, force_update, agent_type, project_uuid, definition, resources_folder_map):
         client = CLIClient()
 
-        client.push_agents(project_uuid, definition, resources_folder_map, agent_type)
-
-        click.echo("Definition pushed successfully")
+        try:
+            client.push_agents(project_uuid, definition, resources_folder_map, agent_type)
+        except Exception as e:
+            formatter = Formatter()
+            formatter.print_error_panel(f"Failed to push definition: {e}")
+        else:
+            click.echo("Definition pushed successfully")

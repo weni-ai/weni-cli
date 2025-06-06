@@ -9,6 +9,7 @@ MIN_INSTRUCTION_LENGTH = 40
 MIN_GUARDRAIL_LENGTH = 40
 MAX_AGENT_NAME_LENGTH = 55
 MAX_TOOL_NAME_LENGTH = 40
+MAX_TOOL_DESCRIPTION_LENGTH = 500
 AVAILABLE_COMPONENTS = [
     "cta_message",
     "quick_replies",
@@ -144,6 +145,8 @@ def validate_agent_definition_schema(data):
                 return f"Agent '{agent_key}': tool '{tool_name}' is missing required field 'description' in the agent definition file"
             if not isinstance(tool_data["description"], str):
                 return f"Agent '{agent_key}': tool '{tool_name}': 'description' must be a string in the agent definition file"
+            if len(tool_data["description"]) > MAX_TOOL_DESCRIPTION_LENGTH:
+                return f"Agent '{agent_key}': tool '{tool_name}': 'description' must be less than {MAX_TOOL_DESCRIPTION_LENGTH} characters in the agent definition file"
 
             # Validate source
             if tool_data.get("source") is None:

@@ -87,7 +87,9 @@ nav:
     - Quick Start: getting-started/quickstart.md
     - Authentication: getting-started/authentication.md
   - Core Concepts:
-    - Agents: core-concepts/agents.md
+    - Agents:
+      - Passive Agents: core-concepts/passive-agents.md
+      - Active Agents: core-concepts/active-agents.md
     - Tools: core-concepts/tools.md
     - Credentials: core-concepts/credentials.md
     - Contact Fields: core-concepts/contact-fields.md

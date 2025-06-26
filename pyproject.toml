@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weni-cli"
-version = "3.3.2"
+version = "3.3.3a0"
 description = ""
 authors = ["Paulo Bernardo <paulo.bernardo@weni.ai>"]
 readme = "README.md"

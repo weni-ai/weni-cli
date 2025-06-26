@@ -152,9 +152,9 @@ class ProjectPushHandler(Handler):
 
         agents = definition.get("agents", {})
         for agent_key, agent_data in agents.items():
-            preprocessing_data = agent_data.get("pre-processing", {})
+            preprocessing_data = agent_data.get("pre_processing", {})
             preprocessing_folder, error = create_agent_resource_folder_zip(
-                "pre-processing", preprocessing_data.get("source").get("path")
+                "pre_processing", preprocessing_data.get("source").get("path")
             )
             if error or not preprocessing_folder:
                 return (

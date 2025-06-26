@@ -2781,3 +2781,34 @@ def test_validate_definition_with_valid_template_name():
 
     error = validate_active_agent_definition_schema(definition)
     assert error is None
+
+
+def test_validate_definition_with_invalid_tool_description_length():
+    """Test validation fails when tool description is longer than the maximum allowed length."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "A" * 501,  # Description with 501 characters
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                                "path_test": "path/to/test",
+                            },
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': tool 'tool_1': 'description' must be less than 500 characters in the agent definition file" in error

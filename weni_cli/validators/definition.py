@@ -340,39 +340,39 @@ def validate_active_agent_definition_schema(data):
                 if not isinstance(rule_data["display_name"], str):
                     return f"Agent '{agent_key}': rule '{rule_key}': 'display_name' must be a string in the agent definition file"
 
-        # Validate pre-processing (required, must be a dictionary)
-        if "pre-processing" in agent_data:
-            if not isinstance(agent_data["pre-processing"], dict):
-                return f"Agent '{agent_key}': 'pre-processing' must be an object in the agent definition file"
+        # Validate pre_processing (required, must be a dictionary)
+        if "pre_processing" in agent_data:
+            if not isinstance(agent_data["pre_processing"], dict):
+                return f"Agent '{agent_key}': 'pre_processing' must be an object in the agent definition file"
 
             # Validate source
-            if agent_data["pre-processing"].get("source") is None:
-                return f"Agent '{agent_key}': 'pre-processing' is missing required field 'source' in the agent definition file"
+            if agent_data["pre_processing"].get("source") is None:
+                return f"Agent '{agent_key}': 'pre_processing' is missing required field 'source' in the agent definition file"
 
-            if not isinstance(agent_data["pre-processing"]["source"], dict):
-                return f"Agent '{agent_key}': 'pre-processing.source' must be an object in the agent definition file"
+            if not isinstance(agent_data["pre_processing"]["source"], dict):
+                return f"Agent '{agent_key}': 'pre_processing.source' must be an object in the agent definition file"
 
             # Validate source path (required, must be string)
-            if not agent_data["pre-processing"]["source"].get("path"):
-                return f"Agent '{agent_key}': 'pre-processing.source' is missing required field 'path' in the agent definition file"
-            if not isinstance(agent_data["pre-processing"]["source"]["path"], str):
+            if not agent_data["pre_processing"]["source"].get("path"):
+                return f"Agent '{agent_key}': 'pre_processing.source' is missing required field 'path' in the agent definition file"
+            if not isinstance(agent_data["pre_processing"]["source"]["path"], str):
                 return (
-                    f"Agent '{agent_key}': 'pre-processing.source.path' must be a string in the agent definition file"
+                    f"Agent '{agent_key}': 'pre_processing.source.path' must be a string in the agent definition file"
                 )
 
             # Validate source entrypoint (required, must be string)
-            if not agent_data["pre-processing"]["source"].get("entrypoint"):
-                return f"Agent '{agent_key}': 'pre-processing.source' is missing required field 'entrypoint' in the agent definition file"
-            if not isinstance(agent_data["pre-processing"]["source"]["entrypoint"], str):
-                return f"Agent '{agent_key}': 'pre-processing.source.entrypoint' must be a string in the agent definition file"
+            if not agent_data["pre_processing"]["source"].get("entrypoint"):
+                return f"Agent '{agent_key}': 'pre_processing.source' is missing required field 'entrypoint' in the agent definition file"
+            if not isinstance(agent_data["pre_processing"]["source"]["entrypoint"], str):
+                return f"Agent '{agent_key}': 'pre_processing.source.entrypoint' must be a string in the agent definition file"
 
             # Validate result_examples_file (required, must be a string with a .json in suffix)
-            if "result_examples_file" not in agent_data["pre-processing"]:
-                return f"Agent '{agent_key}': 'pre-processing' is missing required field 'result_examples_file' in the agent definition file"
+            if "result_examples_file" not in agent_data["pre_processing"]:
+                return f"Agent '{agent_key}': 'pre_processing' is missing required field 'result_examples_file' in the agent definition file"
 
-            result_examples_file = agent_data["pre-processing"]["result_examples_file"]
+            result_examples_file = agent_data["pre_processing"]["result_examples_file"]
             if not isinstance(result_examples_file, str) or not result_examples_file.endswith(".json"):
-                return f"Agent '{agent_key}': 'pre-processing.result_examples_file' must be a string with a .json in suffix in the agent definition file"
+                return f"Agent '{agent_key}': 'pre_processing.result_examples_file' must be a string with a .json in suffix in the agent definition file"
 
     return None
 

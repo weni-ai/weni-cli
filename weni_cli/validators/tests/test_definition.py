@@ -2276,14 +2276,14 @@ def test_validate_definition_with_invalid_rule_source_entrypoint_type():
 
 
 def test_validate_definition_with_valid_preprocessing_type():
-    """Test validation passes when pre-processing is an dictionary and contains source, with source having entrypoint and path."""
+    """Test validation passes when pre_processing is an dictionary and contains source, with source having entrypoint and path."""
     valid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with valid preprocessing",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {"entrypoint": "preprocessing.PreProcessor", "path": "pre_processor/processor"},
                     "result_examples_file": "examples.json",
                 },
@@ -2296,32 +2296,32 @@ def test_validate_definition_with_valid_preprocessing_type():
 
 
 def test_validate_definition_with_invalid_preprocessing_type():
-    """Test validation fails when pre-processing is not a dictionary."""
+    """Test validation fails when pre_processing is not a dictionary."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with invalid preprocessing type",
                 "language": "pt_BR",
-                "pre-processing": "not a dictionary",
+                "pre_processing": "not a dictionary",
             }
         }
     }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing' must be an object in the agent definition file" in error
+    assert "Agent 'my_agent': 'pre_processing' must be an object in the agent definition file" in error
 
 
 def test_validate_definition_with_missing_preprocessing_source():
-    """Test validation fails when pre-processing source is missing."""
+    """Test validation fails when pre_processing source is missing."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with missing preprocessing source",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     # Missing source
                     "result_examples_file": "examples.json"
                 },
@@ -2331,36 +2331,36 @@ def test_validate_definition_with_missing_preprocessing_source():
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing' is missing required field 'source'" in error
+    assert "Agent 'my_agent': 'pre_processing' is missing required field 'source'" in error
 
 
 def test_validate_definition_with_invalid_preprocessing_source_type():
-    """Test validation fails when pre-processing source is not a dictionary."""
+    """Test validation fails when pre_processing source is not a dictionary."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with invalid preprocessing source type",
                 "language": "pt_BR",
-                "pre-processing": {"source": "not a dictionary", "result_examples_file": "examples.json"},
+                "pre_processing": {"source": "not a dictionary", "result_examples_file": "examples.json"},
             }
         }
     }
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing.source' must be an object in the agent definition file" in error
+    assert "Agent 'my_agent': 'pre_processing.source' must be an object in the agent definition file" in error
 
 
 def test_validate_definition_with_missing_preprocessing_source_path():
-    """Test validation fails when pre-processing source path is missing."""
+    """Test validation fails when pre_processing source path is missing."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with missing preprocessing source path",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {
                         "entrypoint": "preprocessing.PreProcessor"
                         # Missing path
@@ -2373,18 +2373,18 @@ def test_validate_definition_with_missing_preprocessing_source_path():
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing.source' is missing required field 'path'" in error
+    assert "Agent 'my_agent': 'pre_processing.source' is missing required field 'path'" in error
 
 
 def test_validate_definition_with_invalid_preprocessing_source_path_type():
-    """Test validation fails when pre-processing source path is not a string."""
+    """Test validation fails when pre_processing source path is not a string."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with invalid preprocessing source path type",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {"entrypoint": "preprocessing.PreProcessor", "path": 123},  # Not a string
                     "result_examples_file": "examples.json",
                 },
@@ -2394,18 +2394,18 @@ def test_validate_definition_with_invalid_preprocessing_source_path_type():
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing.source.path' must be a string in the agent definition file" in error
+    assert "Agent 'my_agent': 'pre_processing.source.path' must be a string in the agent definition file" in error
 
 
 def test_validate_definition_with_missing_preprocessing_source_entrypoint():
-    """Test validation fails when pre-processing source entrypoint is missing."""
+    """Test validation fails when pre_processing source entrypoint is missing."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with missing preprocessing source entrypoint",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {
                         "path": "pre_processor/processor"
                         # Missing entrypoint
@@ -2418,18 +2418,18 @@ def test_validate_definition_with_missing_preprocessing_source_entrypoint():
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing.source' is missing required field 'entrypoint'" in error
+    assert "Agent 'my_agent': 'pre_processing.source' is missing required field 'entrypoint'" in error
 
 
 def test_validate_definition_with_invalid_preprocessing_source_entrypoint_type():
-    """Test validation fails when pre-processing source entrypoint is not a string."""
+    """Test validation fails when pre_processing source entrypoint is not a string."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with invalid preprocessing source entrypoint type",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {"path": "pre_processor/processor", "entrypoint": 123},  # Not a string
                     "result_examples_file": "examples.json",
                 },
@@ -2440,19 +2440,19 @@ def test_validate_definition_with_invalid_preprocessing_source_entrypoint_type()
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
     assert (
-        "Agent 'my_agent': 'pre-processing.source.entrypoint' must be a string in the agent definition file" in error
+        "Agent 'my_agent': 'pre_processing.source.entrypoint' must be a string in the agent definition file" in error
     )
 
 
 def test_validate_definition_with_missing_preprocessing_result_examples_file():
-    """Test validation fails when pre-processing result_examples_file is missing."""
+    """Test validation fails when pre_processing result_examples_file is missing."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with missing preprocessing result_examples_file",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {"path": "pre_processor/processor", "entrypoint": "preprocessing.PreProcessor"}
                 },
             }
@@ -2461,18 +2461,18 @@ def test_validate_definition_with_missing_preprocessing_result_examples_file():
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing' is missing required field 'result_examples_file'" in error
+    assert "Agent 'my_agent': 'pre_processing' is missing required field 'result_examples_file'" in error
 
 
 def test_validate_definition_with_invalid_preprocessing_result_examples_file_suffix():
-    """Test validation fails when pre-processing result_examples_file doesn't end with .json."""
+    """Test validation fails when pre_processing result_examples_file doesn't end with .json."""
     invalid_definition = {
         "agents": {
             "my_agent": {
                 "name": "My Agent",
                 "description": "A test agent with invalid preprocessing result_examples_file suffix",
                 "language": "pt_BR",
-                "pre-processing": {
+                "pre_processing": {
                     "source": {
                         "path": "pre_processor/processor",
                         "entrypoint": "preprocessing.PreProcessor",
@@ -2485,7 +2485,7 @@ def test_validate_definition_with_invalid_preprocessing_result_examples_file_suf
 
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'my_agent': 'pre-processing.result_examples_file' must be a string with a .json in suffix" in error
+    assert "Agent 'my_agent': 'pre_processing.result_examples_file' must be a string with a .json in suffix" in error
 
 
 def test_validate_definition_with_valid_complete_active_agent():
@@ -2508,7 +2508,7 @@ def test_validate_definition_with_valid_complete_active_agent():
                         },
                     }
                 },
-                "pre-processing": {
+                "pre_processing": {
                     "source": {
                         "path": "pre_processor/processor",
                         "entrypoint": "preprocessing.PreProcessor",

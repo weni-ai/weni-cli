@@ -33,7 +33,7 @@ agents:
         source:
           entrypoint: "main.StatusInvoiced"
           path: "rules/status_invoiced"
-    pre-processing:
+    pre_processing:
       source:
         entrypoint: "processing.PreProcessor"
         path: "pre_processors/processor"
@@ -71,18 +71,18 @@ Below are the key elements specific to or different in Active Agent definitions:
             `entrypoint`: The specific class and method (e.g., `main.StatusAprovado`) that will be executed.
             `path`: The directory path where the rule's code is located (e.g., `rules/status_aprovado`).
 
-    `pre-processing`
+    `pre_processing`
     :   Defines a pre-processing step that can transform or prepare data before rules are evaluated.
 
-        `pre-processing.source`
+        `pre_processing.source`
         :   Defines the code for the pre-processing logic.
             `entrypoint`: The class and method for pre-processing (e.g., `processing.PreProcessor`).
             `path`: The directory path for the pre-processing code (e.g., `pre_processors/processor`).
 
-        `pre-processing.result_examples_file`
+        `pre_processing.result_examples_file`
         :   The path to a JSON file containing examples of the data *after* pre-processing and rule execution (if applicable to show final state). The format is an array of objects.
 
-        `pre-processing.pre_result_examples_file`
+        `pre_processing.pre_result_examples_file`
         :   The path to a JSON file containing examples of the data *before* pre-processing. The format is an array of objects. (I've added this based on the YAML, please clarify if this understanding is correct or if `pre_result_examples_file` had a different purpose.)
 
 

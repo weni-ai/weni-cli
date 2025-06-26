@@ -1,5 +1,6 @@
 from typing import Optional
 import rich_click as click
+import os
 
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.clients.cli_client import CLIClient
@@ -147,18 +148,31 @@ class ProjectPushHandler(Handler):
     def load_preprocessing_folder(self, definition) -> tuple[Optional[dict], Optional[str]]:
         preprocessing_folder_map = {}
         preprocessing_key = "preprocessor_folder"
+        preprocessor_example_key = "preprocessor_example"
 
         agents = definition.get("agents", {})
         for agent_key, agent_data in agents.items():
-            preprocessing_data = agent_data.get("pre-processing", {})
+            preprocessing_data = agent_data.get("pre_processing", {})
             preprocessing_folder, error = create_agent_resource_folder_zip(
-                "pre-processing", preprocessing_data.get("source").get("path")
+                "pre_processing", preprocessing_data.get("source").get("path")
             )
-            if error:
+            if error or not preprocessing_folder:
                 return (
                     None,
                     f"Failed to create preprocessing folder for preprocessing {preprocessing_data.get('name')} in agent {agent_data.get('name')}\n{error}",
                 )
+
+            result_examples_file = preprocessing_data.get("result_examples_file")
+            if result_examples_file:
+                preprocessing_example_path = f'{preprocessing_data.get("source").get("path")}{os.sep}{result_examples_file}'
+                try:
+                    preprocessor_example_file = open(preprocessing_example_path, "rb")
+                except Exception as e:
+                    return (
+                        None,
+                        f"Failed to open preprocessing example file for preprocessing {preprocessing_data.get('name')} in agent {agent_data.get('name')}\n{e}",
+                    )
+                preprocessing_folder_map[f"{agent_key}:{preprocessor_example_key}"] = preprocessor_example_file
 
             preprocessing_folder_map[f"{agent_key}:{preprocessing_key}"] = preprocessing_folder
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.4.0] - 2025-06-26
+
+### Added
+
+- Fix: send preprocessor example and rename to pre_processing ([#117](https://github.com/weni-ai/weni-cli/pull/117)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+- Add validation when user not allowed to push ([#116](https://github.com/weni-ai/weni-cli/pull/116)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+- Add validation to length in description tool ([#115](https://github.com/weni-ai/weni-cli/pull/115)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+
 ## [3.3.2] - 2025-05-30
 
 ## Added

@@ -23,7 +23,7 @@ class RunHandler(Handler):
     def execute(self, **kwargs):
         definition_path = kwargs.get("definition")
         agent_key = kwargs.get("agent_key")
-        tool_key = kwargs.get("tool_key")
+        resource_key = kwargs.get("resource_key")
         test_definition_path = kwargs.get("test_definition")
         verbose = kwargs.get("verbose", False)
         store = Store()
@@ -50,58 +50,113 @@ class RunHandler(Handler):
             )
             return
 
-        # Validate tool existence
-        agent_tools = []
-        for tool in definition_data["agents"][agent_key].get("tools", []):
-            if isinstance(tool, dict):
-                agent_tools.extend(tool.keys())
+        # Detect agent type based on presence of 'rules' field
+        agent_data = definition_data["agents"][agent_key]
+        agent_type = "active" if agent_data.get("rules") else "passive"
 
-        if tool_key not in agent_tools:
-            formatter.print_error_panel(
-                f"Tool '{tool_key}' not found in agent '{agent_key}'.\nAvailable tools: {', '.join(agent_tools)}",
-                title="Invalid Tool"
-            )
-            return
-
-        if not test_definition_path:
-            test_definition_path = self.load_default_test_definition(definition_data, agent_key, tool_key)
-
-            if not test_definition_path:
-                click.echo(
-                    f"Error: Failed to get default test definition file: {DEFAULT_TEST_DEFINITION_FILE} in tool folder."
+        # Handle resource_key validation based on agent type
+        if agent_type == "passive":
+            # For passive agents, resource_key is required
+            if not resource_key:
+                formatter.print_error_panel(
+                    "Tool key is required for passive agents.",
+                    title="Missing Tool Key"
                 )
-                click.echo("You can use the --file option to specify a different file.")
+                return
+            
+            # Validate tools
+            agent_tools = []
+            for tool in agent_data.get("tools", []):
+                if isinstance(tool, dict):
+                    agent_tools.extend(tool.keys())
+
+            if resource_key not in agent_tools:
+                formatter.print_error_panel(
+                    f"Tool '{resource_key}' not found in agent '{agent_key}'.\nAvailable tools: {', '.join(agent_tools)}",
+                    title="Invalid Tool"
+                )
+                return
+        else:
+            # For active agents, test all rules if no specific rule is provided
+            agent_rules = list(agent_data.get("rules", {}).keys())
+            
+            if not agent_rules:
+                formatter.print_error_panel(
+                    f"No rules found in agent '{agent_key}'.",
+                    title="No Rules Available"
+                )
+                return
+            
+            if resource_key and resource_key not in agent_rules:
+                formatter.print_error_panel(
+                    f"Rule '{resource_key}' not found in agent '{agent_key}'.\nAvailable rules: {', '.join(agent_rules)}",
+                    title="Invalid Rule"
+                )
                 return
 
-        tool_folder, error = self.load_tool_folder(definition_data, agent_key, tool_key)
-        if error:
-            formatter.print_error_panel(error)
-            return
+        # For active agents, test all rules if no specific rule provided
+        if agent_type == "active" and not resource_key:
+            self.run_all_rules_tests(
+                project_uuid,
+                definition_data,
+                agent_key,
+                test_definition_path,
+                verbose,
+                formatter
+            )
+        else:
+            # Single resource (tool or rule) test
+            if not test_definition_path:
+                if agent_type == "passive":
+                    test_definition_path = self.load_default_test_definition(definition_data, agent_key, resource_key)
+                else:
+                    test_definition_path = self.load_default_rule_test_definition(definition_data, agent_key, resource_key)
 
-        test_definition, error = load_test_definition(test_definition_path)
-        if error:
-            formatter.print_error_panel(error)
-            return
+                if not test_definition_path:
+                    resource_type = "tool" if agent_type == "passive" else "rule"
+                    click.echo(
+                        f"Error: Failed to get default test definition file: {DEFAULT_TEST_DEFINITION_FILE} in {resource_type} folder."
+                    )
+                    click.echo("You can use the --file option to specify a different file.")
+                    return
 
-        definition = format_definition(definition_data)
+            if agent_type == "passive":
+                resource_folder, error = self.load_tool_folder(definition_data, agent_key, resource_key)
+            else:
+                resource_folder, error = self.load_rule_folder(definition_data, agent_key, resource_key)
+                
+            if error:
+                formatter.print_error_panel(error)
+                return
 
-        tool_source_path = self.get_tool_source_path(definition, agent_key, tool_key)
+            test_definition, error = load_test_definition(test_definition_path)
+            if error:
+                formatter.print_error_panel(error)
+                return
 
-        credentials = self.load_tool_credentials(tool_source_path)
+            definition = format_definition(definition_data)
 
-        tool_globals = self.load_tool_globals(tool_source_path)
+            if agent_type == "passive":
+                resource_source_path = self.get_tool_source_path(definition, agent_key, resource_key)
+            else:
+                resource_source_path = self.get_rule_source_path(definition, agent_key, resource_key)
 
-        self.run_test(
-            project_uuid,
-            definition,
-            tool_folder,
-            tool_key,
-            agent_key,
-            test_definition,
-            credentials,
-            tool_globals,
-            verbose,
-        )
+            credentials = self.load_resource_credentials(resource_source_path)
+
+            resource_globals = self.load_resource_globals(resource_source_path)
+
+            self.run_test(
+                project_uuid,
+                definition,
+                resource_folder,
+                resource_key,
+                agent_key,
+                test_definition,
+                credentials,
+                resource_globals,
+                agent_type,
+                verbose,
+            )
 
     def parse_agent_tool(self, agent_tool) -> tuple[Optional[str], Optional[str]]:
         try:
@@ -120,10 +175,10 @@ class RunHandler(Handler):
                 return tool.get("source", {}).get("path")
         return None
 
-    def load_tool_credentials(self, tool_source_path: str) -> Optional[dict]:
+    def load_resource_credentials(self, resource_source_path: str) -> Optional[dict]:
         credentials = {}
         try:
-            with open(f"{tool_source_path}/.env", "r") as file:
+            with open(f"{resource_source_path}/.env", "r") as file:
                 for line in file:
                     key, value = line.strip().split("=")
                     credentials[key] = value
@@ -132,10 +187,10 @@ class RunHandler(Handler):
 
         return credentials
 
-    def load_tool_globals(self, tool_source_path: str) -> Optional[dict]:
+    def load_resource_globals(self, resource_source_path: str) -> Optional[dict]:
         globals = {}
         try:
-            with open(f"{tool_source_path}/.globals", "r") as file:
+            with open(f"{resource_source_path}/.globals", "r") as file:
                 for line in file:
                     key, value = line.strip().split("=")
                     globals[key] = value
@@ -170,6 +225,63 @@ class RunHandler(Handler):
         except Exception as e:
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
+
+    def load_default_rule_test_definition(self, definition, agent_key, rule_key) -> Optional[str]:
+        try:
+            definition_path = None
+            agent_data = definition.get("agents", {}).get(agent_key)
+
+            if not agent_data:
+                return None
+
+            rules = agent_data.get("rules", {})
+            if rule_key in rules:
+                rule_data = rules[rule_key]
+                rule_path = rule_data.get("source", {}).get("path")
+                if rule_path:
+                    definition_path = f"{rule_path}/{DEFAULT_TEST_DEFINITION_FILE}"
+
+            if not definition_path:
+                return None
+
+            return definition_path
+        except Exception as e:
+            click.echo(f"Error: Failed to load default rule test definition file: {e}")
+            return None
+
+    def get_rule_source_path(self, definition, agent_key, rule_key) -> Optional[str]:
+        agent_data = definition.get("agents", {}).get(agent_key)
+
+        if not agent_data:
+            return None
+
+        rules = agent_data.get("rules", {})
+        if rule_key in rules:
+            return rules[rule_key].get("source", {}).get("path")
+        return None
+
+    def load_rule_folder(
+        self, definition, agent_key, rule_key
+    ) -> tuple[Optional[BufferedReader], Optional[Exception]]:
+        agent_data = definition.get("agents", {}).get(agent_key)
+        if not agent_data:
+            return None, Exception(f"Agent {agent_key} not found in definition")
+
+        rules = agent_data.get("rules", {})
+        if rule_key not in rules:
+            return None, Exception(f"Rule {rule_key} not found in agent {agent_key}")
+
+        rule_data = rules[rule_key]
+        rule_path = rule_data.get("source", {}).get("path")
+        
+        if not rule_path:
+            return None, Exception(f"Rule {rule_key} in agent {agent_key} is missing source path")
+
+        rule_folder, error = create_agent_resource_folder_zip(rule_key, rule_path)
+        if error:
+            return None, Exception(f"Failed to create rule folder for rule {rule_key} in agent {agent_key}\n{error}")
+
+        return rule_folder, None
 
     def load_tool_folder(
         self, definition, agent_key, tool_key
@@ -318,35 +430,103 @@ class RunHandler(Handler):
         self,
         project_uuid,
         definition,
-        tool_folder,
-        tool_key,
+        resource_folder,
+        resource_key,
         agent_key,
         test_definition,
         credentials,
-        tool_globals,
+        resource_globals,
+        agent_type,
         verbose=False,
     ):
         test_rows = []
         # Use the class method instead of a nested function
-        with Live(self.display_test_results([], tool_key, verbose), refresh_per_second=4) as live:
+        with Live(self.display_test_results([], resource_key, verbose), refresh_per_second=4) as live:
             # Create a callback function that will be passed to the CLIClient
             def update_live_callback(test_name, test_result, status_code, code, verbose):
-                self.update_live_display(test_rows, test_name, test_result, status_code, code, live, tool_key, verbose)
+                self.update_live_display(test_rows, test_name, test_result, status_code, code, live, resource_key, verbose)
 
             client = CLIClient()
             test_logs = client.run_test(
                 project_uuid,
                 definition,
-                tool_folder,
-                tool_key,
+                resource_folder,
+                resource_key,
                 agent_key,
                 test_definition,
                 credentials,
-                tool_globals,
-                "active",
+                resource_globals,
+                agent_type,
                 update_live_callback,
                 verbose,
             )
 
         if verbose:
             self.render_reponse_and_logs(test_logs)
+
+    def run_all_rules_tests(self, project_uuid, definition_data, agent_key, test_definition_path, verbose, formatter):
+        """Run tests for all rules in an active agent."""
+        agent_data = definition_data["agents"][agent_key]
+        agent_rules = list(agent_data.get("rules", {}).keys())
+        
+        click.echo(f"Testing all rules for agent '{agent_key}': {', '.join(agent_rules)}")
+        click.echo("=" * 80)
+        
+        for rule_key in agent_rules:
+            click.echo(f"\n🔄 Testing rule: {rule_key}")
+            click.echo("-" * 40)
+            
+            try:
+                # Load test definition for this rule
+                if not test_definition_path:
+                    rule_test_path = self.load_default_rule_test_definition(definition_data, agent_key, rule_key)
+                else:
+                    rule_test_path = test_definition_path
+
+                if not rule_test_path:
+                    click.echo(f"⚠️  No test definition found for rule '{rule_key}', skipping...")
+                    continue
+
+                # Load rule folder
+                resource_folder, error = self.load_rule_folder(definition_data, agent_key, rule_key)
+                if error:
+                    click.echo(f"❌ Error loading rule folder for '{rule_key}': {error}")
+                    continue
+
+                # Load test definition
+                test_definition, error = load_test_definition(rule_test_path)
+                if error:
+                    click.echo(f"❌ Error loading test definition for '{rule_key}': {error}")
+                    continue
+
+                # Format definition
+                definition = format_definition(definition_data)
+
+                # Get rule source path
+                resource_source_path = self.get_rule_source_path(definition, agent_key, rule_key)
+
+                # Load credentials and globals
+                credentials = self.load_resource_credentials(resource_source_path)
+                resource_globals = self.load_resource_globals(resource_source_path)
+
+                # Run the test
+                self.run_test(
+                    project_uuid,
+                    definition,
+                    resource_folder,
+                    rule_key,
+                    agent_key,
+                    test_definition,
+                    credentials,
+                    resource_globals,
+                    "active",
+                    verbose,
+                )
+                
+                click.echo(f"✅ Completed testing rule: {rule_key}")
+                
+            except Exception as e:
+                click.echo(f"❌ Error testing rule '{rule_key}': {e}")
+                
+        click.echo("\n" + "=" * 80)
+        click.echo(f"🏁 Finished testing all rules for agent '{agent_key}'")

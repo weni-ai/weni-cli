@@ -12,5 +12,7 @@ These commands are fundamental for developing and deploying agents, allowing dir
 | `weni project use [project_uuid]` | With this command you can choose a specific project to work with by providing its UUID. |
 | `weni project current` | Use this to identify the project identifier you are currently working with. |
 | `weni project push [agent_definition_file]` | This command allows you to deploy/update your agents using the specified agent definition file. |
-| `weni run [agent definition file] [agent name] [tool name]` | Run a specific tool from an agent locally for testing purposes. |
-| `weni run [agent definition file] [agent name] [tool name] -v` | Run a tool with verbose mode enabled, showing detailed logs for debugging. |
+| `weni run [agent definition file] [agent name] [tool name]` | Run a specific tool from a passive agent locally for testing purposes. |
+| `weni run [agent definition file] [agent name]` | Run all rules from an active agent locally for testing purposes. |
+| `weni run [agent definition file] [agent name] [rule name]` | Run a specific rule from an active agent locally for testing purposes. |
+| `weni run [agent definition file] [agent name] [resource name] -v` | Run a tool or rule with verbose mode enabled, showing detailed logs for debugging. |

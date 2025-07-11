@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "weni-cli"
-version = "3.4.1a1"
+version = "3.4.1a2"
 description = ""
 authors = ["Paulo Bernardo <paulo.bernardo@weni.ai>"]
 readme = "README.md"
@@ -14,7 +14,7 @@ waitress = "^3.0.2"
 pyyaml = "^6.0.2"
 python-slugify = "^8.0.4"
 regex = "^2024.11.6"
-weni-agents-toolkit = "2.3.0a4"
+weni-agents-toolkit = "2.3.0a5"
 rich-click = "^1.8.6"
 rich = "^13.9.4"
 

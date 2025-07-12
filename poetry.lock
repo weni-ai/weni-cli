@@ -1407,13 +1407,13 @@ watchmedo = ["PyYAML (>=3.10)"]
 
 [[package]]
 name = "weni-agents-toolkit"
-version = "2.3.0a6"
+version = "2.3.0a7"
 description = ""
 optional = false
 python-versions = ">=3.10"
 files = [
-    {file = "weni_agents_toolkit-2.3.0a6-py3-none-any.whl", hash = "sha256:732782b059051b8e081c3c7c967a61c75434d22dc59b1ce77c1fa9d01dacddb7"},
-    {file = "weni_agents_toolkit-2.3.0a6.tar.gz", hash = "sha256:6afa97082ca9b1bc10456ef725a80fee266cdf23189baa116e4dfcccdc147341"},
+    {file = "weni_agents_toolkit-2.3.0a7-py3-none-any.whl", hash = "sha256:c953bbcc54900216bfbf92c2e6aa33d3962acf53381f3576cfad88af2d7f47dc"},
+    {file = "weni_agents_toolkit-2.3.0a7.tar.gz", hash = "sha256:dd9035c3fea2e5b85508c9d4caa0c6f9d6fc062d7cdb5e7623c2282e867634e0"},
 ]
 
 [[package]]
@@ -1436,4 +1436,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "f6ea27f30450dc7d8ca99e0e8050a79e66d516fd0ba8ae0fc41c8c78bd1313c2"
+content-hash = "60cb4642e59869899f01c0d61a4bcba2cb8d2c71e465bcc2abbdf149d802515a"

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.2] - 2025-07-25
+
+### Added
+
+- Update weni-agents-toolkit to version 2.3.1 ([#122](https://github.com/weni-ai/weni-cli/pull/122)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+
 ## [3.4.1] - 2025-07-14
 
 ### Added

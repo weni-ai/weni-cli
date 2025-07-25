@@ -2035,6 +2035,7 @@ def test_validate_definition_with_valid_rules_type():
                         "display_name": "First Rule",
                         "start_condition": "contact.name is not None",
                         "source": {"entrypoint": "main.FirstRule", "path": "rules/first_rule"},
+                        "example": {},
                     },
                     "second_rule": {
                         "template": "second_template",
@@ -2044,6 +2045,7 @@ def test_validate_definition_with_valid_rules_type():
                             "entrypoint": "main.SecondRule",
                             "path": "tools/second_rule",
                         },
+                        "example": {},
                     },
                 },
             }
@@ -2506,6 +2508,7 @@ def test_validate_definition_with_valid_complete_active_agent():
                             "path": "rules/test_rule",
                             "entrypoint": "main.TestRule",
                         },
+                        "example": {},
                     }
                 },
                 "pre_processing": {
@@ -2539,6 +2542,7 @@ def test_validate_definition_with_missing_language():
                             "path": "rules/test_rule",
                             "entrypoint": "main.TestRule",
                         },
+                        "example": {},
                     }
                 },
             }
@@ -2567,6 +2571,7 @@ def test_validate_definition_with_invalid_language_type():
                             "path": "rules/test_rule",
                             "entrypoint": "main.TestRule",
                         },
+                        "example": {},
                     }
                 },
             }
@@ -2595,6 +2600,7 @@ def test_validate_definition_with_invalid_language_code():
                             "path": "rules/test_rule",
                             "entrypoint": "main.TestRule",
                         },
+                        "example": {},
                     }
                 },
             }
@@ -2623,6 +2629,7 @@ def test_validate_definition_with_valid_language():
                             "path": "rules/test_rule",
                             "entrypoint": "main.TestRule",
                         },
+                        "example": {},
                     }
                 },
             }
@@ -2647,6 +2654,7 @@ def test_validate_definition_with_missing_rule_start_condition():
                         "display_name": "Test Rule",
                         "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
                         # Missing start_condition
+                        # 'example' field is missing here
                     }
                 },
             }
@@ -2672,6 +2680,7 @@ def test_validate_definition_with_invalid_rule_start_condition_type():
                         "display_name": "Test Rule",
                         "start_condition": 123,  # Not a string
                         "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
+                        # 'example' field is missing here
                     }
                 },
             }
@@ -2697,6 +2706,7 @@ def test_validate_definition_with_missing_rule_display_name():
                         "start_condition": "contact.name is not None",
                         "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
                         # Missing display_name
+                        # 'example' field is missing here
                     }
                 },
             }
@@ -2722,6 +2732,7 @@ def test_validate_definition_with_invalid_rule_display_name_type():
                         "display_name": 123,  # Not a string
                         "start_condition": "contact.name is not None",
                         "source": {"path": "rules/rule", "entrypoint": "main.Rule"},
+                        # 'example' field is missing here
                     }
                 },
             }
@@ -2747,6 +2758,7 @@ def test_validate_definition_with_whitespace_in_template():
                         "source": {"path": "test/path", "entrypoint": "test.entrypoint"},
                         "start_condition": "test condition",
                         "display_name": "Test Rule",
+                        "example": {},
                     }
                 },
             }
@@ -2773,6 +2785,7 @@ def test_validate_definition_with_valid_template_name():
                         "source": {"path": "test/path", "entrypoint": "test.entrypoint"},
                         "start_condition": "test condition",
                         "display_name": "Test Rule",
+                        "example": {},
                     }
                 },
             }
@@ -2831,7 +2844,6 @@ def test_validate_definition_with_missing_rule_example():
                             "path": "rules/test_rule",
                             "entrypoint": "main.TestRule",
                         },
-                        # 'example' field is missing here
                     }
                 },
                 "pre_processing": {

@@ -340,6 +340,10 @@ def validate_active_agent_definition_schema(data):
                 if not isinstance(rule_data["display_name"], str):
                     return f"Agent '{agent_key}': rule '{rule_key}': 'display_name' must be a string in the agent definition file"
 
+                # Validate example (required, must be present)
+                if "example" not in rule_data:
+                    return f"Agent '{agent_key}': rule '{rule_key}' is missing required field 'example' in the agent definition file"
+
         # Validate pre_processing (required, must be a dictionary)
         if "pre_processing" in agent_data:
             if not isinstance(agent_data["pre_processing"], dict):

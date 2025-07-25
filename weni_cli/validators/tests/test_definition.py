@@ -2812,3 +2812,39 @@ def test_validate_definition_with_invalid_tool_description_length():
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
     assert "Agent 'test_agent': tool 'tool_1': 'description' must be less than 500 characters in the agent definition file" in error
+
+
+def test_validate_definition_with_missing_rule_example():
+    """Test validation fails when a rule is missing the required 'example' field."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test Description",
+                "language": "pt_BR",
+                "rules": {
+                    "test_rule": {
+                        "template": "rule_template",
+                        "display_name": "Test Rule",
+                        "start_condition": "contact.name is not None",
+                        "source": {
+                            "path": "rules/test_rule",
+                            "entrypoint": "main.TestRule",
+                        },
+                        # 'example' field is missing here
+                    }
+                },
+                "pre_processing": {
+                    "source": {
+                        "path": "pre_processor/processor",
+                        "entrypoint": "preprocessing.PreProcessor",
+                    },
+                    "result_examples_file": "examples.json",
+                },
+            }
+        }
+    }
+
+    error = validate_active_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "is missing required field 'example'" in error

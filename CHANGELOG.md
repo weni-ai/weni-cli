@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.3] - 2025-08-01
+
+### Added
+
+- Add example as required field in active definition ([#123](https://github.com/weni-ai/weni-cli/pull/123)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+
 ## [3.4.2] - 2025-07-25
 
 ### Added

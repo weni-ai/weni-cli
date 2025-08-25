@@ -94,7 +94,8 @@ nav:
     - Credentials: core-concepts/credentials.md
     - Contact Fields: core-concepts/contact-fields.md
   - Run:
-    - Tool: run/tool-run.md
+    - Tool Tests: run/tool-run.md
+    - Logs: run/logs.md
   - Examples:
     - Example Gallery: examples/gallery.md
   - Utils:

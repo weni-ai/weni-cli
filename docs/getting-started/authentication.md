@@ -18,3 +18,5 @@ After logging in, you will be redirected to the CLI and you will be authenticate
 
 !!! success start "Login Successfully"
     Now you are authenticated and you can start using the Weni CLI with your projects.
+
+The local callback server listens on `http://localhost:50051/sso-callback`. If your browser does not open automatically, copy the URL shown in the terminal and complete the login in your browser.

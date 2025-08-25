@@ -17,17 +17,15 @@ The following happens:
 3. After successful login, you're redirected back to the local server
 4. The CLI receives and stores your authentication token
 
+By default, the local server listens on `http://localhost:50051/sso-callback`.
+
 ## Token Storage
 
 Your authentication token is stored securely in your home directory. Never share or expose your authentication information.
 
 ## Token Refresh
 
-Tokens are automatically refreshed when needed. You don't need to manually re-login unless:
-
-- You've logged out
-- Your token was revoked
-- You want to switch accounts
+If an API request returns an authentication error, the CLI will prompt you to login again. Run `weni login` to obtain a new token, or set a different account.
 
 ## Logout
 

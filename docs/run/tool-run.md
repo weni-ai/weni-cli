@@ -1,4 +1,4 @@
-# Tool Run
+# Tool Test Run
 
 Tool Run is a scalable way to build your tool and test it in real-time. With this feature, it's simple to debug problems and create a tool that is both scalable and performant at the same time.
 
@@ -15,7 +15,7 @@ tools:
       source: 
         path: "tools/get_address"
         entrypoint: "main.GetAddressWithAuth"
-        path_test: "test.yaml"
+        path_test: "test_definition.yaml"
       description: "Function to get the address from the postal code"
       parameters:
         - cep:
@@ -29,7 +29,7 @@ Notice that my tool has a specific parameter called "cep". Therefore, the expect
 
 My test file would look something like this:
 
-**test.yaml:**
+**test_definition.yaml:**
 
 ```yaml
 tests:
@@ -55,7 +55,7 @@ Following the previous steps, we can now run a test, but how?
 The command works as follows:
 
 ```
-weni run [agent definition file] [agent name] [tool name]
+weni run [agent_definition_file] [agent_key] [tool_key] [-f FILE] [-v]
 ```
 
 A practical example of the command considering the agent definition that was mentioned above would be:
@@ -73,6 +73,20 @@ There is also a variation of this command in case you need to include ways to de
 ```
 weni run agent_definition.yaml cep_agent get_address -v
 ``` 
+### Choosing a test file
+
+- Use `-f/--file` to specify a test definition YAML located in the tool folder.
+- If `-f` is omitted, the CLI looks for `test_definition.yaml` in the tool's `source.path` directory.
+- You can also set `source.path_test` in your agent definition to point to a custom test file; when present, the CLI uses that path by default.
+
+### Credentials and globals discovery
+
+For development, the CLI will read optional files from the tool directory:
+
+- `.env` for credentials exposed to your tool via `context.credentials`
+- `.globals` for key/value pairs exposed via `context.globals`
+
+Both files follow a simple `KEY=VALUE` per line format.
 
 Result:
 
@@ -108,7 +122,7 @@ agents:
           source: 
             path: "tools/get_address"
             entrypoint: "main.GetAddressWithAuth"
-            path_test: "test.yaml"
+            path_test: "test_definition.yaml"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -118,7 +132,7 @@ agents:
                 contact_field: true
 ```
 
-Then, create a `.env` file in the root of your project with the actual credential values:
+Then, create a `.env` file inside the tool folder (e.g., `tools/get_address/.env`) with the actual credential values:
 
 ```
 api_key=your_actual_api_key_here
@@ -130,7 +144,7 @@ Now you can run your tool test with credentials using the same command:
 weni run agent_definition.yaml cep_agent get_address
 ```
 
-The CLI will automatically pick up the credentials from the `.env` file and make them available to your tool during execution.
+The CLI will automatically pick up the credentials from the tool folder `.env` file and make them available to your tool during execution.
 
 ### Accessing Credentials in Your Tool Code
 
@@ -166,6 +180,6 @@ class GetAddressWithAuth(Tool):
         return response.json()
 ```
 
-The key line is `api_key = context.credentials.get("api_key")`, which retrieves the credential value that was defined in your agent definition and stored in your `.env` file.
+The key line is `api_key = context.credentials.get("api_key")`, which retrieves the credential value that was defined in your agent definition and stored in your tool folder `.env` file.
 
 > **Important**: Never hardcode credentials in your tool code. Always access them through the Context object to ensure your code remains secure and works consistently across different environments.

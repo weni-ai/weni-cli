@@ -51,7 +51,7 @@ This command will create a new agent with the name `cep_agent` and the tool `get
 
 #### 2.1. Agent Configuration
 
-Create a file named `agents.yaml` with your agent configuration:
+Create a file named `agent_definition.yaml` with your agent configuration:
 
 ```yaml
 agents:
@@ -100,7 +100,7 @@ source:
 Your project structure should look like:
 ```
 my-agent-project/
-├── agents.yaml
+├── agent_definition.yaml
 └── tools/
     └── get_address/
         ├── main.py             # Contains GetAddress class
@@ -146,13 +146,27 @@ my-agent-project/
    Create a `requirements.txt` file:
 
    ```txt
-   requests==2.31.0
+   requests==2.32.3
    ```
+
+4. **(Optional) Add credentials and globals files**
+
+Place these files in `tools/get_address/` if needed during local runs:
+
+```ini
+# .env
+api_key=your-development-api-key
+```
+
+```ini
+# .globals
+BASE_URL=https://api.example.com
+```
 
 ### 3. Deploy Agent
 
 ```bash
-weni project push agents.yaml
+weni project push agent_definition.yaml
 ```
 
 ## Advanced Configuration

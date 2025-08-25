@@ -176,7 +176,7 @@ agents:
           source: 
             path: "tools/get_address"
             entrypoint: "main.GetAddressWithAuth"
-            path_test: "tests.yaml"
+            path_test: "test_definition.yaml"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:

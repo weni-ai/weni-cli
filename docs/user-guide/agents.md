@@ -38,7 +38,7 @@ agents:
    - Used internally by the system
 
 2. **Basic Information**
-   - `name`: Display name (max 128 characters)
+   - `name`: Display name (max 55 characters)
    - `description`: Brief description of the agent's purpose
 
 3. **Instructions**
@@ -154,9 +154,9 @@ The command:
 Available parameter types:
 - `string`
 - `number`
+- `integer`
 - `boolean`
 - `array`
-- `object`
 
 ### Response Formats
 

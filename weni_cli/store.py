@@ -41,7 +41,7 @@ class Store:
 
         with click.open_file(self.file_path, "w") as file:
             content[key] = value
-            file.write(json.dumps(content))
+            file.write(json.dumps(content, ensure_ascii=False))
             file.close()
 
         return True

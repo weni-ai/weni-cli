@@ -54,7 +54,7 @@ def create_default_payload(project_uuid: str, definition: Dict, agent_type: str)
     """Create a default payload for API requests."""
     return {
         "project_uuid": project_uuid,
-        "definition": json.dumps(definition),
+        "definition": json.dumps(definition, ensure_ascii=False),
         "toolkit_version": get_toolkit_version(),
         "type": agent_type,
     }
@@ -249,11 +249,11 @@ class CLIClient:
         data = create_default_payload(project_uuid, definition, agent_type)
         data.update(
             {
-                "test_definition": json.dumps(test_definition),
+                "test_definition": json.dumps(test_definition, ensure_ascii=False),
                 "tool_key": tool_key,
                 "agent_key": agent_key,
-                "tool_credentials": json.dumps(credentials),
-                "tool_globals": json.dumps(tool_globals),
+                "tool_credentials": json.dumps(credentials, ensure_ascii=False),
+                "tool_globals": json.dumps(tool_globals, ensure_ascii=False),
             }
         )
         return data

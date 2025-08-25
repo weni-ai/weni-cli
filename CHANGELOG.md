@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.4.4] - 2025-08-25
+
+### Added
+
+- fix: Update JSON serialization to ensure proper character encoding ([#124](https://github.com/weni-ai/weni-cli/pull/124)) ([**@paulobernardoaf**](https://github.com/paulobernardoaf))
+
 ## [3.4.3] - 2025-08-01
 
 ### Added

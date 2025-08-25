@@ -4,7 +4,7 @@ This guide will help you install the Weni CLI tool on your system. We provide tw
 
 ## Requirements
 
-- Python >= 3.12
+- Python >= 3.10
 - Poetry >= 1.8.5
 
 ## Installation

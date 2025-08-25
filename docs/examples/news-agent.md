@@ -129,7 +129,7 @@ For this agent to work properly, you'll need to get an API key from News API:
 
 Before deploying your agent, you can test the tool locally using the `weni run` command. This allows you to verify that your tool works correctly and debug any issues.
 
-Since this tool requires credentials, you'll need to create a `.env` file in the root of your project with your API key:
+Since this tool requires credentials, create a `.env` file in the tool folder with your API key (e.g., `tools/get_news/.env`):
 
 ```
 apiKey=your_actual_news_api_key_here
@@ -141,7 +141,7 @@ To test the News Agent tool:
 weni run agent_definition.yaml news_agent get_news
 ```
 
-This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your tool during execution.
+This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the tool folder `.env` file and make them available to your tool during execution.
 
 If you need more detailed logs for debugging, you can add the `-v` flag:
 

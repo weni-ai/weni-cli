@@ -147,7 +147,7 @@ For this agent to work properly, you'll need to get an API key from The Movie Da
 
 Before deploying your agent, you can test the tool locally using the `weni run` command. This allows you to verify that your tool works correctly and debug any issues.
 
-Since this tool requires credentials, you'll need to create a `.env` file in the root of your project with your TMDB API key:
+Since this tool requires credentials, create a `.env` file in the tool folder with your TMDB API key (e.g., `tools/get_movies/.env`):
 
 ```
 movies_api_key=your_actual_tmdb_api_key_here
@@ -159,7 +159,7 @@ To test the Movie Agent tool:
 weni run agent_definition.yaml movie_agent get_movies
 ```
 
-This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the `.env` file and make them available to your tool during execution.
+This command will execute the tests defined in the `test_definition.yaml` file and show you the output. The CLI will automatically pick up the credentials from the tool folder `.env` file and make them available to your tool during execution.
 
 If you need more detailed logs for debugging, you can add the `-v` flag:
 

@@ -11,7 +11,7 @@ A command-line interface (CLI) tool to manage and interact with projects on the 
 
 ## Requirements
 
-- Python >= 3.12
+- Python >= 3.10
 - Poetry >= 1.8.5
 
 ## Installation
@@ -65,7 +65,7 @@ weni project current
 This ensures you're working with the correct project.
 
 ### 5. Create Your Agent Definition
-Create a file named `agents.yaml` (you can use any filename you prefer) with this content:
+Create a file named `agent_definition.yaml` with this content:
 ```yaml
 agents:
   sample_agent:
@@ -100,13 +100,13 @@ mkdir -p tools/get_address
 ### 7. Create the tool Class
 Create a file in `tools/get_address` named `main.py` with this content:
 ```python
-from weni import tool
+from weni import Tool
 from weni.context import Context
 from weni.responses import TextResponse
 import requests
 
 
-class GetAddress(tool):
+class GetAddress(Tool):
     def execute(self, context: Context) -> TextResponse:
         cep = context.parameters.get("cep", "")
         address_response = self.get_address_by_cep(cep=cep)
@@ -125,12 +125,12 @@ Make sure the file folder matches the `path` specified in your `agents.yaml` fil
 Create a `requirements.txt` file in the same folder as your tool with the necessary dependencies:
 
 ```txt
-requests==2.31.0
+requests==2.32.3
 ```
 
 ### 8. Upload Your Agent
 ```bash
-weni project push agents.yaml
+weni project push agent_definition.yaml
 ```
 
 That's it! You've just created your first agent with a custom tool using Weni-CLI. 
@@ -190,7 +190,7 @@ Below is an example of a valid agent definition file structure:
 ```yaml
 agents:
   sample_agent:
-    name: "Sample Agent"                                                                      # Maximum of 128 characters
+    name: "Sample Agent"                                                                      # Maximum of 55 characters
     description: "Weni's sample agent"
     instructions:
       - "You should always be polite, respectful and helpful, even if the user is not."       # Minimum of 40 characters
@@ -199,7 +199,7 @@ agents:
       - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."  # Minimum of 40 characters
     tools:
       - get_order_status:
-          name: "Get Order Status"                                                            # Maximum of 53 characters
+          name: "Get Order Status"                                                            # Maximum of 40 characters
           source: 
             path: "tools/order_status"
             entrypoint: "main.GetOrderStatus"
@@ -210,7 +210,7 @@ agents:
                 type: "string"
                 required: true
       - get_order_details:
-          name: "Get Order Details"                                                           # Maximum of 53 characters
+          name: "Get Order Details"                                                           # Maximum of 40 characters
           source: 
             path: "tools/order_details"
             entrypoint: "main.GetOrderDetails"

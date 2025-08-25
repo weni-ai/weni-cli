@@ -101,11 +101,7 @@ During development and local testing of your tools, you'll need to provide crede
 
 ### Configuring Credentials for Local Development
 
-For local testing, you can use environment variables or local configuration files:
-
-#### Using Environment Variables
-
-For local testing, you need to configure a `.env` file with the same credential names that were declared in your agent definition. This ensures that your tool can access the credentials in the same way during local testing as it would in production.
+For local testing, the CLI reads a `.env` file located in the tool's `source.path` directory. Define the same credential names that are declared in your agent definition. This mirrors how credentials are injected in production.
 
 For example, if your CEP Agent definition has the following credentials:
 
@@ -119,7 +115,7 @@ agents:
     # Rest of the agent definition...
 ```
 
-You would create a `.env` file in the root of your project with:
+Create a `.env` file inside the tool folder (e.g. `tools/get_address/.env`) with:
 
 ```
 api_key=your-development-api-key

@@ -37,7 +37,7 @@ agents:
           source: 
             path: "tools/get_address"
             entrypoint: "main.GetAddress"
-            path_test: "tests.yaml"
+            path_test: "test_definition.yaml"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:
@@ -54,7 +54,7 @@ agents:
     `Name`
 
     :   The name of your agent that will be displayed in the Weni Platform.  
-        **Limit**: :octicons-alert-24: Maximum of 128 characters
+        **Limit**: :octicons-alert-24: Maximum of 55 characters
 
     `Credentials`
 
@@ -79,7 +79,7 @@ agents:
     `Name`
 
     :   The name of the tool that will be associated with the agent in the Weni Platform.  
-        **Limit**: :octicons-alert-24: Maximum of 53 characters
+        **Limit**: :octicons-alert-24: Maximum of 40 characters
 
     `Source`
 
@@ -101,7 +101,7 @@ agents:
         
         - `description`: A clear explanation of what the parameter is used for and what kind of data it expects.
         
-        - `type`: The data type of the parameter (e.g., string, integer, boolean, object).
+        - `type`: The data type of the parameter (one of: string, number, integer, boolean, array).
         
         - `required`: A boolean value (true/false) indicating whether the parameter must be provided for the tool to function properly. If set to true, the agent will ask the user for this information if it's not available before proceeding with the request.
         
@@ -129,7 +129,7 @@ agents:
           source: 
             path: "tools/get_address"
             entrypoint: "main.GetAddress"
-            path_test: "tests.yaml"
+            path_test: "test_definition.yaml"
           description: "Function to get the address from the postal code"
           parameters:
             - cep:

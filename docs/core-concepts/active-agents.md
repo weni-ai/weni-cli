@@ -49,7 +49,7 @@ Below are the key elements specific to or different in Active Agent definitions:
 
     `name`
     :   The display name of your agent.  
-        **Limit**: :octicons-alert-24: Maximum of 128 characters.
+        **Limit**: :octicons-alert-24: Maximum of 55 characters.
 
     `description`
     :   A description of the agent's purpose and capabilities.
@@ -80,15 +80,12 @@ Below are the key elements specific to or different in Active Agent definitions:
             `path`: The directory path for the pre-processing code (e.g., `pre_processors/processor`).
 
         `pre_processing.result_examples_file`
-        :   The path to a JSON file containing examples of the data *after* pre-processing and rule execution (if applicable to show final state). The format is an array of objects.
-
-        `pre_processing.pre_result_examples_file`
-        :   The path to a JSON file containing examples of the data *before* pre-processing. The format is an array of objects. (I've added this based on the YAML, please clarify if this understanding is correct or if `pre_result_examples_file` had a different purpose.)
+        :   Required. Path to a JSON file containing examples of the data output from pre-processing. The format is an array of objects.
 
 
 ### Result Example JSON Format
 
-The `result_example.json` (and assumed `pre_result_example.json`) file should follow this structure:
+The `result_example.json` file should follow this structure:
 
 ```json title="result_example.json"
 [

@@ -12,6 +12,14 @@ View all projects you have access to:
 weni project list
 ```
 
+Filter projects by organization UUID:
+
+```bash
+weni project list --org <org-uuid>
+```
+
+If many results are available, you'll be prompted to load more pages (`p`) or quit (`q`).
+
 This command shows:
 - Project UUID
 - Project name
@@ -36,11 +44,7 @@ Check which project you're currently working with:
 weni project current
 ```
 
-This shows:
-- Project UUID
-- Project name
-- Organization
-- Other relevant details
+This prints the current project UUID stored by the CLI, e.g.: `Current project: <uuid>`
 
 ## Project Context
 

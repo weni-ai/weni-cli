@@ -1,5 +1,6 @@
 import io
 import json
+import requests
 
 import pytest
 from contextlib import contextmanager
@@ -995,3 +996,141 @@ def test_get_tool_logs_with_empty_times(client, mocker):
             "next_token": None,
         }
     )
+
+
+def test_push_agents_backend_error_response(client, mocker):
+    """Test pushing agents with error response from backend."""
+    # Mock the progressbar and spinner
+    mock_progressbar = mocker.patch("rich_click.progressbar")
+    progress_instance = mocker.MagicMock()
+    mock_progressbar.return_value.__enter__.return_value = progress_instance
+    mocker.patch("weni_cli.clients.cli_client.spinner")
+
+    # Mock the streaming_request context manager with a backend error response
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [
+        json.dumps({
+            "success": False, 
+            "message": "Backend validation error", 
+            "data": {"field": "invalid"}, 
+            "request_id": "backend-123"
+        }).encode("utf-8")
+    ]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
+
+    # Create test data
+    project_uuid = "test-project-uuid"
+    agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
+    agent_type = "passive"
+
+    # Call the method and expect exception
+    with pytest.raises(RequestError) as exc_info:
+        client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
+
+    # Verify the exception details
+    error = exc_info.value
+    assert error.message == "Backend validation error"
+    assert error.data == {"field": "invalid"}
+    assert error.request_id == "backend-123"
+
+
+def test_push_agents_invalid_json_response(client, mocker):
+    """Test pushing agents with invalid JSON response from backend."""
+    # Mock the progressbar and spinner
+    mock_progressbar = mocker.patch("rich_click.progressbar")
+    progress_instance = mocker.MagicMock()
+    mock_progressbar.return_value.__enter__.return_value = progress_instance
+    mocker.patch("weni_cli.clients.cli_client.spinner")
+
+    # Mock the streaming_request context manager with invalid JSON response
+    mock_response = mocker.MagicMock()
+    mock_response.iter_lines.return_value = [b"invalid json data"]
+
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        yield mock_response
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
+
+    # Create test data
+    project_uuid = "test-project-uuid"
+    agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
+    agent_type = "passive"
+
+    # Call the method and expect exception
+    with pytest.raises(RequestError) as exc_info:
+        client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
+
+    # Verify the exception message
+    assert "Invalid response from server" in str(exc_info.value)
+
+
+def test_push_agents_connection_error(client, mocker):
+    """Test pushing agents with connection error to backend."""
+    # Mock the spinner
+    mocker.patch("weni_cli.clients.cli_client.spinner")
+
+    # Mock the streaming_request to raise a connection error
+    @contextmanager
+    def mock_streaming_request(*args, **kwargs):
+        raise requests.exceptions.ConnectionError("Failed to connect to backend")
+
+    mocker.patch.object(client, "_streaming_request", mock_streaming_request)
+
+    # Create test data
+    project_uuid = "test-project-uuid"
+    agents_definition = {"agents": {"test_agent": {"name": "Test Agent"}}}
+    tool_folders = {"test_tool": io.BytesIO(b"test tool content")}
+    agent_type = "passive"
+
+    # Call the method and expect exception
+    with pytest.raises(RequestError) as exc_info:
+        client.push_agents(project_uuid, agents_definition, tool_folders, agent_type)
+
+    # Verify the exception message
+    assert "Failed to connect to server" in str(exc_info.value)
+    assert "Failed to connect to backend" in str(exc_info.value)
+
+
+def test_cli_client_initialization_with_store_url(mocker):
+    """Test CLIClient initialization using URL from store."""
+    # Mock store with custom URL
+    mock_store = mocker.MagicMock()
+    mock_store.get.side_effect = lambda key, default=None: {
+        STORE_CLI_BASE_URL: "https://custom.api.url",
+        STORE_TOKEN_KEY: "test-token",
+        STORE_PROJECT_UUID_KEY: "test-uuid"
+    }.get(key, default)
+
+    mocker.patch("weni_cli.clients.cli_client.Store", return_value=mock_store)
+
+    # Create client instance
+    client = CLIClient()
+
+    # Verify the base URL was set from store
+    assert client.base_url == "https://custom.api.url"
+
+
+def test_cli_client_initialization_with_default_url(mocker):
+    """Test CLIClient initialization using default URL when store has none."""
+    # Mock store without custom URL
+    mock_store = mocker.MagicMock()
+    mock_store.get.side_effect = lambda key, default=None: {
+        STORE_TOKEN_KEY: "test-token",
+        STORE_PROJECT_UUID_KEY: "test-uuid"
+    }.get(key, default)
+
+    mocker.patch("weni_cli.clients.cli_client.Store", return_value=mock_store)
+
+    # Create client instance
+    client = CLIClient()
+
+    # Verify the default URL was used
+    assert client.base_url == DEFAULT_BASE_URL

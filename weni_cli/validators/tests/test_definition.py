@@ -2809,7 +2809,7 @@ def test_validate_definition_with_invalid_tool_description_length():
                     {
                         "tool_1": {
                             "name": "Tool 1",
-                            "description": "A" * 501,  # Description with 501 characters
+                            "description": "A" * 201,  # Description with 501 characters
                             "source": {
                                 "path": "path/to/tool",
                                 "entrypoint": "entrypoint",
@@ -2824,7 +2824,7 @@ def test_validate_definition_with_invalid_tool_description_length():
 
     error = validate_agent_definition_schema(invalid_definition)
     assert error is not None
-    assert "Agent 'test_agent': tool 'tool_1': 'description' must be less than 500 characters in the agent definition file" in error
+    assert "Agent 'test_agent': tool 'tool_1': 'description' must be less than 200 characters in the agent definition file" in error
 
 
 def test_validate_definition_with_missing_rule_example():

@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.4.5] - 2025-09-29
+
+### Added
+
+- Change max tool description length to 200 ([#127](https://github.com/weni-ai/weni-cli/pull/127)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+- Update weni-agents-toolkit to 2.3.2 ([#126](https://github.com/weni-ai/weni-cli/pull/126)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+
 ## [3.4.4] - 2025-08-25
 
 ### Added

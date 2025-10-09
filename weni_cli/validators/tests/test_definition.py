@@ -2,7 +2,7 @@ import re
 import pytest
 import regex
 from click.testing import CliRunner
-from weni_cli.validators.definition import (
+from weni_cli.validators.agent_definition import (
     AVAILABLE_COMPONENTS,
     MAX_AGENT_NAME_LENGTH,
     MAX_TOOL_NAME_LENGTH,
@@ -1735,7 +1735,7 @@ def test_load_test_definition_with_yaml_error_message(mocker):
     error_message = "YAML parsing error: invalid syntax"
 
     # Mock load_yaml_file to return an error message string
-    mocker.patch("weni_cli.validators.definition.load_yaml_file", return_value=(None, error_message))
+    mocker.patch("weni_cli.validators.agent_definition.load_yaml_file", return_value=(None, error_message))
 
     # Call load_test_definition with any path (it will be intercepted by the mock)
     result, error = load_test_definition("test_definition.yaml")
@@ -1749,7 +1749,7 @@ def test_load_test_definition_with_yaml_error_message(mocker):
 def test_load_test_definition_passes_correct_path(mocker):
     """Test that load_test_definition correctly passes the path to load_yaml_file."""
     # Mock load_yaml_file to return a dummy result but also capture the path argument
-    mock_load_yaml = mocker.patch("weni_cli.validators.definition.load_yaml_file", return_value=({}, None))
+    mock_load_yaml = mocker.patch("weni_cli.validators.agent_definition.load_yaml_file", return_value=({}, None))
 
     # Call load_test_definition with a specific path
     test_path = "/path/to/test_definition.yaml"

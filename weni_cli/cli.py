@@ -132,5 +132,25 @@ def get_logs(agent, tool, start_time, end_time, pattern):
         click.echo(f"Error: {e}")
 
 
+@cli.group()
+def channel():
+    """Channel management commands"""
+    pass
+
+
+@channel.command("create")
+@click.argument("channel_definition", required=True, type=click.Path(exists=True, dir_okay=False))
+def create_channel(channel_definition):
+    """Create a new channel from a definition file
+
+    CHANNEL_DEFINITION: The path to the YAML channel definition file
+    """
+    from weni_cli.commands.channel_create import ChannelCreateHandler
+
+    try:
+        ChannelCreateHandler().execute(channel_definition=channel_definition)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
 if __name__ == "__main__":  # pragma: no cover
     cli()

@@ -152,5 +152,6 @@ def create_channel(channel_definition):
     except Exception as e:
         click.echo(f"Error: {e}")
 
+
 if __name__ == "__main__":  # pragma: no cover
     cli()

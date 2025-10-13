@@ -181,4 +181,3 @@ def load_channel_definition(path) -> tuple[Any, Optional[Exception]]:
         return None, Exception("Empty definition file")
 
     return data, None
-

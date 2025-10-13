@@ -305,7 +305,7 @@ class CLIClient:
             return {}, f"Error fetching logs: {e.message} - Request ID: {e.request_id}"
 
         return response.json(), None
-    
+
     def create_channel(self, project_uuid: str, channel_definition: Dict) -> None:
         """Create a channel."""
         data = create_default_payload(project_uuid, channel_definition, "channel")

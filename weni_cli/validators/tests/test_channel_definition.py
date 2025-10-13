@@ -1,10 +1,7 @@
-import re
 import pytest
-import regex
 from click.testing import CliRunner
 from weni_cli.validators.channel_definition import (
     validate_channel_definition_schema,
-    load_yaml_file,
     load_channel_definition,
     MAX_CHANNEL_NAME_LENGTH,
     AVAILABLE_CHANNEL_TYPES,

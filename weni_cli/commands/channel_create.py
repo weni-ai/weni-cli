@@ -8,14 +8,15 @@ from weni_cli.validators.channel_definition import load_channel_definition
 class ChannelCreateHandler(Handler):
     def execute(self, **kwargs):
         channel_definition_path = kwargs.get("channel_definition")
+
+        formatter = Formatter()
+
         if not channel_definition_path:
             formatter.print_error_panel("Channel definition path is required")
             return
 
         store = Store()
         project_uuid = store.get(STORE_PROJECT_UUID_KEY)
-
-        formatter = Formatter()
 
         if not project_uuid:
             formatter.print_error_panel("No project selected, please select a project first")

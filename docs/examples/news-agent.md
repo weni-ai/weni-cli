@@ -13,6 +13,39 @@ agents:
             apiKey:
                 label: "API Key"
                 placeholder: "apiKey"
+        constants:
+            MAX_ARTICLES:
+                label: "Maximum Number of Articles"
+                type: "text"
+                max_length: 3
+                required: true
+                default: "10"
+            NEWS_LANGUAGE:
+                label: "News Language"
+                type: "select"
+                options:
+                    - label: "English"
+                      value: "en"
+                    - label: "Spanish"
+                      value: "es"
+                    - label: "Portuguese"
+                      value: "pt"
+                    - label: "French"
+                      value: "fr"
+                default: "en"
+                required: true
+            SORT_BY:
+                label: "Sort Articles By"
+                type: "select"
+                options:
+                    - label: "Popularity"
+                      value: "popularity"
+                    - label: "Relevancy"
+                      value: "relevancy"
+                    - label: "Published Date"
+                      value: "publishedAt"
+                default: "popularity"
+                required: false
         name: "News Agent"
         description: "Expert in searching and providing news about any topic"
         instructions:
@@ -55,10 +88,22 @@ from datetime import datetime
 
 class GetNews(Tool):
     def execute(self, context: Context) -> TextResponse:
+        # Get credentials
         apiKey = context.credentials.get("apiKey")
         
+        # Get constants for configuration
+        max_articles = int(context.constants.get("MAX_ARTICLES", "10"))
+        language = context.constants.get("NEWS_LANGUAGE", "en")
+        sort_by = context.constants.get("SORT_BY", "popularity")
+        
+        # Get parameters
         topic = context.parameters.get("topic", "")
-        news_response = self.get_news_by_topic(topic=topic, apiKey=apiKey)
+        news_response = self.get_news_by_topic(
+            topic=topic,
+            apiKey=apiKey,
+            language=language,
+            sort_by=sort_by
+        )
         
         # Format the response
         articles = news_response.get("articles", [])
@@ -67,12 +112,12 @@ class GetNews(Tool):
         
         response_data = {
             "status": news_response.get("status"),
-            "totalResults": len(articles[:10]),
+            "totalResults": len(articles[:max_articles]),
             "articles": []
         }
         
-        # Get only the first 10 articles
-        for article in articles[:10]:
+        # Get articles based on the configured maximum
+        for article in articles[:max_articles]:
             article_data = {
                 "source": article.get("source", {}),
                 "author": article.get("author"),
@@ -87,13 +132,13 @@ class GetNews(Tool):
             
         return TextResponse(data=response_data)
 
-    def get_news_by_topic(self, topic, apiKey):
+    def get_news_by_topic(self, topic, apiKey, language="en", sort_by="popularity"):
         url = f"https://newsapi.org/v2/everything"
         params = {
             "q": topic,
-            "sortBy": "popularity",
+            "sortBy": sort_by,
             "apiKey": apiKey,
-            "language": "en"
+            "language": language
         }
         response = requests.get(url, params=params)
         return response.json()

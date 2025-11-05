@@ -283,22 +283,30 @@ def validate_agent_constants(agent_key: str, constants: Any) -> Optional[str]:
         if not isinstance(const_data["required"], bool):
             return f"Agent '{agent_key}': constant '{const_key}': 'required' must be a boolean in the agent definition file"
 
-        # Validate based on type if present (INPUT type)
-        if "type" in const_data:
-            if not isinstance(const_data["type"], str):
-                return f"Agent '{agent_key}': constant '{const_key}': 'type' must be a string in the agent definition file"
+        # All constants must have a type field
+        if "type" not in const_data:
+            return f"Agent '{agent_key}': constant '{const_key}' is missing required field 'type' in the agent definition file"
+        if not isinstance(const_data["type"], str):
+            return f"Agent '{agent_key}': constant '{const_key}': 'type' must be a string in the agent definition file"
 
-            # For INPUT type, validate max_length
-            if const_data["type"] == "text":
-                if "max_length" not in const_data:
-                    return f"Agent '{agent_key}': constant '{const_key}' with type 'text' is missing required field 'max_length' in the agent definition file"
-                if not isinstance(const_data["max_length"], int):
-                    return f"Agent '{agent_key}': constant '{const_key}': 'max_length' must be an integer in the agent definition file"
-                if const_data["max_length"] <= 0:
-                    return f"Agent '{agent_key}': constant '{const_key}': 'max_length' must be greater than 0 in the agent definition file"
+        # Validate type is one of the allowed values
+        allowed_types = ["text", "select", "radio", "checkbox"]
+        if const_data["type"] not in allowed_types:
+            return f"Agent '{agent_key}': constant '{const_key}': 'type' must be one of: {', '.join(allowed_types)} in the agent definition file"
 
-        # Validate options if present (SELECT, RADIO, CHECKBOX types)
-        if "options" in const_data:
+        # For text type, validate max_length
+        if const_data["type"] == "text":
+            if "max_length" not in const_data:
+                return f"Agent '{agent_key}': constant '{const_key}' with type 'text' is missing required field 'max_length' in the agent definition file"
+            if not isinstance(const_data["max_length"], int):
+                return f"Agent '{agent_key}': constant '{const_key}': 'max_length' must be an integer in the agent definition file"
+            if const_data["max_length"] <= 0:
+                return f"Agent '{agent_key}': constant '{const_key}': 'max_length' must be greater than 0 in the agent definition file"
+
+        # For select, radio, and checkbox types, validate options
+        if const_data["type"] in ["select", "radio", "checkbox"]:
+            if "options" not in const_data:
+                return f"Agent '{agent_key}': constant '{const_key}' with type '{const_data['type']}' is missing required field 'options' in the agent definition file"
             if not isinstance(const_data["options"], list):
                 return f"Agent '{agent_key}': constant '{const_key}': 'options' must be an array in the agent definition file"
 

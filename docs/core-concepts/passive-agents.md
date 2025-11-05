@@ -60,6 +60,10 @@ agents:
 
     :   The credentials used in the tools you define for your agent. For more detailed information about this definition, see [Credentials](./credentials.md).
 
+    `Constants`
+
+    :   Configurable values that can be defined at the agent level and shared across all tools. Constants allow you to define reusable configuration settings that can be customized when deploying your agent. For more detailed information, see [Constants](./constants.md).
+
     `Description`
 
     :   Important information about your agent, where you can describe its purpose, capabilities, and other relevant details.

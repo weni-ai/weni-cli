@@ -72,13 +72,27 @@ class WeniClient:
                 response = requests.get(url, headers=self.headers)
 
                 if response.status_code != 200:
-                    click.echo("Failed to list projects")
-                    return None, {}
+                    # Do not abort the entire listing when a single org fails.
+                    # Log a helpful message and continue with the remaining orgs.
+                    try:
+                        error_detail = response.json()
+                    except Exception:
+                        error_detail = {}
+                    status = response.status_code
+                    message = error_detail.get("message") or error_detail.get("detail") or "Failed to list projects"
+                    click.echo(
+                        f"Warning: {message} for org {org.get('name')} ({org.get('uuid')}) - status {status}"
+                    )
+                    # Stop paging this org and move on to the next one
+                    break
 
                 projects += response.json().get("results", [])
                 url = response.json().get("next", None)
 
             for project in projects:
                 org_project_map[org["name"]].append((project["name"], project["uuid"]))
+
+        # Remove orgs that ended up with no projects collected (e.g., due to errors)
+        org_project_map = {k: v for k, v in org_project_map.items() if v}
 
         return next_url, org_project_map

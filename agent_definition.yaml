@@ -1,0 +1,22 @@
+agents:
+  sample_agent:
+    name: "CEP Agent 3"
+    description: "Weni's sample agent 3"
+    instructions:
+      - "You are an expert in providing addresses to the user based on a postal code provided by the user"
+      - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."
+    guardrails:
+      - "Don't talk about politics, religion or any other sensitive topic. Keep it neutral."
+    tools:
+      - get_address:
+          name: "Get Address"
+          source: 
+            path: "tools/get_address"
+            entrypoint: "main.GetAddress"
+          description: "Function to get the address from the postal code"
+          parameters:
+            - cep:
+                description: "postal code of a place"
+                type: "string"
+                required: true
+                contact_field: true

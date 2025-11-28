@@ -1,7 +1,7 @@
 agents:
   sample_agent:
-    name: "CEP Agent 3"
-    description: "Weni's sample agent 3"
+    name: "CEP Agent 34"
+    description: "Weni's sample agent 34"
     instructions:
       - "You are an expert in providing addresses to the user based on a postal code provided by the user"
       - "The user will send a ZIP code (postal code) and you must provide the address corresponding to this code."

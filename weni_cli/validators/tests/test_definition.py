@@ -149,6 +149,32 @@ def test_load_yaml_file_empty(sample_definition_file):
     assert error is None
 
 
+def test_load_yaml_file_with_unicode_characters():
+    """Ensure YAML loader reads UTF-8 (with BOM) correctly on all OSes."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        yaml_content = """
+agents:
+  teste:
+    name: \"Agente\"
+    description: \"Descrição com acentuação: ç ã á é í ó ú — teste\"
+    tools:
+      - ferramenta:
+          name: \"Ferramenta\"
+          description: \"Descrição\"
+          source:
+            path: tools/ferramenta
+            entrypoint: main.Ferramenta
+"""
+        # Write file deliberately with UTF-8 BOM to simulate common Windows editors
+        with open("unicode_definition.yaml", "w", encoding="utf-8-sig") as f:
+            f.write(yaml_content)
+
+        data, error = load_yaml_file("unicode_definition.yaml")
+        assert error is None
+        assert data["agents"]["teste"]["description"].startswith("Descrição")
+
+
 def test_load_yaml_file_nonexistent():
     """Test loading a non-existent definition file."""
     # The load_yaml_file function should catch FileNotFoundError

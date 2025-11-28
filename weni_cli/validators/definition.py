@@ -412,7 +412,9 @@ def validate_agent_credentials(agent_key: str, credentials: Any) -> Optional[str
 
 def load_yaml_file(path) -> tuple[Any, Optional[Exception]]:
     try:
-        with open(path, "r") as file:
+        # Force UTF-8 decoding across all platforms (Windows default may be cp1252),
+        # and transparently handle optional BOM if present.
+        with open(path, "r", encoding="utf-8-sig") as file:
             return yaml.safe_load(file), None
     except Exception as error:
         return None, error

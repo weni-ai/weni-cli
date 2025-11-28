@@ -13,4 +13,7 @@ class GetAddress(Tool):
     def get_address_by_cep(self, cep):
         url = f"https://viacep.com.br/ws/{cep}/json/"
         response = requests.get(url)
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return "Error: " + response.text

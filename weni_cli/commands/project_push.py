@@ -7,7 +7,7 @@ from weni_cli.clients.cli_client import CLIClient
 from weni_cli.handler import Handler
 from weni_cli.packager.packager import create_agent_resource_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
-from weni_cli.validators.definition import (
+from weni_cli.validators.agent_definition import (
     format_definition,
     load_agent_definition,
     validate_agent_definition_schema,

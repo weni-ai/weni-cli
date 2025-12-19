@@ -259,7 +259,7 @@ def test_run_command_invalid_definition(mocker, mock_store_values):
 
         # Mock the load_yaml_file function to return a proper YAML parse error
         yaml_error = "mapping values are not allowed here"
-        mocker.patch("weni_cli.validators.definition.load_yaml_file", return_value=(None, yaml_error))
+        mocker.patch("weni_cli.validators.agent_definition.load_yaml_file", return_value=(None, yaml_error))
 
         result = runner.invoke(cli, ["run", "invalid.yaml", "get_address", "get_address"])
 
@@ -1179,7 +1179,7 @@ def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock
 
         # Mock load_agent_definition to return valid data
         mocker.patch(
-            "weni_cli.validators.definition.load_agent_definition",
+            "weni_cli.validators.agent_definition.load_agent_definition",
             return_value=({"agents": {"get_address": {"description": "Test", "tools": []}}}, None),
         )
 

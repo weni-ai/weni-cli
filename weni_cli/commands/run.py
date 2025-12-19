@@ -13,7 +13,7 @@ from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
 from weni_cli.packager.packager import create_agent_resource_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
-from weni_cli.validators.definition import format_definition, load_agent_definition, load_test_definition
+from weni_cli.validators.agent_definition import format_definition, load_agent_definition, load_test_definition
 
 
 DEFAULT_TEST_DEFINITION_FILE = "test_definition.yaml"

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.5.0] - 2025-12-19
+
+### Added
+
+- External v2 Channel definition and creation ([#129](https://github.com/weni-ai/weni-cli/pull/129)) ([**@rasoro**](https://github.com/rasoro))
+
 ## [3.4.5] - 2025-09-29
 
 ### Added

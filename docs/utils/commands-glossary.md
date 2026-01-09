@@ -15,3 +15,4 @@ These commands are fundamental for developing and deploying agents, allowing dir
 | `weni project push [agent_definition_file] [--force-update]` | Deploy/update your agents using the specified agent definition file. |
 | `weni run [agent_definition_file] [agent_key] [tool_key] [-f FILE] [-v]` | Run a specific tool from an agent locally. `-f/--file` lets you choose a test file; if omitted the CLI looks for `test_definition.yaml` in the tool folder. `-v` enables verbose logs. |
 | `weni logs --agent <agent_key> --tool <tool_key> [--start-time ISO8601] [--end-time ISO8601] [--pattern TEXT]` | Fetch tool execution logs. Supports pagination and ISO 8601 date formats (e.g. `2024-01-01T00:00:00`). |
+| `weni channel create [channel_definition_file]` | Create a new communication channel from a YAML definition file. Allows you to configure external channels (E2) for your agents. |

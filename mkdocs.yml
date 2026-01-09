@@ -91,6 +91,7 @@ nav:
       - Passive Agents: core-concepts/passive-agents.md
       - Active Agents: core-concepts/active-agents.md
     - Tools: core-concepts/tools.md
+    - Channels: user-guide/channels.md
     - Credentials: core-concepts/credentials.md
     - Contact Fields: core-concepts/contact-fields.md
   - Run:

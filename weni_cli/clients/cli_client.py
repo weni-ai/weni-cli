@@ -96,8 +96,6 @@ class CLIClient:
             )
 
             if response.status_code != 200:
-                if response.status_code == 401:
-                    raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                 try:
                     error_data = response.json()
                     message = error_data.get("message", f"Request failed with status code {response.status_code}")
@@ -112,6 +110,8 @@ class CLIClient:
 
             yield response
 
+        except requests.exceptions.RequestException as e:
+            raise RequestError(f"Failed to connect to server: {e}")
         finally:
             if response:
                 response.close()
@@ -192,17 +192,23 @@ class CLIClient:
             show_eta=False,
             show_pos=False,
         ) as bar:
-            for line in response.iter_lines():
-                if line:
-                    resp = json.loads(line)
-                    if resp.get("success"):
-                        current_progress = resp.get("progress")
-                        if current_progress:
-                            bar.update((current_progress - progress) * 100, resp)
-                            progress = current_progress
-                    else:
-                        message = resp.get("message", "Unknown error during agent push")
-                        raise RequestError(message=message, data=resp.get("data"), request_id=resp.get("request_id"))
+            try:
+                for line in response.iter_lines():
+                    if line:
+                        try:
+                            resp = json.loads(line)
+                            if resp.get("success"):
+                                current_progress = resp.get("progress")
+                                if current_progress:
+                                    bar.update((current_progress - progress) * 100, resp)
+                                    progress = current_progress
+                            else:
+                                message = resp.get("message", "Unknown error during agent push")
+                                raise RequestError(message=message, data=resp.get("data"), request_id=resp.get("request_id"))
+                        except json.JSONDecodeError as e:
+                            raise RequestError(f"Invalid response from server: {e}")
+            except Exception as e:
+                raise
 
     def run_test(
         self,

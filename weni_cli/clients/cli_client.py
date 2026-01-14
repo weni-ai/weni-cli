@@ -310,14 +310,14 @@ class CLIClient:
         """Create a channel."""
         if "channels" not in channel_definition or not channel_definition["channels"]:
             raise ValueError("No channels found in definition")
-        
+
         channel_data = channel_definition["channels"][0]
-        
+
         payload = {
             "project_uuid": project_uuid,
             "channel_definition": channel_data
         }
-        
+
         try:
             self._make_request(method="POST", endpoint="api/v1/channels", json_data=payload)
         except RequestError as e:

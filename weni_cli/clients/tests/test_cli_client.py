@@ -995,3 +995,177 @@ def test_get_tool_logs_with_empty_times(client, mocker):
             "next_token": None,
         }
     )
+
+
+def test_create_channel_success(client, mocker):
+    """Test successful channel creation."""
+    # Mock the _make_request method
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"uuid": "channel-uuid", "name": "Test Channel"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    # Create test data
+    project_uuid = "test-project-uuid"
+    channel_definition = {
+        "channels": [
+            {
+                "channel_type": "TG",
+                "name": "Test Telegram Channel",
+                "schemes": ["tel"],
+                "address": "123456789",
+                "config": {
+                    "auth_token": "test-token",
+                    "callback_domain": "https://example.com"
+                }
+            }
+        ]
+    }
+
+    # Call the method
+    client.create_channel(project_uuid, channel_definition)
+
+    # Verify the method was called with correct parameters
+    client._make_request.assert_called_once_with(
+        method="POST",
+        endpoint="api/v1/channels",
+        json_data={
+            "project_uuid": project_uuid,
+            "channel_definition": channel_definition["channels"][0]
+        }
+    )
+
+
+def test_create_channel_no_channels_in_definition(client):
+    """Test channel creation with no channels in definition."""
+    project_uuid = "test-project-uuid"
+    channel_definition = {}
+
+    # Call the method and expect ValueError
+    with pytest.raises(ValueError) as exc_info:
+        client.create_channel(project_uuid, channel_definition)
+
+    assert "No channels found in definition" in str(exc_info.value)
+
+
+def test_create_channel_empty_channels_array(client):
+    """Test channel creation with empty channels array."""
+    project_uuid = "test-project-uuid"
+    channel_definition = {"channels": []}
+
+    # Call the method and expect ValueError
+    with pytest.raises(ValueError) as exc_info:
+        client.create_channel(project_uuid, channel_definition)
+
+    assert "No channels found in definition" in str(exc_info.value)
+
+
+def test_create_channel_request_error(client, mocker):
+    """Test channel creation with request error."""
+    # Mock the _make_request method to raise RequestError
+    error_message = "Failed to create channel in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=400)
+    )
+
+    # Create test data
+    project_uuid = "test-project-uuid"
+    channel_definition = {
+        "channels": [
+            {
+                "channel_type": "TG",
+                "name": "Test Channel",
+                "schemes": ["tel"],
+                "address": "123456789",
+                "config": {"auth_token": "test-token"}
+            }
+        ]
+    }
+
+    # Call the method and expect RequestError
+    with pytest.raises(RequestError) as exc_info:
+        client.create_channel(project_uuid, channel_definition)
+
+    # Verify the exception message
+    assert "Failed to create channel" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_create_channel_with_external_channel_type(client, mocker):
+    """Test channel creation with external channel type."""
+    # Mock the _make_request method
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"uuid": "channel-uuid", "name": "External Channel"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    # Create test data with external channel
+    project_uuid = "test-project-uuid"
+    channel_definition = {
+        "channels": [
+            {
+                "channel_type": "EX",
+                "name": "My External Channel",
+                "schemes": ["http"],
+                "address": "https://api.example.com/webhook",
+                "config": {
+                    "send_url": "https://api.example.com/send",
+                    "secret": "my-secret-key"
+                }
+            }
+        ]
+    }
+
+    # Call the method
+    client.create_channel(project_uuid, channel_definition)
+
+    # Verify the method was called with correct parameters
+    client._make_request.assert_called_once_with(
+        method="POST",
+        endpoint="api/v1/channels",
+        json_data={
+            "project_uuid": project_uuid,
+            "channel_definition": channel_definition["channels"][0]
+        }
+    )
+
+
+def test_create_channel_with_whatsapp_channel_type(client, mocker):
+    """Test channel creation with WhatsApp channel type."""
+    # Mock the _make_request method
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"uuid": "channel-uuid", "name": "WhatsApp Channel"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    # Create test data with WhatsApp channel
+    project_uuid = "test-project-uuid"
+    channel_definition = {
+        "channels": [
+            {
+                "channel_type": "WA",
+                "name": "My WhatsApp Channel",
+                "schemes": ["whatsapp"],
+                "address": "+5511999999999",
+                "config": {
+                    "api_key": "test-api-key",
+                    "api_url": "https://graph.facebook.com/v12.0"
+                }
+            }
+        ]
+    }
+
+    # Call the method
+    client.create_channel(project_uuid, channel_definition)
+
+    # Verify the method was called with correct parameters
+    client._make_request.assert_called_once_with(
+        method="POST",
+        endpoint="api/v1/channels",
+        json_data={
+            "project_uuid": project_uuid,
+            "channel_definition": channel_definition["channels"][0]
+        }
+    )

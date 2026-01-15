@@ -28,4 +28,18 @@ class ChannelCreateHandler(Handler):
             return
 
         client = CLIClient()
-        client.create_channel(project_uuid, channel_data)
+        response = client.create_channel(project_uuid, channel_data)
+
+        channel_name = response.get("name") if isinstance(response, dict) else None
+        channel_uuid = response.get("uuid") if isinstance(response, dict) else None
+
+        details = []
+        if channel_name:
+            details.append(f"Name: {channel_name}")
+        if channel_uuid:
+            details.append(f"UUID: {channel_uuid}")
+
+        if details:
+            formatter.print_success_panel("Channel created successfully\n" + "\n".join(details))
+        else:
+            formatter.print_success_panel("Channel created successfully")

@@ -92,6 +92,7 @@ nav:
       - Active Agents: core-concepts/active-agents.md
     - Tools: core-concepts/tools.md
     - Credentials: core-concepts/credentials.md
+    - Constants: core-concepts/constants.md
     - Contact Fields: core-concepts/contact-fields.md
   - Run:
     - Tool Tests: run/tool-run.md

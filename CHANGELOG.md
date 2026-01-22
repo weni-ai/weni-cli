@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.5.2] - 2026-01-22
+
+### Added
+
+- Update weni-agents-toolkit to 2.3.3 ([#137](https://github.com/weni-ai/weni-cli/pull/137)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
+- 
+
+## [3.5.1] - 2026-01-22
+
+### Added
+
+- fix: create channel ([#136](https://github.com/weni-ai/weni-cli/pull/136)) ([**@rasoro**](https://github.com/rasoro))
+
 ## [3.5.0] - 2025-12-19
 
 ### Added

@@ -2860,3 +2860,581 @@ def test_validate_definition_with_missing_rule_example():
     error = validate_active_agent_definition_schema(invalid_definition)
     assert error is not None
     assert "is missing required field 'example'" in error
+
+
+# Tests for agent constants validation
+def test_validate_definition_with_valid_agent_constants_input():
+    """Test validation passes when agent constants has valid INPUT type."""
+    valid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "text",
+                        "max_length": 255,
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_valid_agent_constants_select():
+    """Test validation passes when agent constants has valid SELECT type."""
+    valid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "SELECT": {
+                        "label": "Options",
+                        "type": "select",
+                        "options": [
+                            {"label": "Option 1", "value": "OPTION1"},
+                            {"label": "Option 2", "value": "OPTION2"},
+                        ],
+                        "default": "OPTION1",
+                        "required": False,
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(valid_definition)
+    assert error is None
+
+
+def test_validate_definition_with_invalid_agent_constants_not_object():
+    """Test validation fails when agent constants is not an object."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": "Not an object",
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': 'constants' must be an object in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_missing_label():
+    """Test validation fails when constant is missing label."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "type": "text",
+                        "max_length": 255,
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT' is missing required field 'label' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_missing_default():
+    """Test validation fails when constant is missing default."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "text",
+                        "max_length": 255,
+                        "required": True,
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT' is missing required field 'default' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_missing_required():
+    """Test validation fails when constant is missing required field."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "text",
+                        "max_length": 255,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT' is missing required field 'required' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_missing_type():
+    """Test validation fails when constant is missing type field."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "max_length": 255,
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT' is missing required field 'type' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_invalid_type():
+    """Test validation fails when constant has invalid type value."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "invalid_type",
+                        "max_length": 255,
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT': 'type' must be one of: text, select, radio, checkbox in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_input_missing_max_length():
+    """Test validation fails when INPUT constant is missing max_length."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "text",
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT' with type 'text' is missing required field 'max_length' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_input_max_length_not_int():
+    """Test validation fails when INPUT constant max_length is not an integer."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "text",
+                        "max_length": "255",
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT': 'max_length' must be an integer in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_input_max_length_zero():
+    """Test validation fails when INPUT constant max_length is zero or negative."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "INPUT": {
+                        "label": "Example",
+                        "type": "text",
+                        "max_length": 0,
+                        "required": True,
+                        "default": "Example",
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'INPUT': 'max_length' must be greater than 0 in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_options_not_array():
+    """Test validation fails when constant options is not an array."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "SELECT": {
+                        "label": "Options",
+                        "type": "select",
+                        "options": "Not an array",
+                        "default": "OPTION1",
+                        "required": False,
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'SELECT': 'options' must be an array in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_options_empty():
+    """Test validation fails when constant options is empty."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "SELECT": {
+                        "label": "Options",
+                        "type": "select",
+                        "options": [],
+                        "default": "OPTION1",
+                        "required": False,
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'SELECT': 'options' must not be empty in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_option_missing_label():
+    """Test validation fails when option is missing label."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "SELECT": {
+                        "label": "Options",
+                        "type": "select",
+                        "options": [
+                            {"value": "OPTION1"},
+                        ],
+                        "default": "OPTION1",
+                        "required": False,
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'SELECT': option at index 0 is missing required field 'label' in the agent definition file" in error
+
+
+def test_validate_definition_with_invalid_agent_constants_option_missing_value():
+    """Test validation fails when option is missing value."""
+    invalid_definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "description": "Test description",
+                "instructions": SAMPLE_INSTRUCTIONS,
+                "guardrails": SAMPLE_GUARDRAILS,
+                "constants": {
+                    "SELECT": {
+                        "label": "Options",
+                        "type": "select",
+                        "options": [
+                            {"label": "Option 1"},
+                        ],
+                        "default": "OPTION1",
+                        "required": False,
+                    }
+                },
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {
+                                "path": "path/to/tool",
+                                "entrypoint": "entrypoint",
+                            },
+                        }
+                    },
+                ],
+            }
+        }
+    }
+
+    error = validate_agent_definition_schema(invalid_definition)
+    assert error is not None
+    assert "Agent 'test_agent': constant 'SELECT': option at index 0 is missing required field 'value' in the agent definition file" in error

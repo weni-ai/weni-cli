@@ -86,6 +86,11 @@ def validate_agent_definition_schema(data):
             if error := validate_agent_credentials(agent_key, agent_data["credentials"]):
                 return error
 
+        # Validate constants if present
+        if "constants" in agent_data:
+            if error := validate_agent_constants(agent_key, agent_data["constants"]):
+                return error
+
         # Validate components, they are optional, but if present must be an array of objects
         if "components" in agent_data:
             if not isinstance(agent_data["components"], list):
@@ -240,6 +245,92 @@ def validate_agent_definition_schema(data):
                         param_name
                     ):
                         return f"Agent '{agent_key}': tool '{tool_name}': parameter '{param_name}' name must not be a reserved contact field name in the agent definition file\nRestricted contact field names: {ContactFieldValidator.RESERVED_CONTACT_FIELDS}"
+
+
+def validate_agent_constants(agent_key: str, constants: Any) -> Optional[str]:
+    """
+    Validates agent constants structure and fields based on their type.
+
+    Args:
+        agent_key: The agent identifier
+        constants: The constants dictionary to validate
+
+    Returns:
+        Error message string or None if valid
+    """
+    # Constants must be a dictionary
+    if not isinstance(constants, dict):
+        return f"Agent '{agent_key}': 'constants' must be an object in the agent definition file"
+
+    # Validate each constant
+    for const_key, const_data in constants.items():
+        if not isinstance(const_data, dict):
+            return f"Agent '{agent_key}': constant '{const_key}' data must be an object in the agent definition file"
+
+        # All constants must have a label
+        if "label" not in const_data:
+            return f"Agent '{agent_key}': constant '{const_key}' is missing required field 'label' in the agent definition file"
+        if not isinstance(const_data["label"], str):
+            return f"Agent '{agent_key}': constant '{const_key}': 'label' must be a string in the agent definition file"
+
+        # All constants must have a default
+        if "default" not in const_data:
+            return f"Agent '{agent_key}': constant '{const_key}' is missing required field 'default' in the agent definition file"
+
+        # All constants must have a required field
+        if "required" not in const_data:
+            return f"Agent '{agent_key}': constant '{const_key}' is missing required field 'required' in the agent definition file"
+        if not isinstance(const_data["required"], bool):
+            return f"Agent '{agent_key}': constant '{const_key}': 'required' must be a boolean in the agent definition file"
+
+        # All constants must have a type field
+        if "type" not in const_data:
+            return f"Agent '{agent_key}': constant '{const_key}' is missing required field 'type' in the agent definition file"
+        if not isinstance(const_data["type"], str):
+            return f"Agent '{agent_key}': constant '{const_key}': 'type' must be a string in the agent definition file"
+
+        # Validate type is one of the allowed values
+        allowed_types = ["text", "select", "radio", "checkbox"]
+        if const_data["type"] not in allowed_types:
+            return f"Agent '{agent_key}': constant '{const_key}': 'type' must be one of: {', '.join(allowed_types)} in the agent definition file"
+
+        # For text type, validate max_length
+        if const_data["type"] == "text":
+            if "max_length" not in const_data:
+                return f"Agent '{agent_key}': constant '{const_key}' with type 'text' is missing required field 'max_length' in the agent definition file"
+            if not isinstance(const_data["max_length"], int):
+                return f"Agent '{agent_key}': constant '{const_key}': 'max_length' must be an integer in the agent definition file"
+            if const_data["max_length"] <= 0:
+                return f"Agent '{agent_key}': constant '{const_key}': 'max_length' must be greater than 0 in the agent definition file"
+
+        # For select, radio, and checkbox types, validate options
+        if const_data["type"] in ["select", "radio", "checkbox"]:
+            if "options" not in const_data:
+                return f"Agent '{agent_key}': constant '{const_key}' with type '{const_data['type']}' is missing required field 'options' in the agent definition file"
+            if not isinstance(const_data["options"], list):
+                return f"Agent '{agent_key}': constant '{const_key}': 'options' must be an array in the agent definition file"
+
+            if len(const_data["options"]) == 0:
+                return f"Agent '{agent_key}': constant '{const_key}': 'options' must not be empty in the agent definition file"
+
+            # Validate each option
+            for opt_idx, option in enumerate(const_data["options"]):
+                if not isinstance(option, dict):
+                    return f"Agent '{agent_key}': constant '{const_key}': option at index {opt_idx} must be an object in the agent definition file"
+
+                # Each option must have label
+                if "label" not in option:
+                    return f"Agent '{agent_key}': constant '{const_key}': option at index {opt_idx} is missing required field 'label' in the agent definition file"
+                if not isinstance(option["label"], str):
+                    return f"Agent '{agent_key}': constant '{const_key}': option at index {opt_idx}: 'label' must be a string in the agent definition file"
+
+                # Each option must have value
+                if "value" not in option:
+                    return f"Agent '{agent_key}': constant '{const_key}': option at index {opt_idx} is missing required field 'value' in the agent definition file"
+                if not isinstance(option["value"], str):
+                    return f"Agent '{agent_key}': constant '{const_key}': option at index {opt_idx}: 'value' must be a string in the agent definition file"
+
+    return None
 
 
 def validate_active_agent_definition_schema(data):

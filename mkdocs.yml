@@ -93,6 +93,7 @@ nav:
     - Tools: core-concepts/tools.md
     - Channels: user-guide/channels.md
     - Credentials: core-concepts/credentials.md
+    - Constants: core-concepts/constants.md
     - Contact Fields: core-concepts/contact-fields.md
   - Run:
     - Tool Tests: run/tool-run.md

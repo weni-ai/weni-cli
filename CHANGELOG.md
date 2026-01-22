@@ -5,7 +5,7 @@
 ### Added
 
 - Update weni-agents-toolkit to 2.3.3 ([#137](https://github.com/weni-ai/weni-cli/pull/137)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
-- 
+- feat: Add constants ([#130](https://github.com/weni-ai/weni-cli/pull/130)) ([**@lucaslinhares**](https://github.com/lucaslinhares))
 
 ## [3.5.1] - 2026-01-22
 

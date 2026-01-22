@@ -306,7 +306,20 @@ class CLIClient:
 
         return response.json(), None
 
-    def create_channel(self, project_uuid: str, channel_definition: Dict) -> None:
+    def create_channel(self, project_uuid: str, channel_definition: Dict) -> Dict[str, Any]:
         """Create a channel."""
-        data = create_default_payload(project_uuid, channel_definition, "channel")
-        self._make_request(method="POST", endpoint="api/v1/channels", json_data=data)
+        if "channels" not in channel_definition or not channel_definition["channels"]:
+            raise ValueError("No channels found in definition")
+
+        channel_data = channel_definition["channels"][0]
+
+        payload = {
+            "project_uuid": project_uuid,
+            "channel_definition": channel_data,
+        }
+
+        try:
+            response = self._make_request(method="POST", endpoint="api/v1/channels", json_data=payload)
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to create channel: {e.message}")

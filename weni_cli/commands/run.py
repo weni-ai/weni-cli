@@ -11,12 +11,15 @@ from rich.console import group
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
+from weni_cli.jwt_generator import generate_jwt_token
 from weni_cli.packager.packager import create_agent_resource_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
 from weni_cli.validators.agent_definition import format_definition, load_agent_definition, load_test_definition
 
 
 DEFAULT_TEST_DEFINITION_FILE = "test_definition.yaml"
+JWT_KEY_FILE = ".jwt_key"
+JWT_CREDENTIALS_KEY = "Token"
 
 
 class RunHandler(Handler):
@@ -89,6 +92,20 @@ class RunHandler(Handler):
 
         credentials = self.load_tool_credentials(tool_source_path)
 
+        # Generate JWT token if a .jwt_key file exists in the tool folder
+        jwt_key = self.load_jwt_key(tool_source_path)
+        if jwt_key:
+            try:
+                token = generate_jwt_token(project_uuid, jwt_key)
+                credentials[JWT_CREDENTIALS_KEY] = token
+                click.echo("JWT token generated and injected into credentials.")
+            except Exception as e:
+                formatter.print_error_panel(
+                    f"Failed to generate JWT token from .jwt_key file:\n{e}",
+                    title="JWT Generation Error",
+                )
+                return
+
         tool_globals = self.load_tool_globals(tool_source_path)
 
         self.run_test(
@@ -131,6 +148,21 @@ class RunHandler(Handler):
             return {}
 
         return credentials
+
+    def load_jwt_key(self, tool_source_path: str) -> Optional[str]:
+        """Load RSA private key from the .jwt_key file in the tool source directory.
+
+        Args:
+            tool_source_path: Path to the tool source directory.
+
+        Returns:
+            The PEM-encoded private key string, or None if the file does not exist.
+        """
+        try:
+            with open(f"{tool_source_path}/{JWT_KEY_FILE}", "r") as file:
+                return file.read()
+        except FileNotFoundError:
+            return None
 
     def load_tool_globals(self, tool_source_path: str) -> Optional[dict]:
         globals = {}

@@ -3,8 +3,11 @@ import pytest
 import io
 from click.testing import CliRunner
 
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization
+
 from weni_cli.cli import cli
-from weni_cli.commands.run import RunHandler, DEFAULT_TEST_DEFINITION_FILE
+from weni_cli.commands.run import RunHandler, DEFAULT_TEST_DEFINITION_FILE, JWT_KEY_FILE, JWT_CREDENTIALS_KEY
 from weni_cli.clients.cli_client import CLIClient
 
 
@@ -1239,3 +1242,164 @@ def test_run_command_invalid_agent_and_tool(mocker, create_mocked_files, mock_st
         assert "not found in the definition file" in result.output
         # Should not see tool validation error since agent validation fails first
         assert "Invalid Tool" not in result.output
+
+
+# --- JWT key loading and injection tests ---
+
+
+@pytest.fixture
+def rsa_private_key_pem():
+    """Generate an RSA private key PEM string for testing."""
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    return private_key.private_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    ).decode("utf-8")
+
+
+def test_load_jwt_key_success():
+    """Test load_jwt_key when .jwt_key file exists."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        handler = RunHandler()
+        os.makedirs("tools/my_tool", exist_ok=True)
+        key_content = "-----BEGIN PRIVATE KEY-----\nfake-key-data\n-----END PRIVATE KEY-----\n"
+        with open("tools/my_tool/.jwt_key", "w") as f:
+            f.write(key_content)
+
+        result = handler.load_jwt_key("tools/my_tool")
+        assert result == key_content
+
+
+def test_load_jwt_key_file_not_found():
+    """Test load_jwt_key when .jwt_key file does not exist."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        handler = RunHandler()
+        os.makedirs("tools/my_tool", exist_ok=True)
+
+        result = handler.load_jwt_key("tools/my_tool")
+        assert result is None
+
+
+def test_run_command_jwt_injected_into_credentials(
+    mocker, create_mocked_files, mock_store_values, rsa_private_key_pem
+):
+    """Test that JWT token is generated and injected into credentials when .jwt_key exists."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        # Write a real RSA private key to the tool's .jwt_key file
+        with open(f"tools/get_address/{JWT_KEY_FILE}", "w") as f:
+            f.write(rsa_private_key_pem)
+
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_default_test_definition",
+            return_value=f"tools/get_address/{DEFAULT_TEST_DEFINITION_FILE}",
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_tool_folder",
+            return_value=(io.BytesIO(b"mock zip content"), None),
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.get_tool_source_path",
+            return_value="tools/get_address",
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_tool_globals",
+            return_value={"REGION": "us-east-1"},
+        )
+
+        mock_client_run = mocker.patch("weni_cli.clients.cli_client.CLIClient.run_test")
+        mock_client_run.return_value = []
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        assert result.exit_code == 0
+        assert "JWT token generated" in result.output
+
+        # Verify the credentials passed to run_test contain the Token key
+        call_args = mock_client_run.call_args
+        credentials_arg = call_args[0][6]  # 7th positional arg is credentials
+        assert JWT_CREDENTIALS_KEY in credentials_arg
+        assert len(credentials_arg[JWT_CREDENTIALS_KEY]) > 0
+
+
+def test_run_command_no_jwt_when_no_key_file(
+    mocker, create_mocked_files, mock_store_values
+):
+    """Test that no JWT is injected when .jwt_key file does not exist."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_default_test_definition",
+            return_value=f"tools/get_address/{DEFAULT_TEST_DEFINITION_FILE}",
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_tool_folder",
+            return_value=(io.BytesIO(b"mock zip content"), None),
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.get_tool_source_path",
+            return_value="tools/get_address",
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_tool_globals",
+            return_value={"REGION": "us-east-1"},
+        )
+
+        mock_client_run = mocker.patch("weni_cli.clients.cli_client.CLIClient.run_test")
+        mock_client_run.return_value = []
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        assert result.exit_code == 0
+        assert "JWT token generated" not in result.output
+
+        # Verify credentials do NOT contain the Token key
+        call_args = mock_client_run.call_args
+        credentials_arg = call_args[0][6]
+        assert JWT_CREDENTIALS_KEY not in credentials_arg
+
+
+def test_run_command_jwt_error_with_invalid_key(
+    mocker, create_mocked_files, mock_store_values
+):
+    """Test that an error is shown when .jwt_key contains an invalid key."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        # Write an invalid key to the .jwt_key file
+        os.makedirs("tools/get_address", exist_ok=True)
+        with open(f"tools/get_address/{JWT_KEY_FILE}", "w") as f:
+            f.write("this-is-not-a-valid-pem-key")
+
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_default_test_definition",
+            return_value=f"tools/get_address/{DEFAULT_TEST_DEFINITION_FILE}",
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.load_tool_folder",
+            return_value=(io.BytesIO(b"mock zip content"), None),
+        )
+        mocker.patch(
+            "weni_cli.commands.run.RunHandler.get_tool_source_path",
+            return_value="tools/get_address",
+        )
+
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
+
+        assert result.exit_code == 0
+        assert "JWT Generation Error" in result.output

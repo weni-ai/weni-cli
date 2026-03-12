@@ -17,6 +17,7 @@ regex = "^2024.11.6"
 weni-agents-toolkit = "2.3.3"
 rich-click = "^1.8.6"
 rich = "^13.9.4"
+weni-agenteval = "^1.0.11"
 
 [tool.poetry.group.docs]
 optional = true

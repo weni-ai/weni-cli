@@ -166,7 +166,7 @@ def eval():
     help="Directory where the evaluation plan file will be created.",
 )
 def eval_init(plan_dir):
-    """Initialize an agenteval.yml plan file"""
+    """Initialize an agent_evaluation.yml plan file"""
     from weni_cli.commands.eval_init import EvalInitHandler
 
     exit_code = EvalInitHandler().execute(plan_dir=plan_dir)
@@ -186,7 +186,7 @@ def eval_init(plan_dir):
     "--plan-dir",
     type=click.Path(exists=True, file_okay=False, dir_okay=True),
     required=False,
-    help="Directory where agenteval.yml is located.",
+    help="Directory where agent_evaluation.yml is located.",
 )
 @click.option("--verbose", is_flag=True, default=False, help="Enable verbose logging.")
 @click.option(
@@ -208,7 +208,7 @@ def eval_init(plan_dir):
     help="Show real-time conversation while tests run sequentially.",
 )
 def eval_run(test_filter, plan_dir, verbose, num_threads, work_dir, watch):
-    """Run agent evaluations from agenteval.yml"""
+    """Run agent evaluations from agent_evaluation.yml"""
     from weni_cli.commands.eval_run import EvalRunHandler
 
     exit_code = EvalRunHandler().execute(

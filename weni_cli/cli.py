@@ -188,26 +188,8 @@ def eval_init(plan_dir):
     required=False,
     help="Directory where agent_evaluation.yml is located.",
 )
-@click.option("--verbose", is_flag=True, default=False, help="Enable verbose logging.")
-@click.option(
-    "--num-threads",
-    type=int,
-    required=False,
-    help="Number of threads used to run tests concurrently.",
-)
-@click.option(
-    "--work-dir",
-    type=click.Path(exists=True, file_okay=False, dir_okay=True),
-    required=False,
-    help="Directory where test artifacts and summary will be generated.",
-)
-@click.option(
-    "--watch",
-    is_flag=True,
-    default=False,
-    help="Show real-time conversation while tests run sequentially.",
-)
-def eval_run(test_filter, plan_dir, verbose, num_threads, work_dir, watch):
+@click.option("--verbose", is_flag=True, default=False, help="Show detailed reasoning for each test result.")
+def eval_run(test_filter, plan_dir, verbose):
     """Run agent evaluations from agent_evaluation.yml"""
     from weni_cli.commands.eval_run import EvalRunHandler
 
@@ -215,9 +197,6 @@ def eval_run(test_filter, plan_dir, verbose, num_threads, work_dir, watch):
         filter=test_filter,
         plan_dir=plan_dir,
         verbose=verbose,
-        num_threads=num_threads,
-        work_dir=work_dir,
-        watch=watch,
     )
     if exit_code != 0:
         raise click.exceptions.Exit(exit_code)

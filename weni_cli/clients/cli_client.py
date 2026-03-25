@@ -83,6 +83,7 @@ class CLIClient:
         method: str,
         endpoint: str,
         data: Optional[Dict] = None,
+        json_data: Optional[Dict] = None,
         files: Optional[Dict] = None,
         timeout: tuple = (10, None),
     ):
@@ -92,7 +93,14 @@ class CLIClient:
         response = None
         try:
             response = self.session.request(
-                method=method, url=url, headers=self.headers, data=data, files=files, stream=True, timeout=timeout
+                method=method,
+                url=url,
+                headers=self.headers,
+                data=data,
+                json=json_data,
+                files=files,
+                stream=True,
+                timeout=timeout,
             )
 
             if response.status_code != 200:
@@ -100,7 +108,10 @@ class CLIClient:
                     raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                 try:
                     error_data = response.json()
-                    message = error_data.get("message", f"Request failed with status code {response.status_code}")
+                    message = error_data.get(
+                        "message",
+                        error_data.get("detail", f"Request failed with status code {response.status_code}"),
+                    )
                     raise RequestError(
                         message=message,
                         status_code=response.status_code,
@@ -284,6 +295,23 @@ class CLIClient:
                     )
 
         return test_logs
+
+    def run_evaluation(
+        self,
+        plan_config: Dict,
+        event_callback: Callable[[Dict], None],
+    ) -> None:
+        """Run an agent evaluation via the backend."""
+        try:
+            with self._streaming_request(
+                method="POST", endpoint="api/v1/evaluations", json_data=plan_config
+            ) as response:
+                for line in response.iter_lines():
+                    if line:
+                        resp = json.loads(line)
+                        event_callback(resp)
+        except RequestError as e:
+            raise RequestError(f"Failed to run evaluation: {e.message}")
 
     def get_tool_logs(
         self, agent: str, tool: str, start_time: str, end_time: str, pattern: str, next_token: str | None = None

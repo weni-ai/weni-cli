@@ -26,6 +26,61 @@ def process_push_display_step(resp):
     return resp.get("message") + "."
 
 
+def process_evaluation_event(resp):
+    """Process a streaming evaluation event from the backend.
+
+    Args:
+        resp: Response object from server
+
+    Returns:
+        Dictionary with event data if successful, None otherwise
+    """
+    if not resp:
+        return None
+
+    if not resp.get("success"):
+        error_data = resp.get("data", {})
+        return {
+            "code": resp.get("code", "EVALUATION_ERROR"),
+            "error": error_data.get("error", resp.get("message", "Unknown evaluation error")),
+        }
+
+    code = resp.get("code")
+    data = resp.get("data", {})
+
+    if code == "EVALUATION_STARTED":
+        return {
+            "code": code,
+            "num_tests": data.get("num_tests"),
+            "test_names": data.get("test_names"),
+        }
+    elif code == "EVALUATION_TEST_STARTED":
+        return {
+            "code": code,
+            "test_name": data.get("test_name"),
+            "test_index": data.get("test_index"),
+            "num_tests": data.get("num_tests"),
+        }
+    elif code == "EVALUATION_TEST_COMPLETED":
+        return {
+            "code": code,
+            "test_name": data.get("test_name"),
+            "passed": data.get("passed"),
+            "result": data.get("result"),
+            "reasoning": data.get("reasoning"),
+            "conversation": data.get("conversation"),
+        }
+    elif code == "EVALUATION_COMPLETED":
+        return {
+            "code": code,
+            "pass_count": data.get("pass_count"),
+            "num_tests": data.get("num_tests"),
+            "summary_content": data.get("summary_content"),
+        }
+
+    return None
+
+
 def process_test_progress(resp, verbose):
     """Process response for test run display progress.
 

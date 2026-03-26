@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 
-import rich_click as click
 import yaml
 from rich.console import Console
 from rich.table import Table

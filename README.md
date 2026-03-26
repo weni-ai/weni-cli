@@ -206,14 +206,11 @@ Common options:
 # Run only specific tests
 weni eval run --filter "greeting,checkout_flow"
 
-# Verbose logs
+# Verbose output with detailed reasoning
 weni eval run --verbose
 
-# Real-time conversation display
-weni eval run --watch
-
-# Custom directories
-weni eval run --plan-dir <plan_directory> --work-dir <artifacts_directory>
+# Custom plan directory
+weni eval run --plan-dir <plan_directory>
 ```
 
 ## Agent Definition File Structure

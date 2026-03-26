@@ -13,3 +13,4 @@ With it, you can:
 - [x] Deploy agents
 - [x] Update agent configurations and behaviors
 - [x] Manage multiple agents in your projects
+- [x] Evaluate agents with automated test plans

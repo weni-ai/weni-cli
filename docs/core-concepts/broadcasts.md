@@ -306,23 +306,6 @@ class SendProductCatalog(Tool):
         ))
 ```
 
-## Error Handling
-
-If a broadcast fails, you can catch the error and handle it gracefully:
-
-```python
-from weni.broadcasts import BroadcastSenderError
-
-class MyTool(Tool):
-    def execute(self, context: Context):
-        try:
-            self.send_broadcast(Text(text="Hello!"))
-        except BroadcastSenderError as e:
-            return TextResponse(data={"error": f"Broadcast failed: {e}"})
-
-        return FinalResponse()
-```
-
 ## Best Practices
 
 When working with broadcasts:
@@ -330,6 +313,5 @@ When working with broadcasts:
 1. **Use broadcasts for real-time feedback**: Send progress messages during long-running operations so the user knows the tool is working
 2. **Choose the right catalog type**: Use `WhatsAppCatalog` when the channel natively resolves product details from retailer IDs, and `WeniWebChatCatalog` when full product details need to be provided explicitly
 3. **Detect the channel from the contact URN**: Check `context.contact.get("urn")` to determine the contact's channel and send the appropriate message type
-4. **Handle errors gracefully**: Wrap broadcast calls in try/except blocks when broadcast failure should not prevent the tool from returning a response
-5. **Keep broadcasts concise**: Avoid flooding the user with too many messages — only send what is necessary
-6. **Use FinalResponse when appropriate**: If the broadcast is the primary output of your tool, return `FinalResponse()` instead of `TextResponse` to avoid duplicate information. See the [FinalResponse](./final-response.md) documentation for more details
+4. **Keep broadcasts concise**: Avoid flooding the user with too many messages — only send what is necessary
+5. **Use FinalResponse when appropriate**: If the broadcast is the primary output of your tool, return `FinalResponse()` instead of `TextResponse` to avoid duplicate information. See the [FinalResponse](./final-response.md) documentation for more details

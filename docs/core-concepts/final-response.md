@@ -99,17 +99,3 @@ class UpdatePreferences(Tool):
 1. **Use `FinalResponse` when your tool already talks to the user**: If you send broadcasts, catalogs, or any interactive message, return `FinalResponse()` to prevent duplicate messages
 2. **Use `TextResponse` when the agent should respond**: If the tool fetches data that the agent needs to interpret and present, return `TextResponse(data=...)` instead
 3. **Don't mix both intentions**: If you send a broadcast and also return `TextResponse`, the user may receive both the broadcast and an agent-generated message — which is usually not the desired behavior
-4. **Combine with error handling**: You can still return `TextResponse` for error cases while using `FinalResponse` for the success path, allowing the agent to communicate errors naturally
-
-```python
-class ProcessOrder(Tool):
-    def execute(self, context: Context):
-        order_id = context.parameters.get("order_id")
-        result = self.process(order_id)
-
-        if result.get("error"):
-            return TextResponse(data=result)
-
-        self.send_broadcast(Text(text=f"Order #{order_id} processed successfully!"))
-        return FinalResponse()
-```

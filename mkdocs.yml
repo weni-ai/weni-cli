@@ -91,6 +91,8 @@ nav:
       - Passive Agents: core-concepts/passive-agents.md
       - Active Agents: core-concepts/active-agents.md
     - Tools: core-concepts/tools.md
+    - Broadcasts: core-concepts/broadcasts.md
+    - FinalResponse: core-concepts/final-response.md
     - Channels: user-guide/channels.md
     - Credentials: core-concepts/credentials.md
     - Constants: core-concepts/constants.md

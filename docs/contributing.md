@@ -7,7 +7,7 @@ Thank you for your interest in contributing to Weni CLI! This guide will help yo
 ### Prerequisites
 
 - Python >= 3.12
-- Poetry >= 1.8.5
+- [uv](https://docs.astral.sh/uv/)
 - Git
 
 ### Setting Up Development Environment
@@ -22,7 +22,7 @@ Thank you for your interest in contributing to Weni CLI! This guide will help yo
 
 3. Install dependencies:
    ```bash
-   poetry install
+   uv sync --group dev
    ```
 
 4. Create a new branch:
@@ -50,12 +50,12 @@ Thank you for your interest in contributing to Weni CLI! This guide will help yo
 
 2. Run tests:
    ```bash
-   poetry run pytest
+   uv run pytest
    ```
 
 3. Check coverage:
    ```bash
-   poetry run pytest --cov
+   uv run pytest --cov
    ```
 
 ### Documentation
@@ -149,16 +149,16 @@ List documentation updates
 
 ```bash
 # Format code
-poetry run black .
+uv run black .
 
 # Run linter
-poetry run flake8
+uv run flake8
 
 # Run tests
-poetry run pytest
+uv run pytest
 
 # Build documentation
-poetry run mkdocs serve
+uv run --group docs mkdocs serve
 ```
 
 ## Release Process

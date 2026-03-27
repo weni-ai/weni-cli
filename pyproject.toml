@@ -1,50 +1,47 @@
-[tool.poetry]
+[project]
 name = "weni-cli"
 version = "3.5.6"
 description = ""
-authors = ["Paulo Bernardo <paulo.bernardo@weni.ai>"]
+authors = [{ name = "Paulo Bernardo", email = "paulo.bernardo@weni.ai" }]
 readme = "README.md"
+requires-python = ">=3.10"
 
-[tool.poetry.dependencies]
-python = "^3.10"
-click = "^8.1.8"
-requests = "^2.32.3"
-flask = "^3.1.1"
-waitress = "^3.0.2"
-pyyaml = "^6.0.2"
-python-slugify = "^8.0.4"
-regex = "^2024.11.6"
-weni-agents-toolkit = "2.5.1"
-rich-click = "^1.8.6"
-rich = "^13.9.4"
-weni-agenteval = "^1.0.11"
+dependencies = [
+    "click>=8.1.8",
+    "requests>=2.32.3",
+    "flask>=3.1.1",
+    "waitress>=3.0.2",
+    "pyyaml>=6.0.2",
+    "python-slugify>=8.0.4",
+    "regex>=2024.11.6",
+    "weni-agents-toolkit==2.5.1",
+    "rich-click>=1.8.6",
+    "rich>=13.9.4",
+    "weni-agenteval>=1.0.11",
+]
 
-[tool.poetry.group.docs]
-optional = true
-
-[tool.poetry.group.docs.dependencies]
-mkdocs = "^1.5.3"
-mkdocs-material = "^9.5.3"
-mkdocstrings = {extras = ["python"], version = "^0.24.0"}
-
-[tool.poetry.group.dev]
-optional = true
-
-[tool.poetry.group.dev.dependencies]
-flake8 = "^7.1.1"
-black = "^24.10.0"
-pytest = "^8.3.4"
-pytest-mock = "^3.14.0"
-requests-mock = "^1.12.1"
-pytest-cov = "^6.0.0"
-mypy = "^1.15.0"
-
-[tool.poetry.scripts]
+[project.scripts]
 weni = "weni_cli.cli:cli"
 
+[dependency-groups]
+dev = [
+    "flake8>=7.1.1",
+    "black>=24.10.0",
+    "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
+    "requests-mock>=1.12.1",
+    "pytest-cov>=6.0.0",
+    "mypy>=1.15.0",
+]
+docs = [
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.5.3",
+    "mkdocstrings[python]>=0.24.0",
+]
+
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.black]
 line-length = 119
@@ -52,12 +49,12 @@ line-length = 119
 [tool.mypy]
 disable_error_code = ["import-untyped"]
 
-[tool.pytest]
+[tool.pytest.ini_options]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 testpaths = ["weni_cli"]
-addopts = "--strict-markers -v"
+addopts = ["--strict-markers", "-v"]
 
 [tool.coverage.run]
 source = ["weni_cli"]
@@ -66,5 +63,5 @@ omit = [
     "*/test_*.py",
     "*/__pycache__/*",
     "*/.pytest_cache/*",
-    "*/__init__.py"
+    "*/__init__.py",
 ]

@@ -13,7 +13,7 @@ auth_queue: queue.Queue = queue.Queue()
 
 @app.route("/sso-callback", methods=["GET"])
 def sso_callback():  # pragma: no cover
-    global auth_queue
+    global auth_queue  # noqa: F824
     auth_queue.put(request.args.get("code"))
     return "Successfully logged in, you can close this window now"
 

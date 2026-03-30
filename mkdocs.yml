@@ -100,6 +100,8 @@ nav:
   - Run:
     - Tool Tests: run/tool-run.md
     - Logs: run/logs.md
+  - Eval:
+    - Agent Evaluation: eval/evaluation.md
   - Examples:
     - Example Gallery: examples/gallery.md
   - Utils:

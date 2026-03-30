@@ -147,6 +147,7 @@ The agent will now be able to:
 - **Select project**: Set the project to be used by the CLI.
 - **Current project**: Display information about the currently selected project.
 - **Push project definition**: Upload the agents definition file to the selected project.
+- **Agent evaluation**: Initialize and run agent evaluations with `weni eval`.
 
 ## Usage
 
@@ -182,6 +183,35 @@ Upload a YAML definition file to the configured project:
 weni project push <definition_file.yaml>
 ```
 Replace `<definition_file.yaml>` with the path to your YAML definition file.
+
+### 6. Initialize an evaluation plan
+Create an `agenteval.yml` test plan in the current directory:
+```bash
+weni eval init
+```
+
+You can also choose a directory:
+```bash
+weni eval init --plan-dir <path_to_directory>
+```
+
+### 7. Run agent evaluation
+Run all tests from `agenteval.yml`:
+```bash
+weni eval run
+```
+
+Common options:
+```bash
+# Run only specific tests
+weni eval run --filter "greeting,checkout_flow"
+
+# Verbose output with detailed reasoning
+weni eval run --verbose
+
+# Custom plan directory
+weni eval run --plan-dir <plan_directory>
+```
 
 ## Agent Definition File Structure
 

@@ -153,5 +153,54 @@ def create_channel(channel_definition):
         click.echo(f"Error: {e}")
 
 
+@cli.group()
+def eval():
+    """Agent evaluation commands"""
+
+
+@eval.command("init")
+@click.option(
+    "--plan-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    required=False,
+    help="Directory where the evaluation plan file will be created.",
+)
+def eval_init(plan_dir):
+    """Initialize an agent_evaluation.yml plan file"""
+    from weni_cli.commands.eval_init import EvalInitHandler
+
+    exit_code = EvalInitHandler().execute(plan_dir=plan_dir)
+    if exit_code != 0:
+        raise click.exceptions.Exit(exit_code)
+
+
+@eval.command("run")
+@click.option(
+    "--filter",
+    "test_filter",
+    type=str,
+    required=False,
+    help="Comma-separated list of tests to run.",
+)
+@click.option(
+    "--plan-dir",
+    type=click.Path(exists=True, file_okay=False, dir_okay=True),
+    required=False,
+    help="Directory where agent_evaluation.yml is located.",
+)
+@click.option("--verbose", is_flag=True, default=False, help="Show detailed reasoning for each test result.")
+def eval_run(test_filter, plan_dir, verbose):
+    """Run agent evaluations from agent_evaluation.yml"""
+    from weni_cli.commands.eval_run import EvalRunHandler
+
+    exit_code = EvalRunHandler().execute(
+        filter=test_filter,
+        plan_dir=plan_dir,
+        verbose=verbose,
+    )
+    if exit_code != 0:
+        raise click.exceptions.Exit(exit_code)
+
+
 if __name__ == "__main__":  # pragma: no cover
     cli()

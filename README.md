@@ -12,7 +12,7 @@ A command-line interface (CLI) tool to manage and interact with projects on the 
 ## Requirements
 
 - Python >= 3.10
-- Poetry >= 1.8.5
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ## Installation
 
@@ -20,6 +20,11 @@ A command-line interface (CLI) tool to manage and interact with projects on the 
 You can install the CLI directly using pip:
 ```bash
 pip install weni-cli
+```
+
+### Install via uv
+```bash
+uv tool install weni-cli
 ```
 
 ### Manual Installation
@@ -32,8 +37,7 @@ pip install weni-cli
 
 2. Install dependencies and make the CLI executable:
    ```bash
-   poetry shell
-   poetry install
+   uv sync
    ```
 
 ## Quick Start [Step by Step]

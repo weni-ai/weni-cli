@@ -1,11 +1,11 @@
 # Installation Guide
 
-This guide will help you install the Weni CLI tool on your system. We provide two installation methods: a quick installation via pip and a manual installation using Poetry for development purposes.
+This guide will help you install the Weni CLI tool on your system. We provide multiple installation methods: a quick installation via pip/uv and a manual installation for development purposes.
 
 ## Requirements
 
 - Python >= 3.10
-- Poetry >= 1.8.5
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 ## Installation
 
@@ -15,6 +15,12 @@ You can install the CLI directly using pip:
 
 ```bash
 pip install weni-cli
+```
+
+### Install via uv
+
+```bash
+uv tool install weni-cli
 ```
 
 ### Manual Installation
@@ -27,8 +33,7 @@ cd weni-cli
 
 2. Install dependencies and make the CLI executable:
 ```bash
-poetry shell
-poetry install
+uv sync
 ```
 
 ## Verifying Installation

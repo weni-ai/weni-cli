@@ -185,9 +185,19 @@ weni project push <definition_file.yaml>
 Replace `<definition_file.yaml>` with the path to your YAML definition file.
 
 ### 6. Initialize an evaluation plan
-Create an `agenteval.yml` test plan in the current directory:
+Create an `agent_evaluation.yml` test plan in the current directory:
 ```bash
 weni eval init
+```
+
+This generates a file where you only need to define your tests:
+```yaml
+tests:
+  greeting:
+    steps:
+      - Send a greeting message to the agent
+    expected_results:
+      - Agent responds with a friendly greeting
 ```
 
 You can also choose a directory:
@@ -196,7 +206,7 @@ weni eval init --plan-dir <path_to_directory>
 ```
 
 ### 7. Run agent evaluation
-Run all tests from `agenteval.yml`:
+Run all tests from `agent_evaluation.yml`:
 ```bash
 weni eval run
 ```

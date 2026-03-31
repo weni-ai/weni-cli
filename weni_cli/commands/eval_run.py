@@ -3,7 +3,9 @@ from datetime import datetime
 
 import yaml
 from rich.console import Console
+from rich.spinner import Spinner
 from rich.table import Table
+from rich.text import Text
 from rich.live import Live
 
 from weni_cli.clients.cli_client import CLIClient, RequestError
@@ -42,23 +44,40 @@ class EvalRunHandler(Handler):
 
             console = Console()
             test_rows: list[dict] = []
+            pending_test_names: list[str] = []
             summary_content = ""
             tests_failed = False
             num_tests = 0
             pass_count = 0
 
+            def _add_next_pending_test() -> None:
+                if pending_test_names:
+                    test_rows.append({
+                        "name": pending_test_names.pop(0),
+                        "status": "pending",
+                        "reasoning": "",
+                    })
+
             def _build_table() -> Table:
                 table = Table(title="Evaluation Results", expand=True)
-                table.add_column("Test", justify="left")
-                table.add_column("Status", justify="center", width=8)
                 if verbose:
-                    table.add_column("Reasoning", ratio=2)
-                for row in test_rows:
-                    status = row.get("status", "⏳")
-                    cols = [row["name"], status]
+                    table.add_column("Test", justify="left", ratio=2)
+                    table.add_column("Status", justify="center", ratio=1)
+                    table.add_column("Reasoning", ratio=4)
+                else:
+                    table.add_column("Test", justify="left", ratio=3)
+                    table.add_column("Status", justify="center", ratio=1)
+                for i, row in enumerate(test_rows):
+                    status = row.get("status", "")
+                    if status == "pending":
+                        status_display = Spinner("dots", text=Text(" Running", style="yellow"))
+                    else:
+                        status_display = status
+                    cols = [row["name"], status_display]
                     if verbose:
                         cols.append(row.get("reasoning", ""))
-                    table.add_row(*cols)
+                    is_last = i == len(test_rows) - 1
+                    table.add_row(*cols, end_section=verbose and not is_last)
                 return table
 
             def _handle_event(resp: dict) -> None:
@@ -75,13 +94,8 @@ class EvalRunHandler(Handler):
 
                 if code == "EVALUATION_STARTED":
                     num_tests = event.get("num_tests", 0)
-
-                elif code == "EVALUATION_TEST_STARTED":
-                    test_rows.append({
-                        "name": event["test_name"],
-                        "status": "⏳",
-                        "reasoning": "",
-                    })
+                    pending_test_names.extend(event.get("test_names", []))
+                    _add_next_pending_test()
                     live.update(_build_table(), refresh=True)
 
                 elif code == "EVALUATION_TEST_COMPLETED":
@@ -93,6 +107,7 @@ class EvalRunHandler(Handler):
                     if row_idx is not None:
                         test_rows[row_idx]["status"] = "✅" if passed else "❌"
                         test_rows[row_idx]["reasoning"] = event.get("reasoning", "") or ""
+                    _add_next_pending_test()
                     live.update(_build_table(), refresh=True)
 
                 elif code == "EVALUATION_COMPLETED":

@@ -25,9 +25,9 @@ def test_eval_init_success():
             content = yaml.safe_load(f)
 
         assert content == _DEFAULT_PLAN
-        assert content["evaluator"]["model"] == "claude-haiku-4_5-global"
-        assert content["evaluator"]["aws_region"] == "us-east-1"
-        assert content["target"]["type"] == "weni"
+        assert "tests" in content
+        assert "evaluator" not in content
+        assert "target" not in content
 
 
 def test_eval_init_plan_exists_returns_exit_code_2():
@@ -57,8 +57,6 @@ def test_eval_init_with_plan_dir():
 def _create_plan_file(plan_dir=None):
     """Helper to create a valid agent_evaluation.yml in the given directory."""
     plan = {
-        "evaluator": {"model": "claude-haiku-4_5-global", "aws_region": "us-east-1"},
-        "target": {"type": "weni"},
         "tests": {
             "greeting": {
                 "steps": ["Send a greeting message"],

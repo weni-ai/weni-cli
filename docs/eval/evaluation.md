@@ -1,6 +1,6 @@
 # Agent Evaluation
 
-Agent Evaluation allows you to automatically test your Weni agents by defining test plans with steps and expected results. An LLM evaluator interacts with your agent and judges whether the responses meet the expected criteria.
+Agent Evaluation allows you to automatically test your Weni agents by defining test plans with steps and expected results. An evaluator interacts with your agent and judges whether the responses meet the expected criteria.
 
 ## How it works
 
@@ -8,7 +8,7 @@ The evaluation flow follows these stages:
 
 1. **Initialization**: The evaluator reads your test plan (`agent_evaluation.yml`)
 2. **Test execution**: For each test case, the evaluator sends prompts to your agent and collects responses
-3. **Judgment**: The evaluator (an LLM model via Amazon Bedrock) analyzes the conversation and determines if the expected results were observed
+3. **Judgment**: The evaluator analyzes the conversation and determines if the expected results were observed
 4. **Report**: Results are displayed in a summary table and a markdown report is saved
 
 ## Getting started
@@ -46,53 +46,16 @@ tests:
       - Agent responds with a friendly greeting
 ```
 
-You only need to define your tests. The evaluator model and target type are automatically configured by the backend.
+You only need to define your test scenarios. The evaluator model and authentication are automatically handled by the Weni CLI.
 
 ## Plan file structure
 
-The `agent_evaluation.yml` file requires only the `tests` section. The `evaluator` and `target` sections are optional and have sensible defaults applied by the backend.
-
-### `tests` (required)
-
-Defines the test cases. Each test has a unique key and contains:
+The `agent_evaluation.yml` file contains your test definitions. Each test has a unique key and contains:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `steps` | list of strings | Yes | The sequence of actions/messages to send to the agent. |
-| `expected_results` | list of strings | Yes | The criteria the evaluator uses to judge the agent's responses. |
-
-### `evaluator` (optional)
-
-Configures the LLM model used to judge the agent's responses. If omitted, the backend uses its default model (Claude Haiku 4.5).
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `model` | string | No | The evaluator model. Defaults to `claude-haiku-4_5-global`. See [available models](#available-models) below. |
-| `aws_region` | string | No | AWS region for Bedrock. Defaults to `us-east-1`. |
-
-#### Available models
-
-| Alias | Model |
-|-------|-------|
-| `claude-3` | Claude 3 Sonnet |
-| `claude-3_5` | Claude 3.5 Sonnet |
-| `claude-3_7-us` | Claude 3.7 Sonnet |
-| `claude-haiku-3_5-us` | Claude 3.5 Haiku |
-| `claude-sonnet-4_5-global` | Claude Sonnet 4.5 |
-| `claude-haiku-4_5-global` | Claude Haiku 4.5 (default) |
-| `llama-3_3-us` | Llama 3.3 70B |
-
-Models suffixed with `-us` use the USA cross-region inference profile. Models suffixed with `-global` use the global inference profile.
-
-### `target` (optional)
-
-Defines the agent being tested. Defaults to `type: weni` if omitted.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `type` | string | No | Defaults to `weni`. |
-
-When running through the Weni CLI, the authentication token and project UUID are automatically injected from your CLI session. No additional target configuration is needed.
+| `expected_results` | list of strings | Yes | The criteria used to judge the agent's responses. |
 
 ## Writing tests
 
@@ -201,8 +164,6 @@ When using `--verbose`, the reasoning column shows the evaluator's explanation f
 
 ## Complete example
 
-A minimal plan with just tests (recommended):
-
 ```yaml title="agent_evaluation.yml"
 tests:
   greeting:
@@ -234,20 +195,6 @@ tests:
     expected_results:
       - Agent handles the unclear input gracefully
       - Agent asks for clarification or provides guidance
-```
-
-If you need to override the evaluator model:
-
-```yaml title="agent_evaluation.yml"
-evaluator:
-  model: claude-3_5
-
-tests:
-  greeting:
-    steps:
-      - Send "Hello!"
-    expected_results:
-      - Agent responds with a friendly greeting
 ```
 
 ## Troubleshooting

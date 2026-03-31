@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.1] - 2026-03-31
+
+### Added
+
+- Improve agents evaluation file definition and execution process ([#146](https://github.com/weni-ai/weni-cli/pull/146)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.0] - 2026-03-30
 
 ### Added

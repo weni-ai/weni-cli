@@ -38,13 +38,6 @@ weni eval init --plan-dir <path_to_directory>
 This generates a starter plan like:
 
 ```yaml title="agent_evaluation.yml"
-evaluator:
-  model: claude-haiku-4_5-global
-  aws_region: us-east-1
-
-target:
-  type: weni
-
 tests:
   greeting:
     steps:
@@ -53,17 +46,28 @@ tests:
       - Agent responds with a friendly greeting
 ```
 
+You only need to define your tests. The evaluator model and target type are automatically configured by the backend.
+
 ## Plan file structure
 
-The `agent_evaluation.yml` file has three main sections:
+The `agent_evaluation.yml` file requires only the `tests` section. The `evaluator` and `target` sections are optional and have sensible defaults applied by the backend.
 
-### `evaluator`
+### `tests` (required)
 
-Configures the LLM model used to judge the agent's responses.
+Defines the test cases. Each test has a unique key and contains:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `model` | string | Yes | The evaluator model. See [available models](#available-models) below. |
+| `steps` | list of strings | Yes | The sequence of actions/messages to send to the agent. |
+| `expected_results` | list of strings | Yes | The criteria the evaluator uses to judge the agent's responses. |
+
+### `evaluator` (optional)
+
+Configures the LLM model used to judge the agent's responses. If omitted, the backend uses its default model (Claude Haiku 4.5).
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | No | The evaluator model. Defaults to `claude-haiku-4_5-global`. See [available models](#available-models) below. |
 | `aws_region` | string | No | AWS region for Bedrock. Defaults to `us-east-1`. |
 
 #### Available models
@@ -80,24 +84,15 @@ Configures the LLM model used to judge the agent's responses.
 
 Models suffixed with `-us` use the USA cross-region inference profile. Models suffixed with `-global` use the global inference profile.
 
-### `target`
+### `target` (optional)
 
-Defines the agent being tested.
+Defines the agent being tested. Defaults to `type: weni` if omitted.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `type` | string | Yes | Must be `weni` for Weni agents. |
+| `type` | string | No | Defaults to `weni`. |
 
 When running through the Weni CLI, the authentication token and project UUID are automatically injected from your CLI session. No additional target configuration is needed.
-
-### `tests`
-
-Defines the test cases. Each test has a unique key and contains:
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `steps` | list of strings | Yes | The sequence of actions/messages to send to the agent. |
-| `expected_results` | list of strings | Yes | The criteria the evaluator uses to judge the agent's responses. |
 
 ## Writing tests
 
@@ -206,14 +201,9 @@ When using `--verbose`, the reasoning column shows the evaluator's explanation f
 
 ## Complete example
 
+A minimal plan with just tests (recommended):
+
 ```yaml title="agent_evaluation.yml"
-evaluator:
-  model: claude-haiku-4_5-global
-  aws_region: us-east-1
-
-target:
-  type: weni
-
 tests:
   greeting:
     steps:
@@ -244,6 +234,20 @@ tests:
     expected_results:
       - Agent handles the unclear input gracefully
       - Agent asks for clarification or provides guidance
+```
+
+If you need to override the evaluator model:
+
+```yaml title="agent_evaluation.yml"
+evaluator:
+  model: claude-3_5
+
+tests:
+  greeting:
+    steps:
+      - Send "Hello!"
+    expected_results:
+      - Agent responds with a friendly greeting
 ```
 
 ## Troubleshooting

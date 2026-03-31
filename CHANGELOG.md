@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.0] - 2026-03-30
+
+### Added
+
+- Add weni agents evaluation integration ([#144](https://github.com/weni-ai/weni-cli/pull/144)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.5.6] - 2026-03-25
 
 ### Added

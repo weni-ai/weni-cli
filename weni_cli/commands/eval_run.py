@@ -67,7 +67,7 @@ class EvalRunHandler(Handler):
                 else:
                     table.add_column("Test", justify="left", ratio=3)
                     table.add_column("Status", justify="center", ratio=1)
-                for row in test_rows:
+                for i, row in enumerate(test_rows):
                     status = row.get("status", "")
                     if status == "pending":
                         status_display = Spinner("dots", text=Text(" Running", style="yellow"))
@@ -76,7 +76,8 @@ class EvalRunHandler(Handler):
                     cols = [row["name"], status_display]
                     if verbose:
                         cols.append(row.get("reasoning", ""))
-                    table.add_row(*cols)
+                    is_last = i == len(test_rows) - 1
+                    table.add_row(*cols, end_section=verbose and not is_last)
                 return table
 
             def _handle_event(resp: dict) -> None:

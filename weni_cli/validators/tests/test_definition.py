@@ -162,10 +162,11 @@ def test_load_yaml_file_nonexistent():
 
 def test_format_definition_valid(valid_definition):
     """Test formatting a valid definition."""
-    result = format_definition(valid_definition)
+    result, warnings = format_definition(valid_definition)
 
     # Check that the result is a dictionary
     assert isinstance(result, dict)
+    assert warnings == []
 
     # Check that agents are present
     assert "agents" in result
@@ -196,10 +197,11 @@ def test_format_definition_no_tools():
         }
     }
 
-    result = format_definition(definition)
+    result, warnings = format_definition(definition)
 
     # Check that the result is a dictionary
     assert isinstance(result, dict)
+    assert warnings == []
 
     # Check that agents are present
     assert "agents" in result
@@ -216,7 +218,7 @@ def test_format_definition_no_tools():
 
 def test_is_valid_contact_field_name_valid():
     """Test valid contact field names."""
-    valid_names = ["valid", "valid123", "valid_name", "a123_456"]
+    valid_names = ["valid", "valid123", "valid_name", "a123_456", "valid-name", "a123-456"]
 
     for name in valid_names:
         assert ContactFieldValidator.has_valid_contact_field_name(name) is True
@@ -224,7 +226,7 @@ def test_is_valid_contact_field_name_valid():
 
 def test_is_valid_contact_field_name_invalid():
     """Test invalid contact field names."""
-    invalid_names = ["123invalid", "Invalid", "invalid-name", "_invalid", "invalid.name"]
+    invalid_names = ["123invalid", "Invalid", "_invalid", "invalid.name", "-invalid"]
 
     for name in invalid_names:
         assert ContactFieldValidator.has_valid_contact_field_name(name) is False
@@ -232,15 +234,129 @@ def test_is_valid_contact_field_name_invalid():
 
 def test_contact_field_regex_pattern():
     """Test the contact field regex pattern directly."""
-    # This test ensures the regex pattern matches what we expect
-    valid_names = ["valid", "valid123", "valid_name", "a123_456"]
-    invalid_names = ["123invalid", "Invalid", "invalid-name", "_invalid", "invalid.name"]
+    valid_names = ["valid", "valid123", "valid_name", "a123_456", "valid-name", "a123-456"]
+    invalid_names = ["123invalid", "Invalid", "_invalid", "invalid.name", "-invalid"]
 
     for name in valid_names:
         assert regex.match(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, name, regex.V0) is not None
 
     for name in invalid_names:
         assert regex.match(ContactFieldValidator.CONTACT_FIELD_NAME_REGEX, name, regex.V0) is None
+
+
+def test_normalize_contact_field_name():
+    """Test that underscores are replaced with hyphens."""
+    assert ContactFieldValidator.normalize_contact_field_name("user_name") == "user-name"
+    assert ContactFieldValidator.normalize_contact_field_name("a_b_c") == "a-b-c"
+    assert ContactFieldValidator.normalize_contact_field_name("nounderscores") == "nounderscores"
+    assert ContactFieldValidator.normalize_contact_field_name("already-hyphens") == "already-hyphens"
+
+
+def test_format_definition_normalizes_contact_field_underscores():
+    """Test that format_definition replaces underscores with hyphens in contact field parameter names."""
+    definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {"path": "tools/tool_1"},
+                            "parameters": [
+                                {
+                                    "user_name": {
+                                        "description": "User name",
+                                        "type": "string",
+                                        "contact_field": True,
+                                    }
+                                }
+                            ],
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    result, warnings = format_definition(definition)
+
+    params = result["agents"]["test_agent"]["tools"][0]["parameters"]
+    assert "user-name" in params[0]
+    assert "user_name" not in params[0]
+    assert len(warnings) == 1
+    assert "user_name" in warnings[0]
+    assert "user-name" in warnings[0]
+
+
+def test_format_definition_no_warning_for_contact_field_without_underscore():
+    """Test that no warning is generated when contact field names have no underscores."""
+    definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {"path": "tools/tool_1"},
+                            "parameters": [
+                                {
+                                    "username": {
+                                        "description": "User name",
+                                        "type": "string",
+                                        "contact_field": True,
+                                    }
+                                }
+                            ],
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    result, warnings = format_definition(definition)
+
+    params = result["agents"]["test_agent"]["tools"][0]["parameters"]
+    assert "username" in params[0]
+    assert warnings == []
+
+
+def test_format_definition_no_normalization_for_non_contact_field():
+    """Test that underscores are NOT replaced when contact_field is not true."""
+    definition = {
+        "agents": {
+            "test_agent": {
+                "name": "Test Agent",
+                "tools": [
+                    {
+                        "tool_1": {
+                            "name": "Tool 1",
+                            "description": "Tool description",
+                            "source": {"path": "tools/tool_1"},
+                            "parameters": [
+                                {
+                                    "user_name": {
+                                        "description": "User name",
+                                        "type": "string",
+                                    }
+                                }
+                            ],
+                        }
+                    }
+                ],
+            }
+        }
+    }
+
+    result, warnings = format_definition(definition)
+
+    params = result["agents"]["test_agent"]["tools"][0]["parameters"]
+    assert "user_name" in params[0]
+    assert warnings == []
 
 
 def test_validate_agent_definition_calls_validate_schema(mocker, tmpdir):

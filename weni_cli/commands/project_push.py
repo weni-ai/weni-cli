@@ -14,8 +14,6 @@ from weni_cli.validators.agent_definition import (
     validate_active_agent_definition_schema,
 )
 
-CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_]*$"
-
 
 class ProjectPushHandler(Handler):
     def execute(self, **kwargs):
@@ -70,7 +68,9 @@ class ProjectPushHandler(Handler):
             formatter.print_error_panel(error)
             return
 
-        definition = format_definition(definition)
+        definition, warnings = format_definition(definition)
+        if warnings:
+            formatter.print_warning_panel("\n".join(warnings))
         self.push_definition(force_update, "passive", project_uuid, definition, tools_folders_map)
 
     def push_active_agent(self, force_update, project_uuid, definition):
@@ -94,7 +94,9 @@ class ProjectPushHandler(Handler):
         # merge rules_folders_map and preprocessing_folders_map
         rules_folders_map.update(preprocessing_folders_map)
         resources_folders_map = rules_folders_map
-        definition = format_definition(definition)
+        definition, warnings = format_definition(definition)
+        if warnings:
+            formatter.print_warning_panel("\n".join(warnings))
         self.push_definition(force_update, "active", project_uuid, definition, resources_folders_map)
 
     def load_param(self, params, key, default=None, required=False):

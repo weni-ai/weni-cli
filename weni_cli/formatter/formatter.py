@@ -17,6 +17,17 @@ class Formatter:
         )
         print(error_panel)
 
+    def print_warning_panel(self, message, title="Warning"):
+        warning_panel = Panel(
+            f"{message}",
+            title=f"[bold yellow]{title}[/bold yellow]",
+            title_align="left",
+            style="bold yellow",
+            expand=False,
+            padding=(1, 1),
+        )
+        print(warning_panel)
+
     def print_success_panel(self, message):
         success_panel = Panel(
             f"{message}",

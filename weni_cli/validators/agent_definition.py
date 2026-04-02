@@ -528,8 +528,34 @@ def load_test_definition(path) -> tuple[Any, Optional[Exception]]:
     return data, None
 
 
+def _normalize_contact_field_parameters(
+    parameters: list, agent_key: str, tool_name: str
+) -> tuple[list, list[str]]:
+    """Normalize contact field parameter names by replacing underscores with hyphens."""
+    warnings = []
+    normalized_params = []
+
+    for param in parameters:
+        normalized_param = {}
+        for param_name, param_data in param.items():
+            if isinstance(param_data, dict) and param_data.get("contact_field") and "_" in param_name:
+                new_name = ContactFieldValidator.normalize_contact_field_name(param_name)
+                warnings.append(
+                    f"Agent '{agent_key}': tool '{tool_name}': contact field parameter "
+                    f"'{param_name}' was renamed to '{new_name}' "
+                    f"(underscores are not supported in contact field names)"
+                )
+                normalized_param[new_name] = param_data
+            else:
+                normalized_param[param_name] = param_data
+        normalized_params.append(normalized_param)
+
+    return normalized_params, warnings
+
+
 # Updates the tools in the definition to be an array of objects containing name, path and slug
-def format_definition(definition: dict) -> Optional[dict]:
+def format_definition(definition: dict) -> tuple[Optional[dict], list[str]]:
+    warnings = []
     agents = definition.get("agents", {})
 
     for agent in agents:
@@ -538,6 +564,14 @@ def format_definition(definition: dict) -> Optional[dict]:
         for tool in tools:
             for tool_key, tool_data in tool.items():
                 tool_slug = slugify(tool_data.get("name"))
+                parameters = tool_data.get("parameters")
+
+                if parameters:
+                    parameters, param_warnings = _normalize_contact_field_parameters(
+                        parameters, agent, tool_data.get("name")
+                    )
+                    warnings.extend(param_warnings)
+
                 agent_tools.append(
                     {
                         "key": tool_key,
@@ -545,18 +579,18 @@ def format_definition(definition: dict) -> Optional[dict]:
                         "name": tool_data.get("name"),
                         "source": tool_data.get("source"),
                         "description": tool_data.get("description"),
-                        "parameters": tool_data.get("parameters"),
+                        "parameters": parameters,
                     }
                 )
 
         agents[agent]["tools"] = agent_tools
         agents[agent]["slug"] = slugify(agents[agent].get("name"))
 
-    return definition
+    return definition, warnings
 
 
 class ContactFieldValidator:
-    CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_]*$"
+    CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_-]*$"
     CONTACT_FIELD_MAX_LENGTH = 36
     RESERVED_CONTACT_FIELDS = [
         "id",
@@ -611,6 +645,10 @@ class ContactFieldValidator:
         if len(parameter_name) > ContactFieldValidator.CONTACT_FIELD_MAX_LENGTH:
             return False
         return True
+
+    @staticmethod
+    def normalize_contact_field_name(parameter_name: str) -> str:
+        return parameter_name.replace("_", "-")
 
 
 class LanguageValidator:

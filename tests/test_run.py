@@ -1189,7 +1189,7 @@ def test_run_command_invalid_format_definition(mocker, create_mocked_files, mock
         )
 
         # Patch the format_definition to return None
-        mocker.patch("weni_cli.commands.run.format_definition", return_value=None)
+        mocker.patch("weni_cli.commands.run.format_definition", return_value=(None, []))
 
         result = runner.invoke(cli, ["run", agent_file, "get_address", "get_address"])
 

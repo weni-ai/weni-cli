@@ -83,7 +83,7 @@ class RunHandler(Handler):
             formatter.print_error_panel(error)
             return
 
-        definition = format_definition(definition_data)
+        definition, _ = format_definition(definition_data)
 
         tool_source_path = self.get_tool_source_path(definition, agent_key, tool_key)
 

@@ -31,12 +31,20 @@ When this parameter is processed during a conversation, the information provided
 - [x] Available for retrieval and update in future interactions
 - [x] Accessible to all agents that have permission to view this contact field
 
+## Naming Rules
+
+Contact field names on the Weni Platform only support **lowercase letters**, **numbers**, and **hyphens** (`-`). Underscores (`_`) are **not supported**.
+
+If you define a contact field parameter with underscores in its name, the CLI will **automatically replace them with hyphens** during push and display a warning. For example, `user_name` will be pushed as `user-name`.
+
+> **Note:** To avoid unexpected renames, prefer using hyphens directly in your parameter names when `contact_field` is set to `true`.
+
 ## Best Practices
 
 When implementing contact fields, consider the following best practices:
 
 - **Only store relevant information**: Not every parameter is necessarily a contact field; focus on information that will be useful in future interactions. Consider whether the parameter contains information important enough to be persisted for the contact.
-- **Use descriptive parameter names**: This helps maintain organization when multiple contact fields are in use
+- **Use descriptive parameter names**: This helps maintain organization when multiple contact fields are in use. Use hyphens instead of underscores (e.g., `user-name` instead of `user_name`)
 - **Validate data before storing**: Ensure the information is in the correct format before saving it as a contact field
 
 ## Example Use Cases

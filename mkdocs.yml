@@ -92,6 +92,7 @@ nav:
       - Active Agents: core-concepts/active-agents.md
     - Tools: core-concepts/tools.md
     - Broadcasts: core-concepts/broadcasts.md
+    - Events: core-concepts/events.md
     - FinalResponse: core-concepts/final-response.md
     - Channels: user-guide/channels.md
     - Credentials: core-concepts/credentials.md

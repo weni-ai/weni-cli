@@ -73,9 +73,9 @@ class EvalRunHandler(Handler):
                         status_display = Spinner("dots", text=Text(" Running", style="yellow"))
                     else:
                         status_display = status
-                    cols = [row["name"], status_display]
+                    cols = [Text(row["name"]), status_display]
                     if verbose:
-                        cols.append(row.get("reasoning", ""))
+                        cols.append(Text(row.get("reasoning", "")))
                     is_last = i == len(test_rows) - 1
                     table.add_row(*cols, end_section=verbose and not is_last)
                 return table

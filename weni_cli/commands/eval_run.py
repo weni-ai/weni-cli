@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 
 import yaml
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich.spinner import Spinner
 from rich.table import Table
 from rich.text import Text
@@ -73,7 +73,7 @@ class EvalRunHandler(Handler):
                         status_display = Spinner("dots", text=Text(" Running", style="yellow"))
                     else:
                         status_display = status
-                    cols = [Text(row["name"]), status_display]
+                    cols: list[RenderableType] = [Text(row["name"]), status_display]
                     if verbose:
                         cols.append(Text(row.get("reasoning", "")))
                     is_last = i == len(test_rows) - 1

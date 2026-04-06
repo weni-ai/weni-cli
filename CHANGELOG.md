@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.6.2] - 2026-04-02
+
+### Added
+
+- Update weni-agents-toolkit to 2.6.0 ([#140](https://github.com/weni-ai/weni-cli/pull/147)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
+## [3.6.1] - 2026-03-31
+
+### Added
+
+- Improve agents evaluation file definition and execution process ([#146](https://github.com/weni-ai/weni-cli/pull/146)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
+
 ## [3.6.0] - 2026-03-30
 
 ### Added

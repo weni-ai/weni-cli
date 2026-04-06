@@ -1,6 +1,6 @@
 # Agent Evaluation
 
-Agent Evaluation allows you to automatically test your Weni agents by defining test plans with steps and expected results. An LLM evaluator interacts with your agent and judges whether the responses meet the expected criteria.
+Agent Evaluation allows you to automatically test your Weni agents by defining test plans with steps and expected results. An evaluator interacts with your agent and judges whether the responses meet the expected criteria.
 
 ## How it works
 
@@ -8,7 +8,7 @@ The evaluation flow follows these stages:
 
 1. **Initialization**: The evaluator reads your test plan (`agent_evaluation.yml`)
 2. **Test execution**: For each test case, the evaluator sends prompts to your agent and collects responses
-3. **Judgment**: The evaluator (an LLM model via Amazon Bedrock) analyzes the conversation and determines if the expected results were observed
+3. **Judgment**: The evaluator analyzes the conversation and determines if the expected results were observed
 4. **Report**: Results are displayed in a summary table and a markdown report is saved
 
 ## Getting started
@@ -38,13 +38,6 @@ weni eval init --plan-dir <path_to_directory>
 This generates a starter plan like:
 
 ```yaml title="agent_evaluation.yml"
-evaluator:
-  model: claude-haiku-4_5-global
-  aws_region: us-east-1
-
-target:
-  type: weni
-
 tests:
   greeting:
     steps:
@@ -53,51 +46,16 @@ tests:
       - Agent responds with a friendly greeting
 ```
 
+You only need to define your test scenarios. The evaluator model and authentication are automatically handled by the Weni CLI.
+
 ## Plan file structure
 
-The `agent_evaluation.yml` file has three main sections:
-
-### `evaluator`
-
-Configures the LLM model used to judge the agent's responses.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `model` | string | Yes | The evaluator model. See [available models](#available-models) below. |
-| `aws_region` | string | No | AWS region for Bedrock. Defaults to `us-east-1`. |
-
-#### Available models
-
-| Alias | Model |
-|-------|-------|
-| `claude-3` | Claude 3 Sonnet |
-| `claude-3_5` | Claude 3.5 Sonnet |
-| `claude-3_7-us` | Claude 3.7 Sonnet |
-| `claude-haiku-3_5-us` | Claude 3.5 Haiku |
-| `claude-sonnet-4_5-global` | Claude Sonnet 4.5 |
-| `claude-haiku-4_5-global` | Claude Haiku 4.5 (default) |
-| `llama-3_3-us` | Llama 3.3 70B |
-
-Models suffixed with `-us` use the USA cross-region inference profile. Models suffixed with `-global` use the global inference profile.
-
-### `target`
-
-Defines the agent being tested.
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `type` | string | Yes | Must be `weni` for Weni agents. |
-
-When running through the Weni CLI, the authentication token and project UUID are automatically injected from your CLI session. No additional target configuration is needed.
-
-### `tests`
-
-Defines the test cases. Each test has a unique key and contains:
+The `agent_evaluation.yml` file contains your test definitions. Each test has a unique key and contains:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `steps` | list of strings | Yes | The sequence of actions/messages to send to the agent. |
-| `expected_results` | list of strings | Yes | The criteria the evaluator uses to judge the agent's responses. |
+| `expected_results` | list of strings | Yes | The criteria used to judge the agent's responses. |
 
 ## Writing tests
 
@@ -207,13 +165,6 @@ When using `--verbose`, the reasoning column shows the evaluator's explanation f
 ## Complete example
 
 ```yaml title="agent_evaluation.yml"
-evaluator:
-  model: claude-haiku-4_5-global
-  aws_region: us-east-1
-
-target:
-  type: weni
-
 tests:
   greeting:
     steps:

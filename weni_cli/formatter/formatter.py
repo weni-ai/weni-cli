@@ -1,5 +1,6 @@
 from rich import print
 from rich.panel import Panel
+from rich.text import Text
 
 
 class Formatter:
@@ -8,7 +9,7 @@ class Formatter:
 
     def print_error_panel(self, message, title="Error"):
         error_panel = Panel(
-            f"{message}",
+            Text(str(message)),
             title=f"[bold red]{title}[/bold red]",
             title_align="left",
             style="bold red",
@@ -19,7 +20,7 @@ class Formatter:
 
     def print_success_panel(self, message):
         success_panel = Panel(
-            f"{message}",
+            Text(str(message)),
             title="[bold green]Success[/bold green]",
             title_align="left",
             style="bold green",

@@ -8,13 +8,6 @@ from weni_cli.handler import Handler
 PLAN_FILE_NAME = "agent_evaluation.yml"
 
 _DEFAULT_PLAN = {
-    "evaluator": {
-        "model": "claude-haiku-4_5-global",
-        "aws_region": "us-east-1",
-    },
-    "target": {
-        "type": "weni",
-    },
     "tests": {
         "greeting": {
             "steps": ["Send a greeting message to the agent"],

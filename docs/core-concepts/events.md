@@ -4,6 +4,10 @@
 
 Events allow your tools to register analytics data that is sent to the Weni Datalake for tracking, reporting, and conversation classification. They are the way tools communicate what happened during execution to the analytics system.
 
+### Mandatory `event_name`
+
+**`event_name` is required and must always be `"weni_nexus_data"`.** Use the `key` field to distinguish what the event represents (for example, `"conversation_classification"`, `"order_placed"`). Arbitrary `event_name` values are not supported for Nexus/Datalake ingestion.
+
 ## Why Events Matter
 
 Events enable tools to:
@@ -29,11 +33,11 @@ class MyTool(Tool):
         result = do_work()
 
         self.register_event(Event(
-            event_name="order_placed",
-            key="order_123",
+            event_name="weni_nexus_data",
+            key="order_placed",
             value_type="string",
             value="completed",
-            metadata={"customer": "John Doe"},
+            metadata={"customer": "John Doe", "order_id": "order_123"},
         ))
 
         return TextResponse(data=result)
@@ -45,8 +49,8 @@ Events are collected automatically by the framework and returned to Nexus after 
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event_name` | `str` | Yes | Name of the event (e.g., `"order_placed"`, `"weni_nexus_data"`) |
-| `key` | `str` | Yes | Unique key for the event (e.g., `"conversation_classification"`) |
+| `event_name` | `str` | **Yes (mandatory)** | Must always be `"weni_nexus_data"` — required for Nexus/Datalake |
+| `key` | `str` | Yes | Semantic identifier for the event (e.g., `"conversation_classification"`, `"order_placed"`) |
 | `value_type` | `str` | Yes | Type of value (`"string"`, `"int"`, etc.) |
 | `value` | `Any` | Yes | The event value (e.g., `"resolved"`, `42`) |
 | `metadata` | `dict` | No | Additional metadata (default: `{}`) |
@@ -60,20 +64,21 @@ You can register multiple events in a single tool execution:
 class MyTool(Tool):
     def execute(self, context: Context):
         self.register_event(Event(
-            event_name="tool_started",
-            key="exec_001",
+            event_name="weni_nexus_data",
+            key="tool_started",
             value_type="string",
             value="started",
+            metadata={"exec_id": "exec_001"},
         ))
 
         result = expensive_operation()
 
         self.register_event(Event(
-            event_name="tool_completed",
-            key="exec_001",
+            event_name="weni_nexus_data",
+            key="tool_completed",
             value_type="string",
             value="completed",
-            metadata={"duration_ms": 150},
+            metadata={"exec_id": "exec_001", "duration_ms": 150},
         ))
 
         return TextResponse(data=result)
@@ -85,12 +90,12 @@ Each event is serialized to a dictionary:
 
 ```json
 {
-    "event_name": "order_placed",
-    "key": "order_123",
+    "event_name": "weni_nexus_data",
+    "key": "order_placed",
     "date": "2026-03-31T19:45:00.000000",
     "value_type": "string",
     "value": "completed",
-    "metadata": {"customer": "John Doe"}
+    "metadata": {"customer": "John Doe", "order_id": "order_123"}
 }
 ```
 
@@ -107,8 +112,8 @@ The static `Event.register()` method still works but is deprecated and will be r
 ```python
 # Deprecated - still works but emits a warning
 Event.register(Event(
-    event_name="my_event",
-    key="key_001",
+    event_name="weni_nexus_data",
+    key="my_event",
     value_type="string",
     value="hello",
 ))
@@ -154,7 +159,8 @@ class ClassifyConversation(Tool):
 
 ## Best Practices
 
-1. **Use `self.register_event()`**: Always prefer the instance method over the deprecated `Event.register()` for proper execution isolation
-2. **Include relevant metadata**: Add context like `contact_urn`, durations, or error details to make events useful for debugging and analytics
-3. **Use consistent event names**: Standardize `event_name` and `key` values across your tools for easier querying in the Datalake
-4. **Keep values simple**: Use primitive types for `value` (`string`, `int`, `bool`) to ensure compatibility with the Datalake
+1. **Always set `event_name` to `"weni_nexus_data"`**: It is mandatory; use `key` (and `metadata`) to express the kind of event
+2. **Use `self.register_event()`**: Always prefer the instance method over the deprecated `Event.register()` for proper execution isolation
+3. **Include relevant metadata**: Add context like `contact_urn`, durations, or error details to make events useful for debugging and analytics
+4. **Standardize `key` values**: Use consistent keys across your tools for easier querying in the Datalake
+5. **Keep values simple**: Use primitive types for `value` (`string`, `int`, `bool`) to ensure compatibility with the Datalake

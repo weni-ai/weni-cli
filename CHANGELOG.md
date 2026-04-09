@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.4] - 2026-04-09
+
+### Added
+
+- Fix exception in rich when agents responses with tags in test evaluation ([#149](https://github.com/weni-ai/weni-cli/pull/149)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.3] - 2026-04-02
 
 ### Added

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.6] - 2026-04-14
+
+### Added
+
+- Fixed string text formatter in terminal rich responses ([#153](https://github.com/weni-ai/weni-cli/pull/153)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.5] - 2026-04-14
 
 ### Added

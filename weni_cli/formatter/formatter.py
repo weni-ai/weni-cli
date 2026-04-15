@@ -7,9 +7,14 @@ class Formatter:
     def __init__(self):
         pass
 
+    def _to_renderable(self, message):
+        if isinstance(message, str):
+            return message
+        return Text(str(message))
+
     def print_error_panel(self, message, title="Error"):
         error_panel = Panel(
-            Text(str(message)),
+            self._to_renderable(message),
             title=f"[bold red]{title}[/bold red]",
             title_align="left",
             style="bold red",
@@ -20,7 +25,7 @@ class Formatter:
 
     def print_success_panel(self, message):
         success_panel = Panel(
-            Text(str(message)),
+            self._to_renderable(message),
             title="[bold green]Success[/bold green]",
             title_align="left",
             style="bold green",

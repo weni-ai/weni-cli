@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.6.6] - 2026-04-15
+
+### Added
+
+- Fixed string text formatter in terminal rich responses ([#153](https://github.com/weni-ai/weni-cli/pull/153)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+- Updated broadcast documentation ([#153](https://github.com/weni-ai/weni-cli/pull/153)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
+## [3.6.5] - 2026-04-14
+
+### Added
+
+- Update weni-agents-toolkit to 2.6.2 ([#140](https://github.com/weni-ai/weni-cli/pull/152)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
 ## [3.6.4] - 2026-04-09
 
 ### Added
@@ -23,7 +36,6 @@
 ### Added
 
 - Improve agents evaluation file definition and execution process ([#146](https://github.com/weni-ai/weni-cli/pull/146)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
-
 
 ## [3.6.0] - 2026-03-30
 

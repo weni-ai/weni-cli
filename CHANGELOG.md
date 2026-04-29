@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.7] - 2026-05-07
+
+### Added
+
+- Change log class from standard to infrequent access ([#154](https://github.com/weni-ai/weni-cli/pull/154)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.6] - 2026-04-15
 
 ### Added

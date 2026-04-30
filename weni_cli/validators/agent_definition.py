@@ -528,6 +528,57 @@ def load_test_definition(path) -> tuple[Any, Optional[Exception]]:
     return data, None
 
 
+def validate_active_test_definition(data: Any) -> Optional[str]:
+    """Validate the shape of a ``test_definition.yaml`` for active agents.
+
+    Active agent test entries expect (at minimum) a dict-shaped ``payload``
+    that the PreProcessor consumes. Optional fields validated for type only:
+    ``params``, ``credentials``, ``project``, ``project_rules``,
+    ``ignored_official_rules``, ``global_rule``.
+    """
+    if not isinstance(data, dict):
+        return "Test definition must be an object with a top-level 'tests' key"
+
+    tests = data.get("tests")
+    if tests is None:
+        return "Test definition is missing required root key 'tests'"
+
+    if not isinstance(tests, dict):
+        return "'tests' must be an object whose keys are test case names"
+
+    if not tests:
+        return "'tests' must contain at least one test case"
+
+    for test_name, test_data in tests.items():
+        if not isinstance(test_data, dict):
+            return f"Test '{test_name}' must be an object"
+
+        if "payload" not in test_data:
+            return f"Test '{test_name}' is missing required field 'payload'"
+
+        if not isinstance(test_data["payload"], dict):
+            return f"Test '{test_name}': 'payload' must be an object"
+
+        for key in ("params", "credentials", "project"):
+            if key in test_data and not isinstance(test_data[key], dict):
+                return f"Test '{test_name}': '{key}' must be an object"
+
+        if "project_rules" in test_data and not isinstance(test_data["project_rules"], list):
+            return f"Test '{test_name}': 'project_rules' must be a list"
+
+        if "ignored_official_rules" in test_data and not isinstance(
+            test_data["ignored_official_rules"], list
+        ):
+            return f"Test '{test_name}': 'ignored_official_rules' must be a list"
+
+        if "global_rule" in test_data and test_data["global_rule"] is not None and not isinstance(
+            test_data["global_rule"], str
+        ):
+            return f"Test '{test_name}': 'global_rule' must be a string or null"
+
+    return None
+
+
 # Updates the tools in the definition to be an array of objects containing name, path and slug
 def format_definition(definition: dict) -> Optional[dict]:
     agents = definition.get("agents", {})

@@ -219,8 +219,8 @@ class CLIClient:
         self,
         project_uuid: str,
         definition: Dict,
-        tool_folder: BinaryIO,
-        tool_key: str,
+        tool_folder: Optional[BinaryIO],
+        tool_key: Optional[str],
         agent_key: str,
         test_definition: Dict,
         credentials: Dict,
@@ -228,14 +228,32 @@ class CLIClient:
         agent_type: str,
         result_callback: Callable[[str, Any, int, Optional[str], bool], None],
         verbose: bool = False,
+        resources_folder: Optional[Dict[str, BinaryIO]] = None,
     ) -> List[Dict]:
-        """Run a test for a tool."""
+        """Run tests for either a Tool (passive) or an Active Agent.
+
+        For passive runs, pass ``tool_folder`` and ``tool_key``.
+        For active runs, pass ``resources_folder`` (a ``{agent_key:resource_key: file}`` map).
+        """
         test_logs = []
 
         data = self._prepare_test_data(
-            project_uuid, definition, test_definition, tool_key, agent_key, credentials, tool_globals, agent_type
+            project_uuid,
+            definition,
+            test_definition,
+            tool_key,
+            agent_key,
+            credentials,
+            tool_globals,
+            agent_type,
         )
-        files = {"tool": tool_folder}
+
+        if resources_folder is not None:
+            files: Dict[str, BinaryIO] = dict(resources_folder)
+        elif tool_folder is not None:
+            files = {"tool": tool_folder}
+        else:
+            raise RequestError("Either tool_folder or resources_folder must be provided")
 
         try:
             with self._streaming_request(method="POST", endpoint="api/v1/runs", data=data, files=files) as response:
@@ -250,7 +268,7 @@ class CLIClient:
         project_uuid: str,
         definition: Dict,
         test_definition: Dict,
-        tool_key: str,
+        tool_key: Optional[str],
         agent_key: str,
         credentials: Dict,
         tool_globals: Dict,
@@ -261,12 +279,13 @@ class CLIClient:
         data.update(
             {
                 "test_definition": json.dumps(test_definition, ensure_ascii=False),
-                "tool_key": tool_key,
                 "agent_key": agent_key,
                 "tool_credentials": json.dumps(credentials, ensure_ascii=False),
                 "tool_globals": json.dumps(tool_globals, ensure_ascii=False),
             }
         )
+        if tool_key:
+            data["tool_key"] = tool_key
         return data
 
     def _handle_test_response(

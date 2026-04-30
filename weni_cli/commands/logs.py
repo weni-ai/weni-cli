@@ -20,7 +20,7 @@ class GetLogsHandler:
                 formatter.print_error_panel("Regex patterns are not supported")
                 return
 
-            with console.status("Fetching logs...", spinner="dots"):
+            with console.status("Querying logs...", spinner="dots"):
                 logs_response, error = client.get_tool_logs(agent, tool, start_time, end_time, pattern, current_token)
 
             if error:

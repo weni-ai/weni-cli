@@ -1,5 +1,22 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Extend `weni run` to support active agents (PreProcessor + Rules) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+  - `weni run <definition.yaml> <agent_key>` now auto-detects active agents from the definition and packages preprocessor + rules in a single multipart upload
+  - `tool_key` is now optional (still required for passive Tool agents)
+  - new active `test_definition.yaml` schema is validated up-front (`payload` is required; `params`, `credentials`, `project`, `project_rules`, `ignored_official_rules`, `global_rule` are optional)
+  - live results display maps the 7 `ResponseStatus` enum values from the active Lambda template (`RULE_MATCHED`, `RULE_NOT_MATCHED`, `PREPROCESSING_FAILED`, `CUSTOM_RULE_FAILED`, `OFFICIAL_RULE_FAILED`, `GLOBAL_RULE_FAILED`, `GLOBAL_RULE_NOT_MATCHED`) to coloured status icons; verbose mode keeps logs/traces/panels parity with the passive flow
+  - shared resource loader extracted to `weni_cli.packager.loader` and reused by `project push` and `run`
+
+## [3.6.7] - 2026-05-07
+
+### Added
+
+- Change log class from standard to infrequent access ([#154](https://github.com/weni-ai/weni-cli/pull/154)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.6] - 2026-04-15
 
 ### Added

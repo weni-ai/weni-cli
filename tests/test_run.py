@@ -907,7 +907,7 @@ def test_run_test_verbose_triggers_render_logs(mocker):
         assert client_patch.called, "CLIClient constructor not called"
 
         # Verify render_reponse_and_logs was called with the test logs
-        render_mock.assert_called_once_with(test_logs)
+        render_mock.assert_called_once_with(test_logs, agent_type="passive")
 
 
 def test_parse_agent_tool_with_out_of_bounds_index():
@@ -944,7 +944,9 @@ def test_display_test_results_comprehensive(mocker):
 
         # Mock the format_response_for_display method to return a known value
         mocker.patch.object(
-            handler, "format_response_for_display", side_effect=lambda response: f"Formatted: {response}"
+            handler,
+            "format_response_for_display",
+            side_effect=lambda response, agent_type="passive": f"Formatted: {response}",
         )
 
         # Call the method
@@ -997,7 +999,7 @@ def test_update_live_display_add_new_row(mocker):
             status_code=200,
             code="TEST_CASE_COMPLETED",
             live_display=live_mock,
-            tool_name="Test Tool",
+            display_label="Test Tool",
         )
 
         # Verify the row was added to test_rows
@@ -1008,7 +1010,7 @@ def test_update_live_display_add_new_row(mocker):
         assert test_rows[0]["code"] == "TEST_CASE_COMPLETED"
 
         # Verify that the display method was called correctly
-        display_mock.assert_called_once_with(test_rows, "Test Tool", False)
+        display_mock.assert_called_once_with(test_rows, "Test Tool", agent_type="passive", verbose=False)
 
         # Verify that the live display was updated
         live_mock.update.assert_called_once_with("Test Table", refresh=True)
@@ -1037,7 +1039,7 @@ def test_update_live_display_update_existing_row(mocker):
             status_code=400,
             code="TEST_CASE_COMPLETED",
             live_display=live_mock,
-            tool_name="Test Tool",
+            display_label="Test Tool",
         )
 
         # Verify the row was updated in test_rows
@@ -1048,7 +1050,7 @@ def test_update_live_display_update_existing_row(mocker):
         assert test_rows[0]["code"] == "TEST_CASE_COMPLETED"  # Updated code
 
         # Verify that the display method was called correctly
-        display_mock.assert_called_once_with(test_rows, "Test Tool", False)
+        display_mock.assert_called_once_with(test_rows, "Test Tool", agent_type="passive", verbose=False)
 
         # Verify that the live display was updated
         live_mock.update.assert_called_once_with("Test Table", refresh=True)
@@ -1239,3 +1241,369 @@ def test_run_command_invalid_agent_and_tool(mocker, create_mocked_files, mock_st
         assert "not found in the definition file" in result.output
         # Should not see tool validation error since agent validation fails first
         assert "Invalid Tool" not in result.output
+
+
+# ---------------------------------------------------------------------------
+# Active agent flow tests
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+def create_active_agent_files():
+    """Create the necessary files for testing the active-agent run command."""
+
+    def _create():
+        with open("agents.yaml", "w") as f:
+            f.write(
+                """
+agents:
+  payment_agent:
+    name: Payment Agent
+    description: Recovers incomplete PIX orders
+    language: pt_BR
+    rules:
+      payment_recovery:
+        display_name: Payment Recovery
+        template: payment_recovery
+        start_condition: Incomplete order without PIX
+        source:
+          path: rules/payment_recovery
+          entrypoint: main.PaymentRecovery
+        example:
+          input: {}
+          output: {}
+    pre_processing:
+      source:
+        path: pre_processors/processor
+        entrypoint: processing.PreProcessor
+      result_examples_file: result_example.json
+                """
+            )
+
+        os.makedirs("rules/payment_recovery", exist_ok=True)
+        os.makedirs("pre_processors/processor", exist_ok=True)
+
+        with open("rules/payment_recovery/main.py", "w") as f:
+            f.write("class PaymentRecovery: pass\n")
+        with open("pre_processors/processor/processing.py", "w") as f:
+            f.write("class PreProcessor: pass\n")
+        with open("pre_processors/processor/result_example.json", "w") as f:
+            f.write("{}")
+
+        with open("test_definition.yaml", "w") as f:
+            f.write(
+                """
+tests:
+  pix_pending:
+    payload:
+      OrderId: "1621590779140-01"
+      State: "payment-pending"
+    params: {}
+    credentials: {}
+    project:
+      vtex_account: "minhaloja"
+      country_phone_code: "55"
+                """
+            )
+
+        return "agents.yaml"
+
+    return _create
+
+
+def test_detect_agent_type_passive():
+    from weni_cli.commands.run import detect_agent_type
+
+    definition = {"agents": {"a": {"tools": []}}}
+    assert detect_agent_type(definition) == "passive"
+
+
+def test_detect_agent_type_active():
+    from weni_cli.commands.run import detect_agent_type
+
+    definition = {"agents": {"a": {"rules": {"r": {}}}}}
+    assert detect_agent_type(definition) == "active"
+
+
+def test_detect_agent_type_empty_definition_defaults_to_passive():
+    from weni_cli.commands.run import detect_agent_type
+
+    assert detect_agent_type({"agents": {}}) == "passive"
+
+
+def test_active_run_command_success(mocker, create_active_agent_files, mock_store_values):
+    """Active run dispatches to CLIClient with resources_folder and agent_type=active."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_active_agent_files()
+        mock_store_values(mocker)
+
+        mock_resources = {
+            "payment_agent:preprocessor_folder": io.BytesIO(b"pre"),
+            "payment_agent:payment_recovery": io.BytesIO(b"rule"),
+            "payment_agent:preprocessor_example": io.BytesIO(b"{}"),
+        }
+        mocker.patch(
+            "weni_cli.commands.run.load_active_agent_resources",
+            return_value=(mock_resources, None),
+        )
+
+        run_test_mock = mocker.patch.object(CLIClient, "run_test", return_value=[])
+
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "payment_agent"])
+
+        assert result.exit_code == 0
+        assert run_test_mock.call_count == 1
+        kwargs = run_test_mock.call_args.kwargs
+        positional = run_test_mock.call_args.args
+        agent_type = positional[8] if len(positional) > 8 else kwargs.get("agent_type")
+        assert agent_type == "active"
+        assert kwargs.get("resources_folder") == mock_resources
+
+
+def test_active_run_command_invalid_test_definition(mocker, create_active_agent_files, mock_store_values):
+    """Active run rejects a test definition without 'payload'."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_active_agent_files()
+        mock_store_values(mocker)
+
+        with open("test_definition.yaml", "w") as f:
+            f.write("tests:\n  case_1:\n    params: {}\n")
+
+        run_test_mock = mocker.patch.object(CLIClient, "run_test")
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "payment_agent"])
+
+        assert result.exit_code == 0
+        assert "Invalid test definition" in result.output
+        assert run_test_mock.call_count == 0
+
+
+def test_active_run_command_missing_test_definition_file(mocker, create_active_agent_files, mock_store_values):
+    """Active run errors out when test_definition.yaml cannot be located."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_active_agent_files()
+        mock_store_values(mocker)
+
+        os.remove("test_definition.yaml")
+
+        run_test_mock = mocker.patch.object(CLIClient, "run_test")
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "payment_agent"])
+
+        assert result.exit_code == 0
+        assert "Failed to get default test definition" in result.output
+        assert run_test_mock.call_count == 0
+
+
+def test_active_run_command_resources_load_error(mocker, create_active_agent_files, mock_store_values):
+    """Active run surfaces resource loading failures via the formatter."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_active_agent_files()
+        mock_store_values(mocker)
+
+        mocker.patch(
+            "weni_cli.commands.run.load_active_agent_resources",
+            return_value=(None, "Boom while zipping"),
+        )
+
+        run_test_mock = mocker.patch.object(CLIClient, "run_test")
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "payment_agent"])
+
+        assert result.exit_code == 0
+        assert "Boom while zipping" in result.output
+        assert run_test_mock.call_count == 0
+
+
+def test_passive_run_without_tool_key_shows_error(mocker, create_mocked_files, mock_store_values):
+    """Passive run without TOOL_KEY argument should report a missing tool error."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        agent_file = create_mocked_files()
+        mock_store_values(mocker)
+
+        run_test_mock = mocker.patch.object(CLIClient, "run_test")
+        mocker.patch("rich.live.Live", autospec=True)
+
+        result = runner.invoke(cli, ["run", agent_file, "get_address"])
+
+        assert result.exit_code == 0
+        assert "Missing Tool" in result.output
+        assert run_test_mock.call_count == 0
+
+
+def test_format_response_for_display_active_rule_matched():
+    """Active response with status=0 (RULE_MATCHED) shows the template name."""
+    handler = RunHandler()
+    response = {
+        "status": 0,
+        "template": "payment_recovery",
+        "template_variables": {"1": "Maria"},
+        "contact_urn": "whatsapp:5511999999999",
+        "error": {},
+    }
+
+    output = handler.format_response_for_display(response, agent_type="active")
+
+    assert "RULE_MATCHED" in output
+    assert "template=payment_recovery" in output
+    assert "urn=whatsapp:5511999999999" in output
+
+
+def test_format_response_for_display_active_rule_not_matched():
+    handler = RunHandler()
+    response = {"status": 1, "template": None, "template_variables": {}, "error": {}}
+
+    output = handler.format_response_for_display(response, agent_type="active")
+
+    assert "RULE_NOT_MATCHED" in output
+
+
+def test_format_response_for_display_active_with_error():
+    handler = RunHandler()
+    response = {"status": 2, "error": "preprocessing exploded"}
+
+    output = handler.format_response_for_display(response, agent_type="active")
+
+    assert "PREPROCESSING_FAILED" in output
+    assert "error=preprocessing exploded" in output
+
+
+@pytest.mark.parametrize(
+    "status_value, expected_icon",
+    [
+        (0, "✅"),
+        (1, "🟡"),
+        (2, "❌"),
+        (3, "❌"),
+        (4, "❌"),
+        (5, "❌"),
+        (6, "🟡"),
+    ],
+)
+def test_get_status_icon_active(status_value, expected_icon):
+    """Active responses pick the icon by ResponseStatus enum value, not HTTP code."""
+    handler = RunHandler()
+    response = {"status": status_value}
+
+    icon = handler.get_status_icon(200, agent_type="active", response=response)
+
+    assert icon == expected_icon
+
+
+def test_get_status_icon_active_falls_back_to_http_when_no_response():
+    """If no active response is available, get_status_icon falls back to HTTP semantics."""
+    handler = RunHandler()
+    assert handler.get_status_icon(200, agent_type="active", response=None) == "✅"
+    assert handler.get_status_icon(500, agent_type="active", response=None) == "❌"
+
+
+def test_cli_client_run_test_passive_uses_tool_key(mocker, mock_store_values):
+    """In passive mode, run_test posts a single 'tool' file and includes tool_key in the payload."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        mock_store_values(mocker)
+
+        client = CLIClient()
+        captured = {}
+
+        class _DummyResponse:
+            status_code = 200
+
+            def iter_lines(self):
+                return iter([])
+
+            def close(self):
+                return None
+
+            def json(self):
+                return {}
+
+        def _fake_request(**kwargs):
+            captured.update(kwargs)
+            return _DummyResponse()
+
+        mocker.patch.object(client.session, "request", side_effect=_fake_request)
+        mocker.patch("weni_cli.clients.cli_client.get_toolkit_version", return_value="1.0.0")
+
+        client.run_test(
+            project_uuid="proj",
+            definition={"agents": {}},
+            tool_folder=io.BytesIO(b"tool"),
+            tool_key="my_tool",
+            agent_key="my_agent",
+            test_definition={"tests": {}},
+            credentials={},
+            tool_globals={},
+            agent_type="passive",
+            result_callback=lambda *args, **kwargs: None,
+        )
+
+        assert "tool" in captured["files"]
+        assert captured["data"]["tool_key"] == "my_tool"
+        assert captured["data"]["agent_key"] == "my_agent"
+        assert captured["data"]["type"] == "passive"
+
+
+def test_cli_client_run_test_active_uses_resources_folder(mocker, mock_store_values):
+    """In active mode, run_test posts every resource and omits tool_key from the payload."""
+    runner = CliRunner()
+    with runner.isolated_filesystem():
+        mock_store_values(mocker)
+
+        client = CLIClient()
+        captured = {}
+
+        class _DummyResponse:
+            status_code = 200
+
+            def iter_lines(self):
+                return iter([])
+
+            def close(self):
+                return None
+
+            def json(self):
+                return {}
+
+        def _fake_request(**kwargs):
+            captured.update(kwargs)
+            return _DummyResponse()
+
+        mocker.patch.object(client.session, "request", side_effect=_fake_request)
+        mocker.patch("weni_cli.clients.cli_client.get_toolkit_version", return_value="1.0.0")
+
+        resources = {
+            "agent_a:preprocessor_folder": io.BytesIO(b"pre"),
+            "agent_a:rule_x": io.BytesIO(b"rule"),
+        }
+
+        client.run_test(
+            project_uuid="proj",
+            definition={"agents": {}},
+            tool_folder=None,
+            tool_key=None,
+            agent_key="agent_a",
+            test_definition={"tests": {}},
+            credentials={},
+            tool_globals={},
+            agent_type="active",
+            result_callback=lambda *args, **kwargs: None,
+            resources_folder=resources,
+        )
+
+        assert "tool" not in captured["files"]
+        assert "agent_a:preprocessor_folder" in captured["files"]
+        assert "agent_a:rule_x" in captured["files"]
+        assert captured["data"]["type"] == "active"
+        assert captured["data"]["agent_key"] == "agent_a"
+        assert "tool_key" not in captured["data"]

@@ -39,17 +39,17 @@ def init():
 @cli.command("run")
 @click.argument("definition", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.argument("agent_key", required=True, type=str)
-@click.argument("tool_key", required=True, type=str)
+@click.argument("tool_key", required=False, type=str)
 @click.option(
     "--file", "-f", help="The path to the test definition file", type=click.Path(exists=True, dir_okay=False)
 )
 @click.option("--verbose", "-v", is_flag=True, help="Verbose output")
 def run_test(definition, agent_key, tool_key, file, verbose):
-    """Run tests for a specific agent tool
+    """Run tests for an agent tool (passive) or active agent (preprocessor + rules)
 
     DEFINITION: The path to the YAML agent definition file
     AGENT_KEY: The agent key to be tested
-    TOOL_KEY: The tool key to be tested
+    TOOL_KEY: The tool key to be tested (required for passive agents, omit for active agents)
     FILE: The path to the test definition file
     """
     from weni_cli.commands.run import RunHandler

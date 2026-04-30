@@ -1,22 +1,64 @@
+import os
 from io import BufferedReader
 from typing import Optional
-import rich_click as click
 
-from rich.console import Console
-from rich.table import Table
+import rich_click as click
+from rich.console import Console, group
 from rich.live import Live
 from rich.panel import Panel
-from rich.console import group
+from rich.table import Table
 
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.handler import Handler
+from weni_cli.packager.loader import load_active_agent_resources
 from weni_cli.packager.packager import create_agent_resource_folder_zip
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
-from weni_cli.validators.agent_definition import format_definition, load_agent_definition, load_test_definition
-
+from weni_cli.validators.agent_definition import (
+    format_definition,
+    load_agent_definition,
+    load_test_definition,
+    validate_active_test_definition,
+)
 
 DEFAULT_TEST_DEFINITION_FILE = "test_definition.yaml"
+
+PASSIVE_TYPE = "passive"
+ACTIVE_TYPE = "active"
+
+# Maps the ResponseStatus enum values returned by the active Lambda template
+# to a status icon used in the live results table.
+ACTIVE_STATUS_ICONS = {
+    0: "✅",  # RULE_MATCHED
+    1: "🟡",  # RULE_NOT_MATCHED
+    2: "❌",  # PREPROCESSING_FAILED
+    3: "❌",  # CUSTOM_RULE_FAILED
+    4: "❌",  # OFFICIAL_RULE_FAILED
+    5: "❌",  # GLOBAL_RULE_FAILED
+    6: "🟡",  # GLOBAL_RULE_NOT_MATCHED
+}
+
+ACTIVE_STATUS_NAMES = {
+    0: "RULE_MATCHED",
+    1: "RULE_NOT_MATCHED",
+    2: "PREPROCESSING_FAILED",
+    3: "CUSTOM_RULE_FAILED",
+    4: "OFFICIAL_RULE_FAILED",
+    5: "GLOBAL_RULE_FAILED",
+    6: "GLOBAL_RULE_NOT_MATCHED",
+}
+
+
+def detect_agent_type(definition_data: dict) -> str:
+    """Detect whether the loaded definition describes a passive (Tool) or active agent."""
+    agents = definition_data.get("agents", {}) or {}
+    if not agents:
+        return PASSIVE_TYPE
+
+    agent = next(iter(agents.values()))
+    if isinstance(agent, dict) and agent.get("rules"):
+        return ACTIVE_TYPE
+    return PASSIVE_TYPE
 
 
 class RunHandler(Handler):
@@ -38,19 +80,58 @@ class RunHandler(Handler):
         definition_data, error = load_agent_definition(definition_path)
         if error:
             formatter.print_error_panel(
-                f"Invalid agent definition YAML file format, error:\n{error}", title="Error loading agent definition"
+                f"Invalid agent definition YAML file format, error:\n{error}",
+                title="Error loading agent definition",
             )
             return
 
-        # Validate agent existence
         if agent_key not in definition_data.get("agents", {}):
             formatter.print_error_panel(
                 f"Agent '{agent_key}' not found in the definition file.",
-                title="Invalid Agent"
+                title="Invalid Agent",
             )
             return
 
-        # Validate tool existence
+        agent_type = detect_agent_type(definition_data)
+
+        if agent_type == ACTIVE_TYPE:
+            self._execute_active(
+                definition_data=definition_data,
+                definition_path=definition_path,
+                agent_key=agent_key,
+                test_definition_path=test_definition_path,
+                project_uuid=project_uuid,
+                verbose=verbose,
+                formatter=formatter,
+            )
+        else:
+            self._execute_passive(
+                definition_data=definition_data,
+                agent_key=agent_key,
+                tool_key=tool_key,
+                test_definition_path=test_definition_path,
+                project_uuid=project_uuid,
+                verbose=verbose,
+                formatter=formatter,
+            )
+
+    def _execute_passive(  # noqa: PLR0913
+        self,
+        definition_data,
+        agent_key,
+        tool_key,
+        test_definition_path,
+        project_uuid,
+        verbose,
+        formatter,
+    ):
+        if not tool_key:
+            formatter.print_error_panel(
+                "TOOL_KEY is required for passive agents.",
+                title="Missing Tool",
+            )
+            return
+
         agent_tools = []
         for tool in definition_data["agents"][agent_key].get("tools", []):
             if isinstance(tool, dict):
@@ -59,7 +140,7 @@ class RunHandler(Handler):
         if tool_key not in agent_tools:
             formatter.print_error_panel(
                 f"Tool '{tool_key}' not found in agent '{agent_key}'.\nAvailable tools: {', '.join(agent_tools)}",
-                title="Invalid Tool"
+                title="Invalid Tool",
             )
             return
 
@@ -92,15 +173,76 @@ class RunHandler(Handler):
         tool_globals = self.load_tool_globals(tool_source_path)
 
         self.run_test(
-            project_uuid,
-            definition,
-            tool_folder,
-            tool_key,
-            agent_key,
-            test_definition,
-            credentials,
-            tool_globals,
-            verbose,
+            project_uuid=project_uuid,
+            definition=definition,
+            tool_folder=tool_folder,
+            tool_key=tool_key,
+            agent_key=agent_key,
+            test_definition=test_definition,
+            credentials=credentials,
+            tool_globals=tool_globals,
+            verbose=verbose,
+            agent_type=PASSIVE_TYPE,
+            display_label=tool_key,
+        )
+
+    def _execute_active(  # noqa: PLR0913
+        self,
+        definition_data,
+        definition_path,
+        agent_key,
+        test_definition_path,
+        project_uuid,
+        verbose,
+        formatter,
+    ):
+        if not test_definition_path:
+            test_definition_path = self._load_default_active_test_definition(definition_path)
+
+            if not test_definition_path:
+                click.echo(
+                    f"Error: Failed to get default test definition file: {DEFAULT_TEST_DEFINITION_FILE} "
+                    f"next to the agent definition."
+                )
+                click.echo("You can use the --file option to specify a different file.")
+                return
+
+        test_definition, error = load_test_definition(test_definition_path)
+        if error:
+            formatter.print_error_panel(error)
+            return
+
+        validation_error = validate_active_test_definition(test_definition)
+        if validation_error:
+            formatter.print_error_panel(
+                f"Invalid test definition for active agent:\n{validation_error}",
+                title="Invalid test definition",
+            )
+            return
+
+        resources_folder, error = load_active_agent_resources(definition_data, agent_key)
+        if error or not resources_folder:
+            formatter.print_error_panel(
+                error or f"No resources found for active agent '{agent_key}'",
+                title="Failed to load active agent resources",
+            )
+            return
+
+        definition = format_definition(definition_data)
+
+        self.run_test(
+            project_uuid=project_uuid,
+            definition=definition,
+            tool_folder=None,
+            tool_key=None,
+            agent_key=agent_key,
+            test_definition=test_definition,
+            credentials={},
+            tool_globals={},
+            verbose=verbose,
+            agent_type=ACTIVE_TYPE,
+            display_label=agent_key,
+            resources_folder=resources_folder,
         )
 
     def parse_agent_tool(self, agent_tool) -> tuple[Optional[str], Optional[str]]:
@@ -171,6 +313,16 @@ class RunHandler(Handler):
             click.echo(f"Error: Failed to load default test definition file: {e}")
             return None
 
+    def _load_default_active_test_definition(self, definition_path: str) -> Optional[str]:
+        """Look for ``test_definition.yaml`` next to the agent definition file."""
+        try:
+            base_dir = os.path.dirname(os.path.abspath(definition_path))
+            candidate = os.path.join(base_dir, DEFAULT_TEST_DEFINITION_FILE)
+            return candidate if os.path.exists(candidate) else None
+        except Exception as e:
+            click.echo(f"Error: Failed to load default test definition file: {e}")
+            return None
+
     def load_tool_folder(
         self, definition, agent_key, tool_key
     ) -> tuple[Optional[BufferedReader], Optional[Exception]]:
@@ -196,12 +348,17 @@ class RunHandler(Handler):
 
         return tool_folder, None
 
-    def format_response_for_display(self, test_result):
-        """Format response for better display"""
-
+    def format_response_for_display(self, test_result, agent_type: str = PASSIVE_TYPE):
+        """Format the test response for the live table display."""
         if not test_result:
             return "waiting..."
 
+        if agent_type == ACTIVE_TYPE:
+            return self._format_active_response_for_display(test_result)
+
+        return self._format_passive_response_for_display(test_result)
+
+    def _format_passive_response_for_display(self, test_result):
         if isinstance(test_result, dict) and "response" in test_result:
             response = test_result.get("response")
 
@@ -221,59 +378,82 @@ class RunHandler(Handler):
                 return str(response_body)
 
             return response_body_text.get("body", "")
-        else:
+
+        return str(test_result)
+
+    def _format_active_response_for_display(self, test_result):
+        if not isinstance(test_result, dict):
             return str(test_result)
 
-    def get_status_icon(self, status_code):
+        status_value = test_result.get("status")
+        status_name = ACTIVE_STATUS_NAMES.get(status_value, "UNKNOWN")
+        template = test_result.get("template")
+        contact_urn = test_result.get("contact_urn")
+        error = test_result.get("error")
+
+        parts = [status_name]
+        if template:
+            parts.append(f"template={template}")
+        if contact_urn:
+            parts.append(f"urn={contact_urn}")
+        if error:
+            parts.append(f"error={error}")
+        return " | ".join(parts)
+
+    def get_status_icon(self, status_code, agent_type: str = PASSIVE_TYPE, response=None):
+        """Resolve the status icon for either a passive or active agent run."""
+        if agent_type == ACTIVE_TYPE and isinstance(response, dict):
+            response_status = response.get("status")
+            if response_status in ACTIVE_STATUS_ICONS:
+                return ACTIVE_STATUS_ICONS[response_status]
+
         if status_code == 200:
             return "✅"
 
         return "❌"
 
-    def display_test_results(self, rows, tool_name, verbose=False):
-        """
-        Create a table to display test results.
-
-        Args:
-            rows (list): List of row dictionaries containing test results
-            tool_name (str): Name of the tool being tested
-            verbose (bool, optional): Whether to show verbose output. Defaults to False.
-
-        Returns:
-            Table: Rich table object with test results, or None if rows is empty
-        """
+    def display_test_results(self, rows, display_label, agent_type: str = PASSIVE_TYPE, verbose: bool = False):
+        """Build the Rich table used by the live display."""
         if not rows:
             return None
 
-        table = Table(title=f"Test Results for {tool_name}", expand=True)
+        title = (
+            f"Test Results for {display_label} (active agent)"
+            if agent_type == ACTIVE_TYPE
+            else f"Test Results for {display_label}"
+        )
+        table = Table(title=title, expand=True)
         table.add_column("Test Name", justify="left")
         table.add_column("Status", justify="center")
-        table.add_column("Response", ratio=2, no_wrap=True)
+        if agent_type == ACTIVE_TYPE:
+            table.add_column("Result", ratio=2, no_wrap=True)
+        else:
+            table.add_column("Response", ratio=2, no_wrap=True)
 
         for row in rows:
-            status = self.get_status_icon(row.get("status")) if row.get("code") == "TEST_CASE_COMPLETED" else "⏳"
-            response_display = self.format_response_for_display(row.get("response"))
+            if row.get("code") == "TEST_CASE_COMPLETED":
+                status = self.get_status_icon(
+                    row.get("status"), agent_type=agent_type, response=row.get("response")
+                )
+            else:
+                status = "⏳"
+            response_display = self.format_response_for_display(row.get("response"), agent_type=agent_type)
             table.add_row(row.get("name"), status, response_display)
 
         return table
 
-    def update_live_display(
-        self, test_rows, test_name, test_result, status_code, code, live_display, tool_name, verbose=False
+    def update_live_display(  # noqa: PLR0913
+        self,
+        test_rows,
+        test_name,
+        test_result,
+        status_code,
+        code,
+        live_display,
+        display_label,
+        agent_type: str = PASSIVE_TYPE,
+        verbose: bool = False,
     ):
-        """
-        Update the live display with test results.
-
-        Args:
-            test_rows (list): List of test result rows to update
-            test_name (str): Name of the test
-            test_result (dict): Test result data
-            status_code (int): HTTP status code of the test result
-            code (str): Test case status code (e.g., TEST_CASE_COMPLETED)
-            live_display (Live): Rich Live object for updating the display
-            tool_name (str): Name of the tool being tested
-            verbose (bool, optional): Whether to show verbose output. Defaults to False.
-        """
-        # Check if test_name is already in test_rows, if not, add it
         row_index = next((i for i, row in enumerate(test_rows) if row.get("name") == test_name), None)
         if row_index is None:
             test_rows.append({"name": test_name, "status": status_code, "response": test_result, "code": code})
@@ -282,16 +462,19 @@ class RunHandler(Handler):
             test_rows[row_index]["response"] = test_result
             test_rows[row_index]["code"] = code
 
-        live_display.update(self.display_test_results(test_rows, tool_name, verbose), refresh=True)
+        live_display.update(
+            self.display_test_results(test_rows, display_label, agent_type=agent_type, verbose=verbose),
+            refresh=True,
+        )
 
-    def render_reponse_and_logs(self, logs):
+    def render_reponse_and_logs(self, logs, agent_type: str = PASSIVE_TYPE):
         console = Console()
 
         @group()
         def get_panels():
             if log.get("test_response"):
                 yield Panel(
-                    self.format_response_for_display(log.get("test_response")),
+                    self.format_response_for_display(log.get("test_response"), agent_type=agent_type),
                     title="[bold yellow]Response[/bold yellow]",
                     title_align="left",
                 )
@@ -314,7 +497,7 @@ class RunHandler(Handler):
                     )
                 )
 
-    def run_test(
+    def run_test(  # noqa: PLR0913
         self,
         project_uuid,
         definition,
@@ -325,13 +508,29 @@ class RunHandler(Handler):
         credentials,
         tool_globals,
         verbose=False,
+        agent_type: str = PASSIVE_TYPE,
+        display_label: Optional[str] = None,
+        resources_folder: Optional[dict] = None,
     ):
-        test_rows = []
-        # Use the class method instead of a nested function
-        with Live(self.display_test_results([], tool_key, verbose), refresh_per_second=4) as live:
-            # Create a callback function that will be passed to the CLIClient
+        test_rows: list[dict] = []
+        display_label = display_label or tool_key or agent_key
+
+        with Live(
+            self.display_test_results([], display_label, agent_type=agent_type, verbose=verbose),
+            refresh_per_second=4,
+        ) as live:
             def update_live_callback(test_name, test_result, status_code, code, verbose):
-                self.update_live_display(test_rows, test_name, test_result, status_code, code, live, tool_key, verbose)
+                self.update_live_display(
+                    test_rows,
+                    test_name,
+                    test_result,
+                    status_code,
+                    code,
+                    live,
+                    display_label,
+                    agent_type=agent_type,
+                    verbose=verbose,
+                )
 
             client = CLIClient()
             test_logs = client.run_test(
@@ -343,10 +542,11 @@ class RunHandler(Handler):
                 test_definition,
                 credentials,
                 tool_globals,
-                "active",
+                agent_type,
                 update_live_callback,
                 verbose,
+                resources_folder=resources_folder,
             )
 
         if verbose:
-            self.render_reponse_and_logs(test_logs)
+            self.render_reponse_and_logs(test_logs, agent_type=agent_type)

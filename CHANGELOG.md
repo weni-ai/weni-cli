@@ -1,10 +1,18 @@
 # Changelog
 
-## [3.6.7] - 2026-05-07
+## [3.6.8] - 2026-05-12
 
 ### Added
 
 - Change log class from standard to infrequent access ([#154](https://github.com/weni-ai/weni-cli/pull/154)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
+## [3.6.7] - 2026-05-08
+
+### Added
+
+- Update version to 3.6.7([#157](https://github.com/weni-ai/weni-cli/pull/157)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
+- Update weni-agents-toolkit to 2.6.3 and adding cursor skill docs([#156](https://github.com/weni-ai/weni-cli/pull/156)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
 
 ## [3.6.6] - 2026-04-15
 

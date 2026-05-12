@@ -16,7 +16,7 @@ weni logs --agent <agent_key> --tool <tool_key> [--start-time ISO8601] [--end-ti
   - `2024-01-01T00:00:00`
   - `2024-01-01T00:00:00.000Z`
 - `--end-time, -e` (optional): ISO 8601 datetime, same formats as start.
-- `--pattern, -p` (optional): Simple substring filter. Regex (e.g. `%...%`) is not supported.
+- `--pattern, -p` (optional): Simple substring filter (case-sensitive). Regex (e.g. `%...%`) is not supported.
 
 Supported datetime formats include:
 
@@ -27,6 +27,10 @@ Supported datetime formats include:
 ### Pagination
 
 If more logs are available, you'll be prompted to fetch more. Choose `p` to continue or `q` to stop.
+
+### Performance notes
+
+Log queries run against CloudWatch Logs Insights and may take a few seconds to return on the first page (typically 1–5 seconds depending on the time window and log volume). Narrower time windows return faster.
 
 ### Examples
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.9] - 2026-05-14
+
+### Added
+
+- Adding WhatsAppCarousel docs ([#154](https://github.com/weni-ai/weni-cli/pull/158)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
 ## [3.6.8] - 2026-05-12
 
 ### Added

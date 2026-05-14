@@ -56,7 +56,7 @@ self.send_broadcast(OneClickPayment(
 ))
 ```
 
-Dicts are automatically converted internally. This works for all nested fields across `WhatsAppCatalog`, `WeniWebChatCatalog`, `OneClickPayment`, and `PixPayment`.
+Dicts are automatically converted internally. This works for all nested fields across `WhatsAppCatalog`, `WeniWebChatCatalog`, `OneClickPayment`, `PixPayment`, and `WhatsAppCarousel`.
 
 ## Message Types
 
@@ -321,6 +321,87 @@ self.send_broadcast(WhatsAppFlows(
 | `flow_token` | `str` | No | Optional flow token |
 | `flow_data` | `dict` | No | Data to pass to the flow (default: `{}`) |
 | `flow_mode` | `str` | No | Flow mode: `"published"` or `"draft"` (default: `"published"`) |
+
+---
+
+### `WhatsAppCarousel`
+
+Sends a WhatsApp carousel message with multiple image cards. Each card has its own body text and quick reply buttons. The user swipes between cards to browse the options.
+
+```python
+from weni.broadcasts import WhatsAppCarousel
+
+self.send_broadcast(WhatsAppCarousel(
+    text="Check out our shirts! Swipe to see the options:",
+    attachments=[
+        "image/jpg:https://cdn.example.com/shirt-black.jpg",
+        "image/jpg:https://cdn.example.com/shirt-blue.jpg",
+        "image/jpg:https://cdn.example.com/shirt-beige.jpg",
+    ],
+    carousel=[
+        {
+            "body": "See the details and pick your favorite!",
+            "buttons": [{"button_id": "shirt-black", "title": "I like this one"}],
+        },
+        {
+            "body": "Found something you liked? Tap to learn more.",
+            "buttons": [{"button_id": "shirt-blue", "title": "I like this one"}],
+        },
+        {
+            "body": "A great option for any occasion.",
+            "buttons": [{"button_id": "shirt-beige", "title": "I like this one"}],
+        },
+    ],
+))
+```
+
+Each entry in `attachments` corresponds positionally to the slide at the same index in `carousel` — the first image is shown on the first card, and so on. Make sure both lists have the same length.
+
+**Fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `text` | `str` | Yes | Intro text displayed above the carousel |
+| `attachments` | `list[str]` | Yes | One attachment per slide, in `mime:url` form (e.g. `"image/jpg:https://..."`) |
+| `carousel` | `list[dict]` | Yes | List of slides (see slide fields below) |
+
+**Slide dict fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `body` | `str` | Yes | Body text shown on the slide |
+| `buttons` | `list[dict]` | No | Quick reply buttons for this slide (see button fields below) |
+
+**Quick reply button dict fields:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `button_id` | `str` | Yes¹ | Button identifier returned when tapped (rendered as `parameters.id` in the API payload) |
+| `title` | `str` | Yes | Button label displayed to the user |
+| `sub_type` | `str` | No | Button sub-type (default: `"quick_reply"`) |
+
+¹ For compatibility with the raw Flows API shape, dicts using `{"sub_type": "quick_reply", "parameters": {"id": ..., "title": ...}}` are also accepted.
+
+If you prefer to avoid dicts, you can build slides and buttons explicitly using `WhatsAppCarouselSlide` and `WhatsAppCarouselQuickReply`:
+
+```python
+from weni.broadcasts import (
+    WhatsAppCarousel,
+    WhatsAppCarouselQuickReply,
+    WhatsAppCarouselSlide,
+)
+
+self.send_broadcast(WhatsAppCarousel(
+    text="Check out our shirts! Swipe to see the options:",
+    attachments=["image/jpg:https://cdn.example.com/shirt-black.jpg"],
+    carousel=[
+        WhatsAppCarouselSlide(
+            body="See the details and pick your favorite!",
+            buttons=[WhatsAppCarouselQuickReply(button_id="shirt-black", title="I like this one")],
+        ),
+    ],
+))
+```
 
 ## Sending Multiple Messages
 

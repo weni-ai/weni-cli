@@ -2,6 +2,9 @@
 
 Tool Run is a scalable way to build your tool and test it in real-time. With this feature, it's simple to debug problems and create a tool that is both scalable and performant at the same time.
 
+!!! tip "Looking for Active Agents?"
+    This page covers `weni run` for **passive agents (Tools)**. For testing **active agents** (PreProcessor + Rules), see [Active Agent Test Run](active-agent-run.md).
+
 ## What is required to run a tool?
 
 First, you need to have your tool. If you don't know how to create a tool or still have questions about this subject, you can read the tools page [Tools](../core-concepts/tools.md).

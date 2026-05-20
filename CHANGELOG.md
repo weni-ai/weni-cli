@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.6.10] - 2026-05-20
+
+### Added
+
+- Update weni-agenteval version to 1.1.0 ([#159](https://github.com/weni-ai/weni-cli/pull/159)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.9] - 2026-05-14
 
 ### Added

@@ -100,6 +100,7 @@ nav:
     - Contact Fields: core-concepts/contact-fields.md
   - Run:
     - Tool Tests: run/tool-run.md
+    - Active Agent Tests: run/active-agent-run.md
     - Logs: run/logs.md
   - Eval:
     - Agent Evaluation: eval/evaluation.md

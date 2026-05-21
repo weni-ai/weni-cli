@@ -1,10 +1,22 @@
 # Changelog
 
-## [Unreleased]
+## [3.7.0]
 
 ### Added
 
 - Extend `weni run` to support active agents (PreProcessor + Rules) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
+## [3.6.10] - 2026-05-20
+
+### Added
+
+- Update weni-agenteval version to 1.1.0 ([#159](https://github.com/weni-ai/weni-cli/pull/159)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
+## [3.6.9] - 2026-05-14
+
+### Added
+
+- Adding WhatsAppCarousel docs ([#154](https://github.com/weni-ai/weni-cli/pull/158)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
 
 ## [3.6.8] - 2026-05-12
 

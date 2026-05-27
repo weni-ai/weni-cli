@@ -1,11 +1,14 @@
 from typing import Optional
 import rich_click as click
-import os
 
 from weni_cli.formatter.formatter import Formatter
 from weni_cli.clients.cli_client import CLIClient
 from weni_cli.handler import Handler
-from weni_cli.packager.packager import create_agent_resource_folder_zip
+from weni_cli.packager.loader import (
+    load_preprocessing_folder as _load_preprocessing_folder,
+    load_rules_folders as _load_rules_folders,
+    load_tools_folders as _load_tools_folders,
+)
 from weni_cli.store import STORE_PROJECT_UUID_KEY, Store
 from weni_cli.validators.agent_definition import (
     format_definition,
@@ -104,79 +107,13 @@ class ProjectPushHandler(Handler):
         return value
 
     def load_tools_folders(self, definition) -> tuple[Optional[dict], Optional[str]]:
-        tools_folder_map = {}
-
-        agents = definition.get("agents", {})
-
-        for agent_key, agent_data in agents.items():
-            tools = agent_data.get("tools", {})
-            for tool in tools:
-                for tool_key, tool_data in tool.items():
-                    tool_folder, error = create_agent_resource_folder_zip(
-                        tool_key, tool_data.get("source").get("path")
-                    )
-                    if error:
-                        return (
-                            None,
-                            f"Failed to create tool folder for tool {tool_data.get('name')} in agent {agent_data.get('name')}\n{error}",
-                        )
-
-                    tools_folder_map[f"{agent_key}:{tool_key}"] = tool_folder
-
-        return tools_folder_map, None
+        return _load_tools_folders(definition)
 
     def load_rules_folders(self, definition) -> tuple[Optional[dict], Optional[str]]:
-        rules_folder_map = {}
-
-        agents = definition.get("agents", {})
-        for agent_key, agent_data in agents.items():
-            rules = agent_data.get("rules", {})
-            for rule_key, rule_data in rules.items():
-                rule_folder, error = create_agent_resource_folder_zip(
-                    rule_key, rule_data.get("source").get("path")
-                )
-                if error:
-                    return (
-                        None,
-                        f"Failed to create rule folder for rule {rule_data.get('name')} in agent {agent_data.get('name')}\n{error}",
-                    )
-
-                rules_folder_map[f"{agent_key}:{rule_key}"] = rule_folder
-
-        return rules_folder_map, None
+        return _load_rules_folders(definition)
 
     def load_preprocessing_folder(self, definition) -> tuple[Optional[dict], Optional[str]]:
-        preprocessing_folder_map = {}
-        preprocessing_key = "preprocessor_folder"
-        preprocessor_example_key = "preprocessor_example"
-
-        agents = definition.get("agents", {})
-        for agent_key, agent_data in agents.items():
-            preprocessing_data = agent_data.get("pre_processing", {})
-            preprocessing_folder, error = create_agent_resource_folder_zip(
-                "pre_processing", preprocessing_data.get("source").get("path")
-            )
-            if error or not preprocessing_folder:
-                return (
-                    None,
-                    f"Failed to create preprocessing folder for preprocessing {preprocessing_data.get('name')} in agent {agent_data.get('name')}\n{error}",
-                )
-
-            result_examples_file = preprocessing_data.get("result_examples_file")
-            if result_examples_file:
-                preprocessing_example_path = f'{preprocessing_data.get("source").get("path")}{os.sep}{result_examples_file}'
-                try:
-                    preprocessor_example_file = open(preprocessing_example_path, "rb")
-                except Exception as e:
-                    return (
-                        None,
-                        f"Failed to open preprocessing example file for preprocessing {preprocessing_data.get('name')} in agent {agent_data.get('name')}\n{e}",
-                    )
-                preprocessing_folder_map[f"{agent_key}:{preprocessor_example_key}"] = preprocessor_example_file
-
-            preprocessing_folder_map[f"{agent_key}:{preprocessing_key}"] = preprocessing_folder
-
-        return preprocessing_folder_map, None
+        return _load_preprocessing_folder(definition)
 
     def push_definition(self, force_update, agent_type, project_uuid, definition, resources_folder_map):
         client = CLIClient()

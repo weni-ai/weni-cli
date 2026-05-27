@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.7.0] - 2026-05-27
+
+### Added
+
+- Extend `weni run` to support active agents (PreProcessor + Rules) ([#155](https://github.com/weni-ai/weni-cli/pull/155)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.6.10] - 2026-05-20
 
 ### Added

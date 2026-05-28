@@ -18,7 +18,9 @@ from weni_cli.validators.agent_definition import (
     format_definition,
     load_agent_definition,
     load_test_definition,
+    validate_active_agent_definition_schema,
     validate_active_test_definition,
+    validate_agent_definition_schema,
 )
 
 DEFAULT_TEST_DEFINITION_FILE = "test_definition.yaml"
@@ -93,6 +95,18 @@ class RunHandler(Handler):
             return
 
         agent_type = detect_agent_type(definition_data)
+
+        schema_validator = (
+            validate_active_agent_definition_schema
+            if agent_type == ACTIVE_TYPE
+            else validate_agent_definition_schema
+        )
+        if validation_error := schema_validator(definition_data):
+            formatter.print_error_panel(
+                f"Invalid agent definition YAML file format, error:\n{validation_error}",
+                title="Failed to load definition file",
+            )
+            return
 
         if agent_type == ACTIVE_TYPE:
             self._execute_active(

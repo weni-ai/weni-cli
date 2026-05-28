@@ -60,12 +60,15 @@ test_cases:
             """
             )
 
-        # Create tool file
-        with open("tools/get_address/tool.py", "w") as f:
+        # Create tool file. The agent definition above declares
+        # ``entrypoint: main.Tool``, so the entrypoint validator expects a
+        # ``main.py`` exposing a top-level ``Tool`` class.
+        with open("tools/get_address/main.py", "w") as f:
             f.write(
                 """
-def run(input, context):
-    return f"{input}, New York, NY"
+class Tool:
+    def execute(self, context):
+        return "ok"
             """
             )
 
@@ -303,6 +306,7 @@ def test_run_command_missing_test_definition(mocker, create_mocked_files, mock_s
                 }
             }, None),
         )
+        mocker.patch("weni_cli.commands.run.validate_agent_definition_schema", return_value=None)
 
         # Patch the load_default_test_definition to return None
         mocker.patch("weni_cli.commands.run.RunHandler.load_default_test_definition", return_value=None)
@@ -334,6 +338,7 @@ def test_run_command_tool_folder_failure(mocker, create_mocked_files, mock_store
                 }
             }, None),
         )
+        mocker.patch("weni_cli.commands.run.validate_agent_definition_schema", return_value=None)
 
         # Patch the load_default_test_definition to return a valid file
         mocker.patch(
@@ -371,6 +376,7 @@ def test_run_command_invalid_test_definition(mocker, create_mocked_files, mock_s
                 }
             }, None),
         )
+        mocker.patch("weni_cli.commands.run.validate_agent_definition_schema", return_value=None)
 
         # Mock load_test_definition to return an error
         error_message = "Error loading test definition"
@@ -1074,6 +1080,7 @@ def test_execute_with_none_test_definition(mocker, mock_store_values):
         # and None for the test definition
         mock_load_agent_definition = mocker.patch("weni_cli.commands.run.load_agent_definition")
         mock_load_agent_definition.return_value = (definition_data, None)
+        mocker.patch("weni_cli.commands.run.validate_agent_definition_schema", return_value=None)
 
         # Mock load_test_definition to return None with an error
         mock_load_test_definition = mocker.patch("weni_cli.commands.run.load_test_definition")

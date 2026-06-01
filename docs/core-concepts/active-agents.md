@@ -132,4 +132,8 @@ your-project-name/
 └── result_example.json 
 ```
 
-This structure helps organize the different components of your Active Agent. 
+This structure helps organize the different components of your Active Agent.
+
+## Testing an Active Agent locally
+
+Before pushing your agent to production, you can validate the PreProcessor + Rules pipeline against curated test cases without doing a full deploy. See [Active Agent Test Run](../run/active-agent-run.md) for the full guide, including the `test_definition.yaml` format and the status icons reported by the CLI.

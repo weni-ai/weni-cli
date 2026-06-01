@@ -1731,14 +1731,14 @@ test = ["pytest", "websockets"]
 
 [[package]]
 name = "weni-agenteval"
-version = "1.0.11"
+version = "1.1.0"
 description = "A generative AI-powered framework for testing virtual agents."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "weni_agenteval-1.0.11-py3-none-any.whl", hash = "sha256:2322cba160cf67f940cb80d443f5906d3abaa10a5c95fb8e7315f4106f152dd9"},
-    {file = "weni_agenteval-1.0.11.tar.gz", hash = "sha256:e51c24f88f9477b28009d181c6b3b4e2b1cfe4a1f110702de0875e7d56b9a397"},
+    {file = "weni_agenteval-1.1.0-py3-none-any.whl", hash = "sha256:1732ad0698c7fcedb37e61f0cca667de107e4b9a37fe33c0b530b2de30363b9f"},
+    {file = "weni_agenteval-1.1.0.tar.gz", hash = "sha256:aef8aa75eb74ea6b646d0463fd79211983aa935186b1dfaebaa59e8b3a6ff42b"},
 ]
 
 [package.dependencies]
@@ -1757,14 +1757,14 @@ dev = ["bandit", "black", "flake8", "isort", "mkdocs", "mkdocs-click", "mkdocs-m
 
 [[package]]
 name = "weni-agents-toolkit"
-version = "2.6.4a0"
+version = "2.6.4"
 description = ""
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "weni_agents_toolkit-2.6.4a0-py3-none-any.whl", hash = "sha256:ace7f1192cb486c3c4be05a6d5da90e10f2e6f4a5ae3dc4fa9a83773870df5d9"},
-    {file = "weni_agents_toolkit-2.6.4a0.tar.gz", hash = "sha256:7c15f1fc691efbeb55ee9c0183556bb81a7350fba18e7d50d4af9cbd1b7ffe4b"},
+    {file = "weni_agents_toolkit-2.6.4-py3-none-any.whl", hash = "sha256:262bb4a859560942ca4a81a31dac5266900da23c3e614508c5a2f0d952458b93"},
+    {file = "weni_agents_toolkit-2.6.4.tar.gz", hash = "sha256:bedd133efb065934930f0cae7b12905dd1103b943655c09aa995cd19d297cc39"},
 ]
 
 [package.dependencies]
@@ -1792,4 +1792,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "1670a953ce4304553e2270ae21c23eb76f02c839263821c7c5cb8cdebe90eb33"
+content-hash = "d1509f2c04d7df328154796acf8f2fdd5c05c0ce81fc88e44bd6c77355b21016"

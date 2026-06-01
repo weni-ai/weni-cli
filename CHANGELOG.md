@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.7.1] - 2026-06-01
+
+### Added
+
+- Validate `source.entrypoint` (module file and class existence) and run agent definition schema validation in `weni run` to prevent execution errors ([#160](https://github.com/weni-ai/weni-cli/pull/160)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
 ## [3.7.0] - 2026-05-27
 
 ### Added

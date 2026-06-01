@@ -225,8 +225,14 @@ def test_project_push_missing_tool_file(mocker, mock_store_values, **kwargs):
         with open("agents.json", "w") as f:
             f.write(SAMPLE_AGENT_DEFINITION_YAML)
 
+        formatter_mock = mocker.patch("weni_cli.commands.project_push.Formatter")
+        formatter_instance = formatter_mock.return_value
+
         result = runner.invoke(project, ["push", "agents.json"], terminal_width=80)
 
         assert result.exit_code == 0
-        assert "Failed to create tool folder for tool Get Address in agent CEP Agent" in result.output
-        assert "Folder tools/get_address not found" in result.output
+        error_call = formatter_instance.print_error_panel.call_args
+        message = error_call.args[0]
+        title = error_call.kwargs.get("title", "")
+        assert "Failed to load definition file" in title
+        assert "source path 'tools/get_address' does not exist" in message

@@ -50,14 +50,21 @@ def get_cli_version() -> str:
     return importlib.metadata.version("weni-cli")
 
 
-def create_default_payload(project_uuid: str, definition: Dict, agent_type: str) -> Dict[str, str]:
+def create_default_payload(
+    project_uuid: str, definition: Dict, agent_type: str, apm_instrumentation: Optional[str] = None
+) -> Dict[str, str]:
     """Create a default payload for API requests."""
-    return {
+    payload = {
         "project_uuid": project_uuid,
         "definition": json.dumps(definition, ensure_ascii=False),
         "toolkit_version": get_toolkit_version(),
         "type": agent_type,
     }
+
+    if apm_instrumentation:
+        payload["apm_instrumentation"] = apm_instrumentation
+
+    return payload
 
 
 class CLIClient:
@@ -179,10 +186,15 @@ class CLIClient:
             raise RequestError(f"Failed to check project permission: {e.message}")
 
     def push_agents(
-        self, project_uuid: str, agents_definition: Dict, resources_folder: Dict[str, BinaryIO], agent_type: str
+        self,
+        project_uuid: str,
+        agents_definition: Dict,
+        resources_folder: Dict[str, BinaryIO],
+        agent_type: str,
+        apm_instrumentation: Optional[str] = None,
     ) -> None:
         """Push agents to the API."""
-        data = create_default_payload(project_uuid, agents_definition, agent_type)
+        data = create_default_payload(project_uuid, agents_definition, agent_type, apm_instrumentation)
 
         with spinner():
             try:

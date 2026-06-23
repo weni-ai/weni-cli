@@ -53,6 +53,24 @@ def test_print_success_panel(formatter, mocker):
     assert panel_arg.expand is False
 
 
+def test_print_warning_panel(formatter, mocker):
+    """Test the warning panel creation and printing."""
+    mock_print = mocker.patch("weni_cli.formatter.formatter.print")
+
+    warning_message = "This is a warning message"
+
+    formatter.print_warning_panel(warning_message, title="Custom warning")
+
+    mock_print.assert_called_once()
+
+    panel_arg = mock_print.call_args[0][0]
+    assert isinstance(panel_arg, Panel)
+    assert panel_arg.title == "[bold yellow]Custom warning[/bold yellow]"
+    assert panel_arg.renderable == warning_message
+    assert panel_arg.style == "bold yellow"
+    assert panel_arg.expand is False
+
+
 def test_print_error_panel_with_exception(formatter, mocker):
     """Test printing an error panel with an exception object."""
     mock_print = mocker.patch("weni_cli.formatter.formatter.print")

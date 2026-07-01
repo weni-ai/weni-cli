@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.7.2] - 2026-07-01
+
+### Added
+
+- Add `--use-apm` and `--remove-apm` flags to `weni project push` for controlling Elastic APM instrumentation on passive agent tool lambdas
+- Document APM flags and observability warning in user guide and passive agents docs
+- Show CLI warning after successful push with `--use-apm` about performance impact and `--remove-apm` when done
+
 ## [3.7.1] - 2026-06-01
 
 ### Added

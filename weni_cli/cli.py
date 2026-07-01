@@ -101,7 +101,9 @@ def current_project():
 @project.command("push")
 @click.argument("definition", required=True, type=click.Path(exists=True, dir_okay=False))
 @click.option("--force-update", is_flag=True, help="Force update to the project")
-def push_project(definition, force_update):
+@click.option("--use-apm", is_flag=True, help="Enable Elastic APM instrumentation for passive agent tool lambdas")
+@click.option("--remove-apm", is_flag=True, help="Remove Elastic APM instrumentation from passive agent tool lambdas")
+def push_project(definition, force_update, use_apm, remove_apm):
     """Push an Agent definition to the current project
 
     DEFINITION: The path to the YAML agent definition file
@@ -109,7 +111,12 @@ def push_project(definition, force_update):
     from weni_cli.commands.project_push import ProjectPushHandler
 
     try:
-        ProjectPushHandler().execute(definition=definition, force_update=force_update)
+        ProjectPushHandler().execute(
+            definition=definition,
+            force_update=force_update,
+            use_apm=use_apm,
+            remove_apm=remove_apm,
+        )
     except Exception as e:
         click.echo(f"Error: {e}")
 

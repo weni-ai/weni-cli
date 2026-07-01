@@ -127,9 +127,49 @@ weni project push agents.yaml
 ```
 
 The command:
+
 1. Validates your YAML
 2. Uploads tools
 3. Creates/updates the agent
+
+### Elastic APM instrumentation (passive agents only)
+
+For **passive agents** (tools deployed as AWS Lambdas), you can control Elastic APM instrumentation at push time:
+
+| Flag | Behavior |
+|------|----------|
+| *(none)* | Preserves the current APM state on each tool Lambda |
+| `--use-apm` | Enables APM layers and environment variables on all tool Lambdas in the definition |
+| `--remove-apm` | Removes APM instrumentation from all tool Lambdas in the definition |
+
+```bash
+# Enable APM on tool Lambdas
+weni project push agents.yaml --use-apm
+
+# Remove APM from tool Lambdas
+weni project push agents.yaml --remove-apm
+
+# Deploy without changing APM state
+weni project push agents.yaml
+```
+
+**Important:**
+
+- `--use-apm` and `--remove-apm` cannot be used together.
+- These flags apply only to **passive agents**. They are ignored for active agent pushes.
+- APM affects **all tools** in the agent definition file for that push.
+
+> **Warning — use APM only for observability**
+>
+> Enable APM only when you need to observe or debug tool Lambda behavior. APM adds layers and environment variables that **increase cold start time and runtime overhead**, which can degrade Lambda performance.
+>
+> When investigation is complete, **disable APM** so production traffic is not affected:
+>
+> ```bash
+> weni project push agents.yaml --remove-apm
+> ```
+
+After a successful push with `--use-apm`, the CLI displays the same warning in the terminal.
 
 ### Deployment Best Practices
 

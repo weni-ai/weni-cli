@@ -154,6 +154,27 @@ def create_channel(channel_definition):
 
 
 @cli.group()
+def ticketer():
+    """Ticketer management commands"""
+    pass
+
+
+@ticketer.command("create")
+@click.argument("ticketer_definition", required=True, type=click.Path(exists=True, dir_okay=False))
+def create_ticketer(ticketer_definition):
+    """Create a new ticketer from a definition file
+
+    TICKETER_DEFINITION: The path to the YAML ticketer definition file
+    """
+    from weni_cli.commands.ticketer_create import TicketerCreateHandler
+
+    try:
+        TicketerCreateHandler().execute(ticketer_definition=ticketer_definition)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@cli.group()
 def eval():
     """Agent evaluation commands"""
 

@@ -95,6 +95,7 @@ nav:
     - Events: core-concepts/events.md
     - FinalResponse: core-concepts/final-response.md
     - Channels: user-guide/channels.md
+    - Ticketers: user-guide/ticketers.md
     - Credentials: core-concepts/credentials.md
     - Constants: core-concepts/constants.md
     - Contact Fields: core-concepts/contact-fields.md

@@ -1169,3 +1169,90 @@ def test_create_channel_with_whatsapp_channel_type(client, mocker):
             "channel_definition": channel_definition["channels"][0]
         }
     )
+
+
+def test_create_ticketer_success(client, mocker):
+    """Test successful ticketer creation."""
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "org support"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {
+        "ticketers": [
+            {
+                "name": "org support",
+                "ticketer_type": "generic",
+                "config": {
+                    "base_url": "https://example.com",
+                    "api_token": "test-api-token",
+                    "webhook_secret": "test-webhook-secret",
+                },
+            }
+        ]
+    }
+
+    client.create_ticketer(project_uuid, ticketer_definition)
+
+    client._make_request.assert_called_once_with(
+        method="POST",
+        endpoint="api/v1/ticketers",
+        json_data={
+            "project_uuid": project_uuid,
+            "ticketer_definition": ticketer_definition["ticketers"][0],
+        },
+    )
+
+
+def test_create_ticketer_no_ticketers_in_definition(client):
+    """Test ticketer creation with no ticketers in definition."""
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {}
+
+    with pytest.raises(ValueError) as exc_info:
+        client.create_ticketer(project_uuid, ticketer_definition)
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_create_ticketer_empty_ticketers_array(client):
+    """Test ticketer creation with empty ticketers array."""
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {"ticketers": []}
+
+    with pytest.raises(ValueError) as exc_info:
+        client.create_ticketer(project_uuid, ticketer_definition)
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_create_ticketer_request_error(client, mocker):
+    """Test ticketer creation with request error."""
+    error_message = "Failed to create ticketer in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=400),
+    )
+
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {
+        "ticketers": [
+            {
+                "name": "org support",
+                "ticketer_type": "generic",
+                "config": {
+                    "base_url": "https://example.com",
+                    "api_token": "test-api-token",
+                    "webhook_secret": "test-webhook-secret",
+                },
+            }
+        ]
+    }
+
+    with pytest.raises(RequestError) as exc_info:
+        client.create_ticketer(project_uuid, ticketer_definition)
+
+    assert "Failed to create ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)

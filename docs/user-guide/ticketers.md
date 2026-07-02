@@ -124,8 +124,6 @@ ticketers:
       project_name: "my org"
 ```
 
-A reference file is available at `examples/generic_ticketer_definition.yaml` in the weni-cli repository.
-
 ### Step 3: Ensure you have a project selected
 
 ```bash

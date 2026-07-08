@@ -103,7 +103,7 @@ class CLIClient:
                 timeout=timeout,
             )
 
-            if response.status_code != 200:
+            if not (200 <= response.status_code < 300):
                 if response.status_code == 401:
                     raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                 try:
@@ -152,7 +152,7 @@ class CLIClient:
             params=params,
         )
 
-        if response.status_code != 200:
+        if not (200 <= response.status_code < 300):
             if response.status_code == 401:
                 raise RequestError("Invalid authentication token. Please login again using 'weni login'")
             try:

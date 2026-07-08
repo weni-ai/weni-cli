@@ -837,6 +837,16 @@ def test_request_method_error_handling(client, mocker):
     response = client._make_request("GET", "test/endpoint")
     assert response == success_resp
 
+    # 4. Test with 201 Created response (common for POST create endpoints)
+    created_resp = mocker.MagicMock()
+    created_resp.status_code = 201
+    created_resp.json.return_value = {"uuid": "new-resource-uuid"}
+
+    client.session.request = mocker.MagicMock(return_value=created_resp)
+
+    response = client._make_request("POST", "test/endpoint")
+    assert response == created_resp
+
 
 def test_streaming_request_json_error_response(client, mocker):
     """Test _streaming_request method with a JSON error response."""
@@ -1174,7 +1184,7 @@ def test_create_channel_with_whatsapp_channel_type(client, mocker):
 def test_create_ticketer_success(client, mocker):
     """Test successful ticketer creation."""
     mock_response = mocker.MagicMock()
-    mock_response.status_code = 200
+    mock_response.status_code = 201
     mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "org support"}
     mocker.patch.object(client, "_make_request", return_value=mock_response)
 

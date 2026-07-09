@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.8.0] - 2026-07-09
+
+### Added
+
+- Add `weni ticketer create` command to register generic ticketers from a YAML definition file ([#167](https://github.com/weni-ai/weni-cli/pull/167)) ([**@rasoro**](https://github.com/rasoro))
+- Validate ticketer definition schema and auto-fill project UUID from the selected project
+- Document ticketer management and generic ticketer HTTP contract in user guide
+
 ## [3.7.2] - 2026-07-01
 
 ### Added

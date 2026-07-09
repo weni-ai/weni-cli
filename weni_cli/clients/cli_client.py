@@ -382,3 +382,21 @@ class CLIClient:
             return response.json()
         except RequestError as e:
             raise RequestError(f"Failed to create channel: {e.message}")
+
+    def create_ticketer(self, project_uuid: str, ticketer_definition: Dict) -> Dict[str, Any]:
+        """Create a ticketer."""
+        if "ticketers" not in ticketer_definition or not ticketer_definition["ticketers"]:
+            raise ValueError("No ticketers found in definition")
+
+        ticketer_data = ticketer_definition["ticketers"][0]
+
+        payload = {
+            "project_uuid": project_uuid,
+            "ticketer_definition": ticketer_data,
+        }
+
+        try:
+            response = self._make_request(method="POST", endpoint="api/v1/ticketers", json_data=payload)
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to create ticketer: {e.message}")

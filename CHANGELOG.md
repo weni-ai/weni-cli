@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.1] - 2026-07-13
+
+### Added
+
+- Update version to 3.8.1 and update weni-agents-toolkit to 2.8.0 by adding flows client and contacts integration, and tool refactoring([#157](https://github.com/weni-ai/weni-cli/pull/169)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
+
 ## [3.8.0] - 2026-07-09
 
 ### Added

@@ -18,7 +18,9 @@ Broadcasts enable tools to:
 
 ## Quick Start
 
-To send a broadcast, call `self.send_broadcast()` inside your tool's `execute` method with a message object:
+To send a broadcast, use the broadcasts integration inside your tool's `execute` method. Every `Tool` instance exposes it in two equivalent ways:
+
+**Shorthand** (recommended for single sends):
 
 ```python
 from weni import Tool
@@ -32,7 +34,28 @@ class MyTool(Tool):
         return FinalResponse()
 ```
 
-The `send_broadcast` method is available on every `Tool` instance. It sends the message immediately to the contact.
+**Facade** (same behavior, useful when sending multiple messages or chaining calls):
+
+```python
+from weni.broadcasts import Text
+
+class MyTool(Tool):
+    def execute(self, context: Context) -> FinalResponse:
+        self.broadcasts.send(Text(text="Processing your request..."))
+        return FinalResponse()
+```
+
+Both forms send the message immediately to the contact. The facade is lazy-initialized on first access and cached for the duration of the tool execution.
+
+## Integration API
+
+| Access | Equivalent to | Use when |
+|--------|---------------|----------|
+| `self.send_broadcast(message)` | `self.broadcasts.send(message)` | Quick one-off sends |
+| `self.broadcasts.send(message)` | — | You prefer explicit namespace access |
+| `self.broadcasts.send_many(messages)` | Multiple `send()` calls in one batch | Sending several messages efficiently |
+
+Message types are imported from `weni.broadcasts` — the integration handles HTTP, authentication, and delivery to Flows.
 
 ## Dict Shorthand
 
@@ -405,15 +428,17 @@ self.send_broadcast(WhatsAppCarousel(
 
 ## Sending Multiple Messages
 
-Call `self.send_broadcast()` multiple times to send more than one message during a single tool execution:
+Call `self.send_broadcast()` or `self.broadcasts.send()` multiple times to send more than one message during a single tool execution. For a batch of messages in one round trip, use `self.broadcasts.send_many()`:
 
 ```python
 from weni.broadcasts import Text, QuickReply
 
 class MyTool(Tool):
     def execute(self, context: Context):
-        self.send_broadcast(Text(text="Step 1: Fetching your data..."))
-        self.send_broadcast(Text(text="Step 2: Processing results..."))
+        self.broadcasts.send_many([
+            Text(text="Step 1: Fetching your data..."),
+            Text(text="Step 2: Processing results..."),
+        ])
         self.send_broadcast(QuickReply(
             text="All done! What would you like to do next?",
             options=["View Details", "Start Over"],

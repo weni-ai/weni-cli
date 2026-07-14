@@ -85,7 +85,7 @@ Dicts are automatically converted internally. This works for all nested fields a
 
 The broadcasts module provides several message types, each suited for different use cases.
 
-### `Text`
+### Text
 
 A simple text message.
 
@@ -95,15 +95,14 @@ from weni.broadcasts import Text
 self.send_broadcast(Text(text="Hello! How can I help you?"))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `text` | `str` | Yes | The message text content |
 
----
 
-### `QuickReply`
+### QuickReply
 
 A message with quick reply buttons that the user can tap to respond.
 
@@ -118,7 +117,7 @@ self.send_broadcast(QuickReply(
 ))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -127,9 +126,8 @@ self.send_broadcast(QuickReply(
 | `header` | `str` | No | Optional header text displayed above the message |
 | `footer` | `str` | No | Optional footer text displayed below the message |
 
----
 
-### `WhatsAppCatalog`
+### WhatsAppCatalog
 
 A lightweight catalog message that only requires product retailer IDs — the channel resolves the full product details on its own. Ideal for channels that natively support product catalogs.
 
@@ -147,7 +145,7 @@ self.send_broadcast(WhatsAppCatalog(
 ))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -158,16 +156,15 @@ self.send_broadcast(WhatsAppCatalog(
 | `header` | `str` | No | Optional header text |
 | `footer` | `str` | No | Optional footer text |
 
-**Product group dict fields:**
+#### Product group dict fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `product` | `str` | Yes | The product group/category name |
 | `product_retailer_ids` | `list[str]` | Yes | List of product retailer ID strings |
 
----
 
-### `WeniWebChatCatalog`
+### WeniWebChatCatalog
 
 A rich catalog message that carries full product details (name, price, image, etc.) so the channel can render complete product cards. Use this when the channel does not natively resolve product information from retailer IDs alone.
 
@@ -203,7 +200,7 @@ self.send_broadcast(WeniWebChatCatalog(
 ))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -214,7 +211,7 @@ self.send_broadcast(WeniWebChatCatalog(
 | `header` | `str` | No | Optional header text |
 | `footer` | `str` | No | Optional footer text |
 
-**Product dict fields:**
+#### Product dict fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -227,9 +224,8 @@ self.send_broadcast(WeniWebChatCatalog(
 | `image` | `str` | No | URL to the product image |
 | `sale_price` | `str` | No | Discounted sale price, if applicable |
 
----
 
-### `OneClickPayment`
+### OneClickPayment
 
 Sends an order confirmation with a saved card for one-click payment via WhatsApp.
 
@@ -253,7 +249,7 @@ self.send_broadcast(OneClickPayment(
 ))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -268,9 +264,8 @@ self.send_broadcast(OneClickPayment(
 | `discount_value` | `int` | No | Discount in cents (default: `0`) |
 | `shipping_value` | `int` | No | Shipping in cents (default: `0`) |
 
----
 
-### `PixPayment`
+### PixPayment
 
 Sends an order details message with PIX payment configuration, allowing the contact to copy the PIX code and complete payment.
 
@@ -296,7 +291,7 @@ self.send_broadcast(PixPayment(
 ))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -314,9 +309,8 @@ self.send_broadcast(PixPayment(
 | `shipping_value` | `int` | No | Shipping in cents (default: `0`) |
 | `footer` | `str` | No | Optional footer text |
 
----
 
-### `WhatsAppFlows`
+### WhatsAppFlows
 
 Sends a WhatsApp Flows interactive message that opens a structured flow screen for the contact.
 
@@ -333,7 +327,7 @@ self.send_broadcast(WhatsAppFlows(
 ))
 ```
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -345,9 +339,8 @@ self.send_broadcast(WhatsAppFlows(
 | `flow_data` | `dict` | No | Data to pass to the flow (default: `{}`) |
 | `flow_mode` | `str` | No | Flow mode: `"published"` or `"draft"` (default: `"published"`) |
 
----
 
-### `WhatsAppCarousel`
+### WhatsAppCarousel
 
 Sends a WhatsApp carousel message with multiple image cards. Each card has its own body text and quick reply buttons. The user swipes between cards to browse the options.
 
@@ -380,7 +373,7 @@ self.send_broadcast(WhatsAppCarousel(
 
 Each entry in `attachments` corresponds positionally to the slide at the same index in `carousel` — the first image is shown on the first card, and so on. Make sure both lists have the same length.
 
-**Fields:**
+#### Fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
@@ -388,14 +381,14 @@ Each entry in `attachments` corresponds positionally to the slide at the same in
 | `attachments` | `list[str]` | Yes | One attachment per slide, in `mime:url` form (e.g. `"image/jpg:https://..."`) |
 | `carousel` | `list[dict]` | Yes | List of slides (see slide fields below) |
 
-**Slide dict fields:**
+#### Slide dict fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `body` | `str` | Yes | Body text shown on the slide |
 | `buttons` | `list[dict]` | No | Quick reply buttons for this slide (see button fields below) |
 
-**Quick reply button dict fields:**
+#### Quick reply button dict fields
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|

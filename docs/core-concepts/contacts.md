@@ -6,8 +6,7 @@ The contacts integration lets your tools **read and update Flows contact records
 
 Think of it as a programmatic CRM bridge: your tool talks to Flows contacts API while the conversation is running, without hand-rolling HTTP requests or authentication.
 
-!!! note "Contacts vs Contact Fields"
-    This page covers the **Contacts API** (`self.contact.get()` / `self.contact.update()`). For declaring persistent tool parameters in your agent YAML, see [Contact Fields](./contact-fields.md). The two features complement each other — contact fields store values from agent parameters; the contacts integration lets you read or write the full Flows contact record from Python.
+> **Note — Contacts vs Contact Fields:** This page covers the **Contacts API** (`self.contact.get()` / `self.contact.update()`). For declaring persistent tool parameters in your agent YAML, see [Contact Fields](./contact-fields.md). The two features complement each other — contact fields store values from agent parameters; the contacts integration lets you read or write the full Flows contact record from Python.
 
 ## Why Contacts Matter
 
@@ -93,7 +92,7 @@ email = contact.get("fields", {}).get("email")
 groups = contact.get("groups", [])
 ```
 
-**Raises**:
+#### Raises
 
 | Error | When |
 |-------|------|
@@ -145,7 +144,7 @@ self.update_contact(fields={
 - The merged payload must include **at least one attribute** — empty updates are rejected before calling Flows.
 - When the contact is identified by URN in the query string, **`urns` must not appear in the body** — the integration raises a validation error if you include it.
 
-**Raises** (in addition to get errors):
+#### Raises (in addition to get errors)
 
 | Error | When |
 |-------|------|

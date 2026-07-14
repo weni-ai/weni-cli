@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.8.2] - 2026-07-13
+
+### Fixed
+
+- Fixing broadcasts and contacts docs ([#157](https://github.com/weni-ai/weni-cli/pull/170)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
 ## [3.8.1] - 2026-07-13
 
 ### Added

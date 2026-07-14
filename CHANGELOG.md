@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.2] - 2026-07-14
+
+### Fixed
+
+- Accept any 2xx HTTP status code in CLIClient instead of only 200, so accept endpoints that return 201 succeed ([#171](https://github.com/weni-ai/weni-cli/pull/171)) ([**@rasoro**](https://github.com/rasoro))
+
+
 ## [3.8.1] - 2026-07-13
 
 ### Added

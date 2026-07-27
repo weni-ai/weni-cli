@@ -18,7 +18,24 @@ OPTIONAL_CONFIG_FIELDS = [
     "route_close",
     "route_reopen",
     "route_history",
+    "route_history_message",
     "webhook_secret",
+    "history_mode",
+    "history_batch_size",
+    # Plataforma → Ticketer (request/response body templates)
+    "open_template",
+    "open_response_template",
+    "forward_template",
+    "forward_response_template",
+    "close_template",
+    "close_response_template",
+    "history_template",
+    "history_response_template",
+    # Ticketer → Plataforma (inbound webhook request/response templates)
+    "messages_template",
+    "messages_response_template",
+    "tickets_close_template",
+    "tickets_close_response_template",
 ]
 
 URL_PATTERN = re.compile(r"^https?://")

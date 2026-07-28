@@ -186,6 +186,50 @@ class TestValidateTicketerDefinitionSchema:
             == "Ticketer at index 0: 'config.unknown_field' is not a recognized field in the ticketer definition file"
         )
 
+    def test_valid_ticketer_definition_with_equivalent_templates(self, valid_ticketer_definition):
+        data = valid_ticketer_definition.copy()
+        data["ticketers"] = [dict(data["ticketers"][0])]
+        data["ticketers"][0]["config"] = dict(data["ticketers"][0]["config"])
+        data["ticketers"][0]["config"].update(
+            {
+                "open_template": '{"ticket_id":{{json .ticket_id}},"contact":{{json .contact}},'
+                '"body":{{json .body}},"topic":{{json .topic}},"assignee":{{json .assignee}},'
+                '"metadata":{{json .metadata}},"opened_at":{{json .opened_at}}}',
+                "open_response_template": '{"external_id":{{json .external_id}},'
+                '"status":{{json .status}},"created_at":{{json .created_at}}}',
+                "forward_template": '{"ticket_id":{{json .ticket_id}},"external_id":{{json .external_id}},'
+                '"message_id":{{json .message_id}},"direction":{{json .direction}},'
+                '"sender":{{json .sender}},"text":{{json .text}},"attachments":{{json .attachments}},'
+                '"metadata":{{json .metadata}},"sent_at":{{json .sent_at}}}',
+                "forward_response_template": '{"message_external_id":{{json .message_external_id}},'
+                '"status":{{json .status}}}',
+                "close_template": '{"ticket_id":{{json .ticket_id}},"external_id":{{json .external_id}},'
+                '"closed_by":{{json .closed_by}},"reason":{{json .reason}},'
+                '"metadata":{{json .metadata}},"closed_at":{{json .closed_at}}}',
+                "close_response_template": '{"status":{{json .status}}}',
+                "history_mode": "batch",
+                "history_batch_size": "50",
+                "route_history_message": "/v1/tickets/{external_id}/messages",
+                "history_template": '{"ticket_id":{{json .ticket_id}},"external_id":{{json .external_id}},'
+                '"contact":{{json .contact}},"messages":{{json .messages}},"metadata":{{json .metadata}}}',
+                "history_response_template": '{"status":{{json .status}},'
+                '"messages_received":{{json .messages_received}}}',
+                "messages_template": '{"external_id":{{json .external_id}},'
+                '"message_external_id":{{json .message_external_id}},"direction":{{json .direction}},'
+                '"sender":{{json .sender}},"text":{{json .text}},"attachments":{{json .attachments}},'
+                '"metadata":{{json .metadata}},"sent_at":{{json .sent_at}}}',
+                "messages_response_template": '{"status":{{json .status}},'
+                '"ticket_uuid":{{json .ticket_uuid}},"message_uuid":{{json .message_uuid}}}',
+                "tickets_close_template": '{"external_id":{{json .external_id}},'
+                '"closed_by":{{json .closed_by}},"reason":{{json .reason}},'
+                '"metadata":{{json .metadata}},"closed_at":{{json .closed_at}}}',
+                "tickets_close_response_template": '{"status":{{json .status}},'
+                '"ticket_uuid":{{json .ticket_uuid}}}',
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error is None
+
 
 class TestLoadTicketerDefinition:
     """Tests for load_ticketer_definition function."""

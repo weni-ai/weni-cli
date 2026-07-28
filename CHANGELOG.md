@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.8.4] - 2026-07-28
+
+### Added
+
+- Support optional payload/response templates and extra routing/history fields in generic ticketer definitions ([#172](https://github.com/weni-ai/weni-cli/pull/172)) ([**@rasoro**](https://github.com/rasoro))
+- Document ticketer template fields, history modes, and route overrides in the user guide
+
 ## [3.8.3] - 2026-07-14
 
 ### Fixed

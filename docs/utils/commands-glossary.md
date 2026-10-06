@@ -17,5 +17,9 @@ These commands are fundamental for developing and deploying agents, allowing dir
 | `weni logs --agent <agent_key> --tool <tool_key> [--start-time ISO8601] [--end-time ISO8601] [--pattern TEXT]` | Fetch tool execution logs. Supports pagination and ISO 8601 date formats (e.g. `2024-01-01T00:00:00`). |
 | `weni channel create [channel_definition_file]` | Create a new communication channel from a YAML definition file. Allows you to configure external channels (E2) for your agents. |
 | `weni ticketer create [ticketer_definition_file]` | Create a new generic ticketer from a YAML definition file. Connects your project to an external HTTP-based ticket service. Optional OAuth2 token refresh is stored as string fields in ticketer config (`token_refresh_config` as compact JSON). |
+| `weni ticketer list` | List active ticketers in the selected project (UUID, name, type, created on). |
+| `weni ticketer get [ticketer_uuid]` | Show ticketer details. Secret config values (`api_token`, `webhook_secret`) are redacted and shown as `***`. |
+| `weni ticketer update [ticketer_uuid] [ticketer_definition_file]` | Replace a ticketer's name and config from the same YAML used by create. The UUID is a command argument, not a YAML field. |
+| `weni ticketer delete [ticketer_uuid] [--yes]` | Deactivate the ticketer and close open tickets. Prompts for confirmation unless `--yes` is passed. |
 | `weni eval init [--plan-dir DIR]` | Create an `agent_evaluation.yml` test plan in the current directory (or in the specified directory). |
 | `weni eval run [--filter TESTS] [--plan-dir DIR] [--verbose]` | Run agent evaluations from `agent_evaluation.yml`. Use `--filter` for specific tests, `--verbose` for detailed reasoning. |

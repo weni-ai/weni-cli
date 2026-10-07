@@ -181,6 +181,32 @@ def create_ticketer(ticketer_definition):
         click.echo(f"Error: {e}")
 
 
+@cli.command("attach")
+@click.option("--urn-id", required=True, help="Channel identity supplied by the caller.")
+@click.option(
+    "--anchor-type",
+    required=True,
+    type=click.Choice(["commerce_user_id", "verified_email", "tax_document"]),
+    help="Anchor type.",
+)
+@click.option("--anchor-value", required=True, help="Anchor value. The CLI does not infer it.")
+@click.option("--verified", is_flag=True, default=False, help="The anchor was already verified.")
+@click.option("--project-id", default=None, help="Project UUID. Defaults to the selected project.")
+def attach(urn_id, anchor_type, anchor_value, verified, project_id):
+    """Attach the given channel identity to a consumer"""
+    from weni_cli.commands.attach import AttachHandler
+
+    exit_code = AttachHandler().execute(
+        urn_id=urn_id,
+        anchor_type=anchor_type,
+        anchor_value=anchor_value,
+        verified=verified,
+        project_id=project_id,
+    )
+    if exit_code:
+        raise click.exceptions.Exit(exit_code)
+
+
 @cli.group()
 def eval():
     """Agent evaluation commands"""

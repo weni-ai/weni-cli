@@ -1,3 +1,4 @@
+import os
 import rich_click as click
 import requests
 import json
@@ -400,3 +401,41 @@ class CLIClient:
             return response.json()
         except RequestError as e:
             raise RequestError(f"Failed to create ticketer: {e.message}")
+
+    def attach_identity(
+        self,
+        project_id: str,
+        urn_id: str,
+        anchor_type: str,
+        anchor_value: str,
+        verified: bool,
+    ) -> Dict[str, Any]:
+        """Attach a channel identity to a consumer through the Flows identity API."""
+        base_url = os.environ.get("WENI_FLOWS_BASE_URL", self.base_url).rstrip("/")
+        url = f"{base_url}/api/v2/internals/identity/attach"
+        response = self.session.request(
+            method="POST",
+            url=url,
+            headers=self.headers,
+            json={
+                "project_id": project_id,
+                "urn_id": urn_id,
+                "anchor": {"type": anchor_type, "value": anchor_value, "verified": verified},
+                "actor": "weni-cli",
+            },
+            timeout=(10, 30),
+        )
+        try:
+            body = response.json()
+        except json.JSONDecodeError:
+            body = {}
+        if not (200 <= response.status_code < 300):
+            code = body.get("error") if isinstance(body, dict) else None
+            if response.status_code in (401, 403):
+                code = code or "forbidden"
+            raise RequestError(
+                message=code or "identity_unavailable",
+                status_code=response.status_code,
+                data={"error": code or "identity_unavailable"},
+            )
+        return body

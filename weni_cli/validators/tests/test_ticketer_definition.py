@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from click.testing import CliRunner
 
@@ -7,6 +9,31 @@ from weni_cli.validators.ticketer_definition import (
     load_ticketer_definition,
     validate_ticketer_definition_schema,
 )
+
+
+def _clone_definition(valid_ticketer_definition):
+    data = valid_ticketer_definition.copy()
+    data["ticketers"] = [dict(data["ticketers"][0])]
+    data["ticketers"][0]["config"] = dict(data["ticketers"][0]["config"])
+    return data
+
+
+def _custom_refresh_object():
+    return {
+        "when": {
+            "match": "any",
+            "status_codes": [401, 403],
+            "body_contains": ["INVALID_SESSION_ID", "token_expired"],
+            "expired": True,
+        },
+        "method": "POST",
+        "url": "https://example.my.salesforce.com/services/oauth2/token",
+        "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+        "body": "grant_type=password&client_id=id&client_secret=secret&username=user&password=pass",
+        "token_field": "access_token",
+        "expires_in_field": "expires_in",
+        "expires_in_default": 7200,
+    }
 
 
 @pytest.fixture
@@ -160,8 +187,7 @@ class TestValidateTicketerDefinitionSchema:
         del data["ticketers"][0]["config"]["webhook_secret"]
         error = validate_ticketer_definition_schema(data)
         assert (
-            error
-            == "Ticketer at index 0: 'config.webhook_secret' is required unless "
+            error == "Ticketer at index 0: 'config.webhook_secret' is required unless "
             "'config.skip_webhook_hmac' is set to true, 1 or yes in the ticketer definition file"
         )
 
@@ -171,9 +197,7 @@ class TestValidateTicketerDefinitionSchema:
         data["ticketers"][0]["config"] = dict(data["ticketers"][0]["config"])
         data["ticketers"][0]["config"]["api_token"] = 123
         error = validate_ticketer_definition_schema(data)
-        assert (
-            error == "Ticketer at index 0: 'config.api_token' must be a string in the ticketer definition file"
-        )
+        assert error == "Ticketer at index 0: 'config.api_token' must be a string in the ticketer definition file"
 
     def test_unknown_config_field(self, valid_ticketer_definition):
         data = valid_ticketer_definition.copy()
@@ -227,6 +251,215 @@ class TestValidateTicketerDefinitionSchema:
                 '"ticket_uuid":{{json .ticket_uuid}}}',
             }
         )
+        error = validate_ticketer_definition_schema(data)
+        assert error is None
+
+
+class TestTokenRefreshConfig:
+    """OAuth2 token refresh config validation and string serialization."""
+
+    def test_disabled_by_default_without_refresh_fields(self, valid_ticketer_definition):
+        error = validate_ticketer_definition_schema(valid_ticketer_definition)
+        assert error is None
+        assert "token_refresh_enabled" not in valid_ticketer_definition["ticketers"][0]["config"]
+
+    def test_enabled_custom_nested_object_serializes_compact_json_string(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        refresh_object = _custom_refresh_object()
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+                "expires_in": "1774132800",
+                "token_refresh_config": refresh_object,
+            }
+        )
+
+        error = validate_ticketer_definition_schema(data)
+        assert error is None
+
+        serialized = data["ticketers"][0]["config"]["token_refresh_config"]
+        assert isinstance(serialized, str)
+        assert "\n" not in serialized
+        assert json.loads(serialized) == refresh_object
+
+    def test_enabled_custom_json_string_is_normalized(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        refresh_object = _custom_refresh_object()
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "TRUE",
+                "token_refresh_type": "custom",
+                "token_refresh_config": json.dumps(refresh_object, indent=2),
+            }
+        )
+
+        error = validate_ticketer_definition_schema(data)
+        assert error is None
+        serialized = data["ticketers"][0]["config"]["token_refresh_config"]
+        assert isinstance(serialized, str)
+        assert "\n" not in serialized
+        assert json.loads(serialized) == refresh_object
+
+    def test_enabled_refresh_type_requires_refresh_token_and_strips_body(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "1",
+                "token_refresh_type": "refresh",
+                "refresh_token": "rt-secret",
+                "client_id": "cid",
+                "client_secret": "csecret",
+                "token_refresh_config": {
+                    "url": "https://host/oauth/token",
+                    "body": "should-be-ignored",
+                },
+            }
+        )
+
+        error = validate_ticketer_definition_schema(data)
+        assert error is None
+        parsed = json.loads(data["ticketers"][0]["config"]["token_refresh_config"])
+        assert "body" not in parsed
+        assert parsed["url"] == "https://host/oauth/token"
+        assert parsed["headers"]["Content-Type"] == "application/x-www-form-urlencoded"
+
+    def test_enabled_without_type_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"]["token_refresh_enabled"] = "yes"
+        data["ticketers"][0]["config"]["token_refresh_config"] = json.dumps({"url": "https://host/token", "body": "x"})
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_type' is required when "
+            "token refresh is enabled and must be 'custom' or 'refresh' in the ticketer definition file"
+        )
+
+    def test_enabled_invalid_type_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "authorization_code",
+                "token_refresh_config": json.dumps({"url": "https://host/token", "body": "x"}),
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_type' is required when "
+            "token refresh is enabled and must be 'custom' or 'refresh' in the ticketer definition file"
+        )
+
+    def test_enabled_invalid_json_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+                "token_refresh_config": "{not-json",
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_config' must be valid JSON " "in the ticketer definition file"
+        )
+
+    def test_enabled_missing_url_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+                "token_refresh_config": {"body": "grant_type=password"},
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_config.url' is required "
+            "when token refresh is enabled in the ticketer definition file"
+        )
+
+    def test_when_match_must_be_any(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+                "token_refresh_config": {
+                    "url": "https://host/token",
+                    "body": "x",
+                    "when": {"match": "all"},
+                },
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_config.when.match' must be 'any' "
+            "in the ticketer definition file"
+        )
+
+    def test_custom_missing_body_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+                "token_refresh_config": {"url": "https://host/token"},
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_config.body' is required "
+            "when token_refresh_type is 'custom' in the ticketer definition file"
+        )
+
+    def test_refresh_missing_refresh_token_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "refresh",
+                "token_refresh_config": {"url": "https://host/token"},
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.refresh_token' is required when "
+            "token_refresh_type is 'refresh' in the ticketer definition file"
+        )
+
+    def test_expires_in_must_be_int64(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+                "expires_in": "not-a-timestamp",
+                "token_refresh_config": _custom_refresh_object(),
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.expires_in' must be a decimal int64 unix timestamp "
+            "in the ticketer definition file"
+        )
+
+    def test_enabled_missing_token_refresh_config_fails(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"].update(
+            {
+                "token_refresh_enabled": "true",
+                "token_refresh_type": "custom",
+            }
+        )
+        error = validate_ticketer_definition_schema(data)
+        assert error == (
+            "Ticketer at index 0: 'config.token_refresh_config' is required "
+            "when token refresh is enabled in the ticketer definition file"
+        )
+
+    def test_enabled_false_does_not_require_refresh_fields(self, valid_ticketer_definition):
+        data = _clone_definition(valid_ticketer_definition)
+        data["ticketers"][0]["config"]["token_refresh_enabled"] = "false"
         error = validate_ticketer_definition_schema(data)
         assert error is None
 

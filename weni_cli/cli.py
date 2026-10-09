@@ -169,9 +169,15 @@ def ticketer():
 @ticketer.command("create")
 @click.argument("ticketer_definition", required=True, type=click.Path(exists=True, dir_okay=False))
 def create_ticketer(ticketer_definition):
-    """Create a new ticketer from a definition file
+    """Create a new ticketer from a definition file.
 
-    TICKETER_DEFINITION: The path to the YAML ticketer definition file
+    TICKETER_DEFINITION: Path to the YAML ticketer definition file.
+
+    Generic ticketers authenticate Mailroom → partner with Bearer api_token.
+    Optional OAuth2 token refresh is configured in config (all values stored as
+    strings). When token_refresh_enabled is true/1/yes, token_refresh_type must
+    be custom or refresh and token_refresh_config is serialized as a compact
+    JSON string before it is sent to the API.
     """
     from weni_cli.commands.ticketer_create import TicketerCreateHandler
 

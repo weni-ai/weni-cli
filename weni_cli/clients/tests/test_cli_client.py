@@ -933,7 +933,8 @@ def test_get_tool_logs_success(client, mocker):
 
     # Verify the method was called with correct parameters
     client._make_request.assert_called_once_with(
-        method="GET", endpoint="api/v1/tool-logs/",
+        method="GET",
+        endpoint="api/v1/tool-logs/",
         params={
             "agent_key": agent,
             "tool_key": tool,
@@ -941,7 +942,7 @@ def test_get_tool_logs_success(client, mocker):
             "end_time": end_time,
             "pattern": pattern,
             "next_token": None,
-        }
+        },
     )
 
 
@@ -951,9 +952,7 @@ def test_get_tool_logs_error(client, mocker):
     error_message = "Failed to fetch tool logs"
     request_id = "req-12345"
     mocker.patch.object(
-        client,
-        "_make_request",
-        side_effect=RequestError(message=error_message, request_id=request_id)
+        client, "_make_request", side_effect=RequestError(message=error_message, request_id=request_id)
     )
 
     # Call the method
@@ -995,7 +994,8 @@ def test_get_tool_logs_with_empty_times(client, mocker):
 
     # Verify the method was called with correct parameters (None values for times)
     client._make_request.assert_called_once_with(
-        method="GET", endpoint="api/v1/tool-logs/",
+        method="GET",
+        endpoint="api/v1/tool-logs/",
         params={
             "agent_key": agent,
             "tool_key": tool,
@@ -1003,7 +1003,7 @@ def test_get_tool_logs_with_empty_times(client, mocker):
             "end_time": None,
             "pattern": pattern,
             "next_token": None,
-        }
+        },
     )
 
 
@@ -1213,6 +1213,46 @@ def test_create_ticketer_success(client, mocker):
             "ticketer_definition": ticketer_definition["ticketers"][0],
         },
     )
+
+
+def test_create_ticketer_with_token_refresh_sends_config_as_strings(client, mocker):
+    """Token refresh config must be a compact JSON string in the create payload."""
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 201
+    mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "org support"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    project_uuid = "test-project-uuid"
+    refresh_config = (
+        '{"when":{"match":"any","status_codes":[401]},"url":"https://host/oauth/token",'
+        '"headers":{"Content-Type":"application/x-www-form-urlencoded"}}'
+    )
+    ticketer_definition = {
+        "ticketers": [
+            {
+                "name": "org support",
+                "ticketer_type": "generic",
+                "config": {
+                    "base_url": "https://example.com",
+                    "api_token": "test-api-token",
+                    "webhook_secret": "test-webhook-secret",
+                    "token_refresh_enabled": "true",
+                    "token_refresh_type": "refresh",
+                    "refresh_token": "rt-secret",
+                    "token_refresh_config": refresh_config,
+                },
+            }
+        ]
+    }
+
+    client.create_ticketer(project_uuid, ticketer_definition)
+
+    sent = client._make_request.call_args.kwargs["json_data"]["ticketer_definition"]["config"]
+    assert sent["token_refresh_enabled"] == "true"
+    assert sent["token_refresh_type"] == "refresh"
+    assert isinstance(sent["token_refresh_config"], str)
+    assert json.loads(sent["token_refresh_config"])["url"] == "https://host/oauth/token"
+    assert all(isinstance(value, str) for value in sent.values())
 
 
 def test_create_ticketer_no_ticketers_in_definition(client):

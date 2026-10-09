@@ -93,6 +93,7 @@ nav:
     - Tools: core-concepts/tools.md
     - Broadcasts: core-concepts/broadcasts.md
     - Contacts: core-concepts/contacts.md
+    - Requesting VTEX: core-concepts/requesting-vtex.md
     - Events: core-concepts/events.md
     - FinalResponse: core-concepts/final-response.md
     - Channels: user-guide/channels.md

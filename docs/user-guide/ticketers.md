@@ -1,6 +1,6 @@
 # Ticketer Management
 
-Ticketers connect your project to external ticket systems. The Weni CLI lets you create and configure generic ticketers from a YAML definition file, so agents and flows can open, forward, close, and reopen tickets through a partner HTTP service.
+Ticketers connect your project to external ticket systems. The Weni CLI lets you create, list, inspect, update, and delete generic ticketers from a YAML definition file, so agents and flows can open, forward, close, and reopen tickets through a partner HTTP service.
 
 ## What are Ticketers?
 
@@ -331,6 +331,47 @@ weni ticketer create my_ticketer.yaml
 
 On success, the CLI displays the ticketer name and UUID.
 
+## Listing Ticketers
+
+List active ticketers in the selected project:
+
+```bash
+weni ticketer list
+```
+
+The command prints a table with UUID, name, type, and created on. If the project has no active ticketers, the CLI prints "No ticketers found".
+
+## Getting a Ticketer
+
+Inspect one ticketer:
+
+```bash
+weni ticketer get <ticketer_uuid>
+```
+
+The panel includes name, UUID, type, created on, modified on, and config. Secret fields (`api_token` and `webhook_secret`) are redacted and shown as `***`. The stored secrets are not changed.
+
+## Updating a Ticketer
+
+Replace the ticketer name and config with the same YAML used by create. Pass the ticketer UUID as an argument. Do not add `uuid` to the YAML file.
+
+```bash
+weni ticketer update <ticketer_uuid> my_ticketer.yaml
+```
+
+`ticketer_type` is immutable. Sending a different type is rejected. Only the first item in the `ticketers` array is applied, as with create. An empty `config.project_uuid` is filled with the selected project.
+
+## Deleting a Ticketer
+
+Delete deactivates the ticketer through `release`: flow dependencies are detached, open tickets are closed, and the ticketer is no longer active. A second delete of the same UUID returns 404.
+
+```bash
+weni ticketer delete <ticketer_uuid>
+weni ticketer delete <ticketer_uuid> --yes
+```
+
+Without `--yes`, the CLI asks for confirmation. The default answer is no. The prompt warns that open tickets will be closed. `--yes` skips the prompt.
+
 ## Best Practices
 
 1. **Match routes to your partner API**: If you override `route_*` fields, ensure they match the endpoints your service actually exposes
@@ -387,6 +428,10 @@ Confirm the partner is calling the URL from `metadata.webhook_base_url` on open.
 ### API errors after creation
 
 The CLI calls `POST api/v1/ticketers` on the Weni CLI backend. If creation fails, confirm the backend endpoint is available and that your account has permission for the selected project.
+
+### Ticketer not found (404)
+
+The UUID is not an active ticketer in the selected project. It may belong to another project, or it may already have been deleted.
 
 ## Next Steps
 

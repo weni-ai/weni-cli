@@ -1255,6 +1255,44 @@ def test_create_ticketer_with_token_refresh_sends_config_as_strings(client, mock
     assert all(isinstance(value, str) for value in sent.values())
 
 
+def test_list_ticketers_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"results": []}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    client.list_ticketers("test-project-uuid")
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/ticketers")
+
+
+def test_get_ticketer_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "n"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    client.get_ticketer("test-project-uuid", "ticketer-uuid")
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/ticketers/ticketer-uuid")
+
+
+def test_update_ticketer_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "ticketer-uuid"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    definition = {"ticketers": [{"name": "n", "ticketer_type": "generic", "config": {"base_url": "https://x", "api_token": "t"}}]}
+    client.update_ticketer("test-project-uuid", "ticketer-uuid", definition)
+    client._make_request.assert_called_once_with(
+        method="PUT",
+        endpoint="api/v1/ticketers/ticketer-uuid",
+        json_data={"project_uuid": "test-project-uuid", "ticketer_definition": definition["ticketers"][0]},
+    )
+
+
+def test_delete_ticketer_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 204
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    client.delete_ticketer("test-project-uuid", "ticketer-uuid")
+    client._make_request.assert_called_once_with(method="DELETE", endpoint="api/v1/ticketers/ticketer-uuid")
+
+
 def test_create_ticketer_no_ticketers_in_definition(client):
     """Test ticketer creation with no ticketers in definition."""
     project_uuid = "test-project-uuid"

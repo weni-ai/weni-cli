@@ -1,5 +1,11 @@
 # Changelog
 
+## [3.8.8] - 2026-10-13
+
+### Removed
+
+- Revert the 3.8.7 release, including the VTEX proxy documentation and the `weni-agents-toolkit` 2.9.0 / 2.10.0 bumps. The CLI depends on `weni-agents-toolkit` 2.8.2 again. ([#182](https://github.com/weni-ai/weni-cli/pull/182) ([**@marcellhenrique**](https://github.com/marcellhenrique))
+
 ## [3.8.6] - 2026-08-14
 
 ### Added

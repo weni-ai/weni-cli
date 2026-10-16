@@ -400,3 +400,46 @@ class CLIClient:
             return response.json()
         except RequestError as e:
             raise RequestError(f"Failed to create ticketer: {e.message}")
+
+    def list_ticketers(self, project_uuid: str) -> Dict[str, Any]:
+        """List ticketers for the project."""
+        try:
+            response = self._make_request(method="GET", endpoint="api/v1/ticketers")
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to list ticketers: {e.message}")
+
+    def get_ticketer(self, project_uuid: str, ticketer_uuid: str) -> Dict[str, Any]:
+        """Get a ticketer by UUID."""
+        try:
+            response = self._make_request(method="GET", endpoint=f"api/v1/ticketers/{ticketer_uuid}")
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to get ticketer: {e.message}")
+
+    def update_ticketer(self, project_uuid: str, ticketer_uuid: str, ticketer_definition: Dict) -> Dict[str, Any]:
+        """Update a ticketer."""
+        if "ticketers" not in ticketer_definition or not ticketer_definition["ticketers"]:
+            raise ValueError("No ticketers found in definition")
+
+        ticketer_data = ticketer_definition["ticketers"][0]
+
+        payload = {
+            "project_uuid": project_uuid,
+            "ticketer_definition": ticketer_data,
+        }
+
+        try:
+            response = self._make_request(
+                method="PUT", endpoint=f"api/v1/ticketers/{ticketer_uuid}", json_data=payload
+            )
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to update ticketer: {e.message}")
+
+    def delete_ticketer(self, project_uuid: str, ticketer_uuid: str) -> None:
+        """Delete a ticketer."""
+        try:
+            self._make_request(method="DELETE", endpoint=f"api/v1/ticketers/{ticketer_uuid}")
+        except RequestError as e:
+            raise RequestError(f"Failed to delete ticketer: {e.message}")

@@ -187,6 +187,66 @@ def create_ticketer(ticketer_definition):
         click.echo(f"Error: {e}")
 
 
+@ticketer.command("list")
+def list_ticketers():
+    """List active ticketers in the selected project"""
+    from weni_cli.commands.ticketer_list import TicketerListHandler
+
+    try:
+        TicketerListHandler().execute()
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@ticketer.command("get")
+@click.argument("ticketer_uuid", required=True)
+def get_ticketer(ticketer_uuid):
+    """Show ticketer details. Secret config values are shown as ***
+
+    TICKETER_UUID: UUID of the ticketer to inspect
+    """
+    from weni_cli.commands.ticketer_get import TicketerGetHandler
+
+    try:
+        TicketerGetHandler().execute(ticketer_uuid=ticketer_uuid)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@ticketer.command("update")
+@click.argument("ticketer_uuid", required=True)
+@click.argument("ticketer_definition", required=True, type=click.Path(exists=True, dir_okay=False))
+def update_ticketer(ticketer_uuid, ticketer_definition):
+    """Replace a ticketer name and config from a definition file
+
+    TICKETER_UUID: UUID of the ticketer to update
+
+    TICKETER_DEFINITION: The path to the YAML ticketer definition file
+    """
+    from weni_cli.commands.ticketer_update import TicketerUpdateHandler
+
+    try:
+        TicketerUpdateHandler().execute(ticketer_uuid=ticketer_uuid, ticketer_definition=ticketer_definition)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@ticketer.command("delete")
+@click.argument("ticketer_uuid", required=True)
+@click.option("--yes", is_flag=True, help="Skip confirmation prompt")
+def delete_ticketer(ticketer_uuid, yes):
+    """Deactivate a ticketer and close its open tickets
+
+    TICKETER_UUID: UUID of the ticketer to delete
+    """
+    from weni_cli.commands.ticketer_delete import TicketerDeleteHandler
+
+    try:
+        TicketerDeleteHandler().execute(ticketer_uuid=ticketer_uuid, yes=yes)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
 @cli.group()
 def eval():
     """Agent evaluation commands"""

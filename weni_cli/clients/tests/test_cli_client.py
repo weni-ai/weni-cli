@@ -1293,6 +1293,89 @@ def test_delete_ticketer_success(client, mocker):
     client._make_request.assert_called_once_with(method="DELETE", endpoint="api/v1/ticketers/ticketer-uuid")
 
 
+def test_list_ticketers_request_error(client, mocker):
+    error_message = "Failed to list ticketers in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=500),
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.list_ticketers("test-project-uuid")
+
+    assert "Failed to list ticketers" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_get_ticketer_request_error(client, mocker):
+    error_message = "Ticketer was not found"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=404),
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.get_ticketer("test-project-uuid", "ticketer-uuid")
+
+    assert "Failed to get ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_update_ticketer_no_ticketers_in_definition(client):
+    with pytest.raises(ValueError) as exc_info:
+        client.update_ticketer("test-project-uuid", "ticketer-uuid", {})
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_update_ticketer_empty_ticketers_array(client):
+    with pytest.raises(ValueError) as exc_info:
+        client.update_ticketer("test-project-uuid", "ticketer-uuid", {"ticketers": []})
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_update_ticketer_request_error(client, mocker):
+    error_message = "Failed to update ticketer in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=400),
+    )
+    definition = {
+        "ticketers": [
+            {
+                "name": "n",
+                "ticketer_type": "generic",
+                "config": {"base_url": "https://x", "api_token": "t"},
+            }
+        ]
+    }
+
+    with pytest.raises(RequestError) as exc_info:
+        client.update_ticketer("test-project-uuid", "ticketer-uuid", definition)
+
+    assert "Failed to update ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_delete_ticketer_request_error(client, mocker):
+    error_message = "Ticketer was not found"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=404),
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.delete_ticketer("test-project-uuid", "ticketer-uuid")
+
+    assert "Failed to delete ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
 def test_create_ticketer_no_ticketers_in_definition(client):
     """Test ticketer creation with no ticketers in definition."""
     project_uuid = "test-project-uuid"

@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.9.0] - 2026-10-16
+
+### Added
+
+- Add `weni ticketer list`, `get`, `update`, and `delete` to manage generic ticketers in the selected project ([#180](https://github.com/weni-ai/weni-cli/pull/180)) ([**@rasoro**](https://github.com/rasoro))
+- `list` prints active ticketers with UUID, name, type, and created on
+- `get` shows ticketer details; `api_token` and `webhook_secret` are displayed as `***`
+- `update` replaces the ticketer name and config from the same YAML used by create, filling an empty `config.project_uuid` with the selected project
+- `delete` deactivates the ticketer and closes open tickets, asking for confirmation unless `--yes` is passed
+- Document the commands in the ticketer user guide and commands glossary
+
 ## [3.8.8] - 2026-10-13
 
 ### Removed

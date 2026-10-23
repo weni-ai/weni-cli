@@ -164,9 +164,12 @@ class CLIClient:
                 raise RequestError("Invalid authentication token. Please login again using 'weni login'")
             try:
                 error_data = response.json()
-                message = error_data.get("message", f"Request failed with status code {response.status_code}")
+                message = error_data.get(
+                    "message",
+                    error_data.get("detail", f"Request failed with status code {response.status_code}"),
+                )
                 raise RequestError(
-                    message=message,
+                    message=str(message),
                     status_code=response.status_code,
                     data=error_data.get("data"),
                     request_id=error_data.get("request_id"),
@@ -382,6 +385,59 @@ class CLIClient:
             return response.json()
         except RequestError as e:
             raise RequestError(f"Failed to create channel: {e.message}")
+
+    def list_channels(self, channel_type: Optional[str] = None, exclude_wpp_demo: bool = False) -> List[Dict[str, Any]]:
+        """List channels of the current project."""
+        params: Dict[str, Any] = {}
+        if channel_type:
+            params["channel_type"] = channel_type
+        if exclude_wpp_demo:
+            params["exclude_wpp_demo"] = "true"
+
+        try:
+            response = self._make_request(method="GET", endpoint="api/v1/channels", params=params or None)
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to list channels: {e.message}")
+
+    def get_channel(self, channel_uuid: str) -> Dict[str, Any]:
+        """Get one channel of the current project."""
+        try:
+            response = self._make_request(method="GET", endpoint=f"api/v1/channels/{channel_uuid}")
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to get channel: {e.message}")
+
+    def update_channel(
+        self,
+        channel_uuid: str,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Partially update a channel. The backend merges config into the stored one."""
+        payload: Dict[str, Any] = {}
+        if name is not None:
+            payload["name"] = name
+        if address is not None:
+            payload["address"] = address
+        if config is not None:
+            payload["config"] = config
+
+        try:
+            response = self._make_request(
+                method="PATCH", endpoint=f"api/v1/channels/{channel_uuid}", json_data=payload
+            )
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to update channel: {e.message}")
+
+    def delete_channel(self, channel_uuid: str) -> None:
+        """Soft-delete a channel (Flows sets is_active to false)."""
+        try:
+            self._make_request(method="DELETE", endpoint=f"api/v1/channels/{channel_uuid}")
+        except RequestError as e:
+            raise RequestError(f"Failed to delete channel: {e.message}")
 
     def create_ticketer(self, project_uuid: str, ticketer_definition: Dict) -> Dict[str, Any]:
         """Create a ticketer."""

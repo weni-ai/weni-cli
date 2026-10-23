@@ -1427,3 +1427,129 @@ def test_create_ticketer_request_error(client, mocker):
 
     assert "Failed to create ticketer" in str(exc_info.value)
     assert error_message in str(exc_info.value)
+
+
+def test_make_request_uses_detail_when_message_is_missing(client, mocker):
+    """FastAPI HTTPException bodies only carry 'detail'."""
+    error_resp = mocker.MagicMock()
+    error_resp.status_code = 404
+    error_resp.json.return_value = {"detail": "Channel not found"}
+    client.session.request = mocker.MagicMock(return_value=error_resp)
+
+    with pytest.raises(RequestError) as excinfo:
+        client._make_request("GET", "api/v1/channels/some-uuid")
+
+    assert excinfo.value.message == "Channel not found"
+    assert excinfo.value.status_code == 404
+
+
+def test_list_channels_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = [{"uuid": "channel-uuid", "name": "Test Channel"}]
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    result = client.list_channels(channel_type="WAC", exclude_wpp_demo=True)
+
+    assert result == [{"uuid": "channel-uuid", "name": "Test Channel"}]
+    client._make_request.assert_called_once_with(
+        method="GET",
+        endpoint="api/v1/channels",
+        params={"channel_type": "WAC", "exclude_wpp_demo": "true"},
+    )
+
+
+def test_list_channels_without_filters_sends_no_params(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = []
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    client.list_channels()
+
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/channels", params=None)
+
+
+def test_list_channels_request_error(client, mocker):
+    mocker.patch.object(client, "_make_request", side_effect=RequestError(message="Forbidden", status_code=403))
+
+    with pytest.raises(RequestError) as exc_info:
+        client.list_channels()
+
+    assert "Failed to list channels: Forbidden" in str(exc_info.value)
+
+
+def test_get_channel_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "channel-uuid"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    result = client.get_channel("channel-uuid")
+
+    assert result == {"uuid": "channel-uuid"}
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/channels/channel-uuid")
+
+
+def test_get_channel_request_error(client, mocker):
+    mocker.patch.object(
+        client, "_make_request", side_effect=RequestError(message="Channel not found", status_code=404)
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.get_channel("channel-uuid")
+
+    assert "Failed to get channel: Channel not found" in str(exc_info.value)
+
+
+def test_update_channel_sends_only_given_fields(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "channel-uuid", "name": "Renamed"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    result = client.update_channel("channel-uuid", name="Renamed", config={"extra": "1"})
+
+    assert result == {"uuid": "channel-uuid", "name": "Renamed"}
+    client._make_request.assert_called_once_with(
+        method="PATCH",
+        endpoint="api/v1/channels/channel-uuid",
+        json_data={"name": "Renamed", "config": {"extra": "1"}},
+    )
+
+
+def test_update_channel_sends_address_only(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "channel-uuid"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    client.update_channel("channel-uuid", address="+5511999999999")
+
+    client._make_request.assert_called_once_with(
+        method="PATCH",
+        endpoint="api/v1/channels/channel-uuid",
+        json_data={"address": "+5511999999999"},
+    )
+
+
+def test_update_channel_request_error(client, mocker):
+    mocker.patch.object(client, "_make_request", side_effect=RequestError(message="Invalid", status_code=400))
+
+    with pytest.raises(RequestError) as exc_info:
+        client.update_channel("channel-uuid", name="Renamed")
+
+    assert "Failed to update channel: Invalid" in str(exc_info.value)
+
+
+def test_delete_channel_success(client, mocker):
+    mocker.patch.object(client, "_make_request", return_value=mocker.MagicMock())
+
+    assert client.delete_channel("channel-uuid") is None
+    client._make_request.assert_called_once_with(method="DELETE", endpoint="api/v1/channels/channel-uuid")
+
+
+def test_delete_channel_request_error(client, mocker):
+    mocker.patch.object(
+        client, "_make_request", side_effect=RequestError(message="Channel not found", status_code=404)
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.delete_channel("channel-uuid")
+
+    assert "Failed to delete channel: Channel not found" in str(exc_info.value)

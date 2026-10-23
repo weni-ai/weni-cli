@@ -160,6 +160,78 @@ def create_channel(channel_definition):
         click.echo(f"Error: {e}")
 
 
+@channel.command("list")
+@click.option("--type", "-t", "channel_type", help="Filter by channel type (e.g. WAC, WWC)", type=str)
+@click.option("--exclude-wpp-demo", is_flag=True, help="Hide the WhatsApp demo channel")
+def list_channels(channel_type, exclude_wpp_demo):
+    """List channels of the current project"""
+    from weni_cli.commands.channel_list import ChannelListHandler
+
+    try:
+        ChannelListHandler().execute(channel_type=channel_type, exclude_wpp_demo=exclude_wpp_demo)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@channel.command("get")
+@click.argument("channel_uuid", required=True, type=click.UUID)
+@click.option("--show-secrets", is_flag=True, help="Show config values that look like tokens, secrets or keys")
+def get_channel(channel_uuid, show_secrets):
+    """Show the details of a channel
+
+    CHANNEL_UUID: The UUID of the channel
+    """
+    from weni_cli.commands.channel_get import ChannelGetHandler
+
+    try:
+        ChannelGetHandler().execute(channel_uuid=channel_uuid, show_secrets=show_secrets)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@channel.command("update")
+@click.argument("channel_uuid", required=True, type=click.UUID)
+@click.option("--name", "-n", help="New channel name", type=str)
+@click.option("--address", "-a", help="New channel address", type=str)
+@click.option(
+    "--config-file",
+    "-c",
+    help="YAML/JSON file with config keys to merge into the channel config",
+    type=click.Path(exists=True, dir_okay=False),
+)
+def update_channel(channel_uuid, name, address, config_file):
+    """Update the name, address or config of a channel
+
+    CHANNEL_UUID: The UUID of the channel
+
+    Config keys from --config-file are merged into the current config; keys not in the file stay unchanged.
+    """
+    from weni_cli.commands.channel_update import ChannelUpdateHandler
+
+    try:
+        ChannelUpdateHandler().execute(
+            channel_uuid=channel_uuid, name=name, address=address, config_file=config_file
+        )
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
+@channel.command("delete")
+@click.argument("channel_uuid", required=True, type=click.UUID)
+@click.option("--yes", "-y", is_flag=True, help="Skip confirmation")
+def delete_channel(channel_uuid, yes):
+    """Deactivate a channel (soft delete)
+
+    CHANNEL_UUID: The UUID of the channel
+    """
+    from weni_cli.commands.channel_delete import ChannelDeleteHandler
+
+    try:
+        ChannelDeleteHandler().execute(channel_uuid=channel_uuid, yes=yes)
+    except Exception as e:
+        click.echo(f"Error: {e}")
+
+
 @cli.group()
 def ticketer():
     """Ticketer management commands"""

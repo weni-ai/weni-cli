@@ -5,6 +5,8 @@ import yaml
 
 from slugify import slugify
 
+from weni_cli.validators.source import validate_entrypoint
+
 MIN_INSTRUCTION_LENGTH = 40
 MIN_GUARDRAIL_LENGTH = 40
 MAX_AGENT_NAME_LENGTH = 55
@@ -173,6 +175,13 @@ def validate_agent_definition_schema(data):
                 return f"Agent '{agent_key}': tool '{tool_name}': 'source' is missing required field 'entrypoint' in the agent definition file"
             if not isinstance(tool_data["source"]["entrypoint"], str):
                 return f"Agent '{agent_key}': tool '{tool_name}': 'source.entrypoint' must be a string in the agent definition file"
+
+            if error := validate_entrypoint(
+                context=f"Agent '{agent_key}': tool '{tool_name}'",
+                source_path=tool_data["source"]["path"],
+                entrypoint=tool_data["source"]["entrypoint"],
+            ):
+                return error
 
             # Validate source path_test if present (must be string)
             if "path_test" in tool_data["source"] and not isinstance(tool_data["source"]["path_test"], str):
@@ -419,6 +428,13 @@ def validate_active_agent_definition_schema(data):
                 if not isinstance(rule_data["source"]["entrypoint"], str):
                     return f"Agent '{agent_key}': rule '{rule_key}': 'source.entrypoint' must be a string in the agent definition file"
 
+                if error := validate_entrypoint(
+                    context=f"Agent '{agent_key}': rule '{rule_key}'",
+                    source_path=rule_data["source"]["path"],
+                    entrypoint=rule_data["source"]["entrypoint"],
+                ):
+                    return error
+
                 # Validate start_condition (required, must be a string)
                 if not rule_data.get("start_condition"):
                     return f"Agent '{agent_key}': rule '{rule_key}' is missing required field 'start_condition' in the agent definition file"
@@ -460,6 +476,13 @@ def validate_active_agent_definition_schema(data):
                 return f"Agent '{agent_key}': 'pre_processing.source' is missing required field 'entrypoint' in the agent definition file"
             if not isinstance(agent_data["pre_processing"]["source"]["entrypoint"], str):
                 return f"Agent '{agent_key}': 'pre_processing.source.entrypoint' must be a string in the agent definition file"
+
+            if error := validate_entrypoint(
+                context=f"Agent '{agent_key}': pre_processing",
+                source_path=agent_data["pre_processing"]["source"]["path"],
+                entrypoint=agent_data["pre_processing"]["source"]["entrypoint"],
+            ):
+                return error
 
             # Validate result_examples_file (required, must be a string with a .json in suffix)
             if "result_examples_file" not in agent_data["pre_processing"]:

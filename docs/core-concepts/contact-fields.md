@@ -4,6 +4,8 @@
 
 Contact fields are persistent information about contacts who interact with your agents. By enabling contact fields in your tools, you elevate the user experience to a new level, as your agents can interact with the Weni Platform to accurately obtain information about the contact.
 
+For programmatic read/update of the full Flows contact record from inside a tool (outside YAML parameters), see [Contacts](./contacts.md).
+
 ## How Contact Fields Work
 
 When you mark a parameter as a contact field in your tool definition, that information becomes persistent in the user's profile within the Weni Platform. This creates several advantages:

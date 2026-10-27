@@ -150,3 +150,25 @@ your-project-name/
 │   ├── get_address/main.py
 └── agent_definition.yaml
 ```
+
+## Lambda observability (Elastic APM)
+
+Passive agent tools run as AWS Lambdas. You can enable Elastic APM instrumentation when pushing the agent definition to trace executions in your observability stack.
+
+| Command | Effect on tool Lambdas |
+|---------|------------------------|
+| `weni project push agent_definition.yaml` | Keeps the current APM state unchanged |
+| `weni project push agent_definition.yaml --use-apm` | Enables APM |
+| `weni project push agent_definition.yaml --remove-apm` | Removes APM |
+
+> **Warning — observability only**
+>
+> Use `--use-apm` only for debugging or investigation. APM instrumentation increases Lambda cold start and runtime overhead and can **degrade performance** under load.
+>
+> Disable APM as soon as you finish investigating:
+>
+> ```bash
+> weni project push agent_definition.yaml --remove-apm
+> ```
+
+See [Deploying Agents](../user-guide/agents.md#elastic-apm-instrumentation-passive-agents-only) for full details.

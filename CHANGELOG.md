@@ -1,10 +1,87 @@
 # Changelog
 
-## [3.7.0]
+## [3.9.0] - 2026-10-16
 
 ### Added
 
-- Extend `weni run` to support active agents (PreProcessor + Rules) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+- Add `weni ticketer list`, `get`, `update`, and `delete` to manage generic ticketers in the selected project ([#180](https://github.com/weni-ai/weni-cli/pull/180)) ([**@rasoro**](https://github.com/rasoro))
+- `list` prints active ticketers with UUID, name, type, and created on
+- `get` shows ticketer details; `api_token` and `webhook_secret` are displayed as `***`
+- `update` replaces the ticketer name and config from the same YAML used by create, filling an empty `config.project_uuid` with the selected project
+- `delete` deactivates the ticketer and closes open tickets, asking for confirmation unless `--yes` is passed
+- Document the commands in the ticketer user guide and commands glossary
+
+## [3.8.8] - 2026-10-13
+
+### Removed
+
+- Revert the 3.8.7 release, including the VTEX proxy documentation and the `weni-agents-toolkit` 2.9.0 / 2.10.0 bumps. The CLI depends on `weni-agents-toolkit` 2.8.2 again. ([#182](https://github.com/weni-ai/weni-cli/pull/182) ([**@marcellhenrique**](https://github.com/marcellhenrique))
+
+## [3.8.6] - 2026-08-14
+
+### Added
+
+- Bumping Toolkit to version 2.8.2 and CLI to version 3.8.6 ([#175](https://github.com/weni-ai/weni-cli/pull/175) ([**@marcellhenrique**](https://github.com/marcellhenrique))
+
+## [3.8.5] - 2026-08-03
+
+### Added
+
+- Bumping Toolkit to version 2.8.1 and CLI to version 3.8.5 ([#174](https://github.com/weni-ai/weni-cli/pull/174) ([**@marcellhenrique**](https://github.com/marcellhenrique))
+
+## [3.8.4] - 2026-07-28
+
+### Added
+
+- Support optional payload/response templates and extra routing/history fields in generic ticketer definitions ([#172](https://github.com/weni-ai/weni-cli/pull/172)) ([**@rasoro**](https://github.com/rasoro))
+- Document ticketer template fields, history modes, and route overrides in the user guide
+
+## [3.8.3] - 2026-07-14
+
+### Fixed
+
+- Accept any 2xx HTTP status code in CLIClient instead of only 200, so accept endpoints that return 201 succeed ([#171](https://github.com/weni-ai/weni-cli/pull/171)) ([**@rasoro**](https://github.com/rasoro))
+
+## [3.8.2] - 2026-07-13
+
+### Fixed
+
+- Fixing broadcasts and contacts docs ([#157](https://github.com/weni-ai/weni-cli/pull/170)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
+## [3.8.1] - 2026-07-13
+
+### Added
+
+- Update version to 3.8.1 and update weni-agents-toolkit to 2.8.0 by adding flows client and contacts integration, and tool refactoring([#157](https://github.com/weni-ai/weni-cli/pull/169)) ([**@MarcellHenrique**](https://github.com/marcellhenrique))
+
+
+## [3.8.0] - 2026-07-09
+
+### Added
+
+- Add `weni ticketer create` command to register generic ticketers from a YAML definition file ([#167](https://github.com/weni-ai/weni-cli/pull/167)) ([**@rasoro**](https://github.com/rasoro))
+- Validate ticketer definition schema and auto-fill project UUID from the selected project
+- Document ticketer management and generic ticketer HTTP contract in user guide
+
+## [3.7.2] - 2026-07-01
+
+### Added
+
+- Add `--use-apm` and `--remove-apm` flags to `weni project push` for controlling Elastic APM instrumentation on passive agent tool lambdas
+- Document APM flags and observability warning in user guide and passive agents docs
+- Show CLI warning after successful push with `--use-apm` about performance impact and `--remove-apm` when done
+
+## [3.7.1] - 2026-06-01
+
+### Added
+
+- Validate `source.entrypoint` (module file and class existence) and run agent definition schema validation in `weni run` to prevent execution errors ([#160](https://github.com/weni-ai/weni-cli/pull/160)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
+
+## [3.7.0] - 2026-05-27
+
+### Added
+
+- Extend `weni run` to support active agents (PreProcessor + Rules) ([#155](https://github.com/weni-ai/weni-cli/pull/155)) ([**@MatheusLeall**](https://github.com/MatheusLeall))
 
 ## [3.6.10] - 2026-05-20
 

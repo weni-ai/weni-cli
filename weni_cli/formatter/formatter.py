@@ -32,3 +32,14 @@ class Formatter:
             expand=False,
         )
         print(success_panel)
+
+    def print_warning_panel(self, message, title="Warning"):
+        warning_panel = Panel(
+            self._to_renderable(message),
+            title=f"[bold yellow]{title}[/bold yellow]",
+            title_align="left",
+            style="bold yellow",
+            expand=False,
+            padding=(1, 1),
+        )
+        print(warning_panel)

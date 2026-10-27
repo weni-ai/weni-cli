@@ -50,14 +50,21 @@ def get_cli_version() -> str:
     return importlib.metadata.version("weni-cli")
 
 
-def create_default_payload(project_uuid: str, definition: Dict, agent_type: str) -> Dict[str, str]:
+def create_default_payload(
+    project_uuid: str, definition: Dict, agent_type: str, apm_instrumentation: Optional[str] = None
+) -> Dict[str, str]:
     """Create a default payload for API requests."""
-    return {
+    payload = {
         "project_uuid": project_uuid,
         "definition": json.dumps(definition, ensure_ascii=False),
         "toolkit_version": get_toolkit_version(),
         "type": agent_type,
     }
+
+    if apm_instrumentation:
+        payload["apm_instrumentation"] = apm_instrumentation
+
+    return payload
 
 
 class CLIClient:
@@ -103,7 +110,7 @@ class CLIClient:
                 timeout=timeout,
             )
 
-            if response.status_code != 200:
+            if not (200 <= response.status_code < 300):
                 if response.status_code == 401:
                     raise RequestError("Invalid authentication token. Please login again using 'weni login'")
                 try:
@@ -152,14 +159,17 @@ class CLIClient:
             params=params,
         )
 
-        if response.status_code != 200:
+        if not (200 <= response.status_code < 300):
             if response.status_code == 401:
                 raise RequestError("Invalid authentication token. Please login again using 'weni login'")
             try:
                 error_data = response.json()
-                message = error_data.get("message", f"Request failed with status code {response.status_code}")
+                message = error_data.get(
+                    "message",
+                    error_data.get("detail", f"Request failed with status code {response.status_code}"),
+                )
                 raise RequestError(
-                    message=message,
+                    message=str(message),
                     status_code=response.status_code,
                     data=error_data.get("data"),
                     request_id=error_data.get("request_id"),
@@ -179,10 +189,15 @@ class CLIClient:
             raise RequestError(f"Failed to check project permission: {e.message}")
 
     def push_agents(
-        self, project_uuid: str, agents_definition: Dict, resources_folder: Dict[str, BinaryIO], agent_type: str
+        self,
+        project_uuid: str,
+        agents_definition: Dict,
+        resources_folder: Dict[str, BinaryIO],
+        agent_type: str,
+        apm_instrumentation: Optional[str] = None,
     ) -> None:
         """Push agents to the API."""
-        data = create_default_payload(project_uuid, agents_definition, agent_type)
+        data = create_default_payload(project_uuid, agents_definition, agent_type, apm_instrumentation)
 
         with spinner():
             try:
@@ -370,3 +385,117 @@ class CLIClient:
             return response.json()
         except RequestError as e:
             raise RequestError(f"Failed to create channel: {e.message}")
+
+    def list_channels(self, channel_type: Optional[str] = None, exclude_wpp_demo: bool = False) -> List[Dict[str, Any]]:
+        """List channels of the current project."""
+        params: Dict[str, Any] = {}
+        if channel_type:
+            params["channel_type"] = channel_type
+        if exclude_wpp_demo:
+            params["exclude_wpp_demo"] = "true"
+
+        try:
+            response = self._make_request(method="GET", endpoint="api/v1/channels", params=params or None)
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to list channels: {e.message}")
+
+    def get_channel(self, channel_uuid: str) -> Dict[str, Any]:
+        """Get one channel of the current project."""
+        try:
+            response = self._make_request(method="GET", endpoint=f"api/v1/channels/{channel_uuid}")
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to get channel: {e.message}")
+
+    def update_channel(
+        self,
+        channel_uuid: str,
+        name: Optional[str] = None,
+        address: Optional[str] = None,
+        config: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Partially update a channel. The backend merges config into the stored one."""
+        payload: Dict[str, Any] = {}
+        if name is not None:
+            payload["name"] = name
+        if address is not None:
+            payload["address"] = address
+        if config is not None:
+            payload["config"] = config
+
+        try:
+            response = self._make_request(
+                method="PATCH", endpoint=f"api/v1/channels/{channel_uuid}", json_data=payload
+            )
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to update channel: {e.message}")
+
+    def delete_channel(self, channel_uuid: str) -> None:
+        """Soft-delete a channel (Flows sets is_active to false)."""
+        try:
+            self._make_request(method="DELETE", endpoint=f"api/v1/channels/{channel_uuid}")
+        except RequestError as e:
+            raise RequestError(f"Failed to delete channel: {e.message}")
+
+    def create_ticketer(self, project_uuid: str, ticketer_definition: Dict) -> Dict[str, Any]:
+        """Create a ticketer."""
+        if "ticketers" not in ticketer_definition or not ticketer_definition["ticketers"]:
+            raise ValueError("No ticketers found in definition")
+
+        ticketer_data = ticketer_definition["ticketers"][0]
+
+        payload = {
+            "project_uuid": project_uuid,
+            "ticketer_definition": ticketer_data,
+        }
+
+        try:
+            response = self._make_request(method="POST", endpoint="api/v1/ticketers", json_data=payload)
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to create ticketer: {e.message}")
+
+    def list_ticketers(self, project_uuid: str) -> Dict[str, Any]:
+        """List ticketers for the project."""
+        try:
+            response = self._make_request(method="GET", endpoint="api/v1/ticketers")
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to list ticketers: {e.message}")
+
+    def get_ticketer(self, project_uuid: str, ticketer_uuid: str) -> Dict[str, Any]:
+        """Get a ticketer by UUID."""
+        try:
+            response = self._make_request(method="GET", endpoint=f"api/v1/ticketers/{ticketer_uuid}")
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to get ticketer: {e.message}")
+
+    def update_ticketer(self, project_uuid: str, ticketer_uuid: str, ticketer_definition: Dict) -> Dict[str, Any]:
+        """Update a ticketer."""
+        if "ticketers" not in ticketer_definition or not ticketer_definition["ticketers"]:
+            raise ValueError("No ticketers found in definition")
+
+        ticketer_data = ticketer_definition["ticketers"][0]
+
+        payload = {
+            "project_uuid": project_uuid,
+            "ticketer_definition": ticketer_data,
+        }
+
+        try:
+            response = self._make_request(
+                method="PUT", endpoint=f"api/v1/ticketers/{ticketer_uuid}", json_data=payload
+            )
+            return response.json()
+        except RequestError as e:
+            raise RequestError(f"Failed to update ticketer: {e.message}")
+
+    def delete_ticketer(self, project_uuid: str, ticketer_uuid: str) -> None:
+        """Delete a ticketer."""
+        try:
+            self._make_request(method="DELETE", endpoint=f"api/v1/ticketers/{ticketer_uuid}")
+        except RequestError as e:
+            raise RequestError(f"Failed to delete ticketer: {e.message}")

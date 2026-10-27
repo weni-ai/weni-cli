@@ -19,11 +19,35 @@ from weni_cli.validators.agent_definition import (
 
 CONTACT_FIELD_NAME_REGEX = r"^[a-z][a-z0-9_]*$"
 
+APM_OBSERVABILITY_WARNING = (
+    "Use Elastic APM instrumentation only for observability—for example, while debugging or "
+    "investigating an issue. APM adds Lambda layers and environment variables that increase cold "
+    "start time and runtime overhead.\n\n"
+    "When you no longer need it, disable instrumentation with:\n"
+    "  weni project push <definition> --remove-apm"
+)
+
 
 class ProjectPushHandler(Handler):
     def execute(self, **kwargs):
         force_update = self.load_param(kwargs, "force_update", False)
+        use_apm = self.load_param(kwargs, "use_apm", False)
+        remove_apm = self.load_param(kwargs, "remove_apm", False)
         definition_path = self.load_param(kwargs, "definition", None, True)
+
+        if use_apm and remove_apm:
+            formatter = Formatter()
+            formatter.print_error_panel(
+                "Cannot use --use-apm and --remove-apm together. Choose one option.",
+                title="Invalid APM options",
+            )
+            return
+
+        apm_instrumentation = None
+        if use_apm:
+            apm_instrumentation = "enabled"
+        elif remove_apm:
+            apm_instrumentation = "disabled"
 
         store = Store()
         project_uuid = store.get(STORE_PROJECT_UUID_KEY)
@@ -55,11 +79,11 @@ class ProjectPushHandler(Handler):
             return
 
         if agent_type == "passive":
-            self.push_passive_agent(force_update, project_uuid, definition_data)
+            self.push_passive_agent(force_update, project_uuid, definition_data, apm_instrumentation)
         elif agent_type == "active":
-            self.push_active_agent(force_update, project_uuid, definition_data)
+            self.push_active_agent(force_update, project_uuid, definition_data, apm_instrumentation)
 
-    def push_passive_agent(self, force_update, project_uuid, definition):
+    def push_passive_agent(self, force_update, project_uuid, definition, apm_instrumentation=None):
         formatter = Formatter()
         error = validate_agent_definition_schema(definition)
         if error:
@@ -74,9 +98,9 @@ class ProjectPushHandler(Handler):
             return
 
         definition = format_definition(definition)
-        self.push_definition(force_update, "passive", project_uuid, definition, tools_folders_map)
+        self.push_definition(force_update, "passive", project_uuid, definition, tools_folders_map, apm_instrumentation)
 
-    def push_active_agent(self, force_update, project_uuid, definition):
+    def push_active_agent(self, force_update, project_uuid, definition, apm_instrumentation=None):
         formatter = Formatter()
         error = validate_active_agent_definition_schema(definition)
         if error:
@@ -98,7 +122,7 @@ class ProjectPushHandler(Handler):
         rules_folders_map.update(preprocessing_folders_map)
         resources_folders_map = rules_folders_map
         definition = format_definition(definition)
-        self.push_definition(force_update, "active", project_uuid, definition, resources_folders_map)
+        self.push_definition(force_update, "active", project_uuid, definition, resources_folders_map, None)
 
     def load_param(self, params, key, default=None, required=False):
         value = params.get(key, default)
@@ -115,13 +139,19 @@ class ProjectPushHandler(Handler):
     def load_preprocessing_folder(self, definition) -> tuple[Optional[dict], Optional[str]]:
         return _load_preprocessing_folder(definition)
 
-    def push_definition(self, force_update, agent_type, project_uuid, definition, resources_folder_map):
+    def push_definition(
+        self, force_update, agent_type, project_uuid, definition, resources_folder_map, apm_instrumentation=None
+    ):
         client = CLIClient()
+        formatter = Formatter()
 
         try:
-            client.push_agents(project_uuid, definition, resources_folder_map, agent_type)
+            client.push_agents(
+                project_uuid, definition, resources_folder_map, agent_type, apm_instrumentation=apm_instrumentation
+            )
         except Exception as e:
-            formatter = Formatter()
             formatter.print_error_panel(f"Failed to push definition: {e}")
         else:
             click.echo("Definition pushed successfully")
+            if apm_instrumentation == "enabled":
+                formatter.print_warning_panel(APM_OBSERVABILITY_WARNING, title="APM instrumentation enabled")

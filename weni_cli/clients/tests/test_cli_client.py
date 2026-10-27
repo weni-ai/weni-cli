@@ -837,6 +837,16 @@ def test_request_method_error_handling(client, mocker):
     response = client._make_request("GET", "test/endpoint")
     assert response == success_resp
 
+    # 4. Test with 201 Created response (common for POST create endpoints)
+    created_resp = mocker.MagicMock()
+    created_resp.status_code = 201
+    created_resp.json.return_value = {"uuid": "new-resource-uuid"}
+
+    client.session.request = mocker.MagicMock(return_value=created_resp)
+
+    response = client._make_request("POST", "test/endpoint")
+    assert response == created_resp
+
 
 def test_streaming_request_json_error_response(client, mocker):
     """Test _streaming_request method with a JSON error response."""
@@ -923,7 +933,8 @@ def test_get_tool_logs_success(client, mocker):
 
     # Verify the method was called with correct parameters
     client._make_request.assert_called_once_with(
-        method="GET", endpoint="api/v1/tool-logs/",
+        method="GET",
+        endpoint="api/v1/tool-logs/",
         params={
             "agent_key": agent,
             "tool_key": tool,
@@ -931,7 +942,7 @@ def test_get_tool_logs_success(client, mocker):
             "end_time": end_time,
             "pattern": pattern,
             "next_token": None,
-        }
+        },
     )
 
 
@@ -941,9 +952,7 @@ def test_get_tool_logs_error(client, mocker):
     error_message = "Failed to fetch tool logs"
     request_id = "req-12345"
     mocker.patch.object(
-        client,
-        "_make_request",
-        side_effect=RequestError(message=error_message, request_id=request_id)
+        client, "_make_request", side_effect=RequestError(message=error_message, request_id=request_id)
     )
 
     # Call the method
@@ -985,7 +994,8 @@ def test_get_tool_logs_with_empty_times(client, mocker):
 
     # Verify the method was called with correct parameters (None values for times)
     client._make_request.assert_called_once_with(
-        method="GET", endpoint="api/v1/tool-logs/",
+        method="GET",
+        endpoint="api/v1/tool-logs/",
         params={
             "agent_key": agent,
             "tool_key": tool,
@@ -993,7 +1003,7 @@ def test_get_tool_logs_with_empty_times(client, mocker):
             "end_time": None,
             "pattern": pattern,
             "next_token": None,
-        }
+        },
     )
 
 
@@ -1169,3 +1179,377 @@ def test_create_channel_with_whatsapp_channel_type(client, mocker):
             "channel_definition": channel_definition["channels"][0]
         }
     )
+
+
+def test_create_ticketer_success(client, mocker):
+    """Test successful ticketer creation."""
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 201
+    mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "org support"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {
+        "ticketers": [
+            {
+                "name": "org support",
+                "ticketer_type": "generic",
+                "config": {
+                    "base_url": "https://example.com",
+                    "api_token": "test-api-token",
+                    "webhook_secret": "test-webhook-secret",
+                },
+            }
+        ]
+    }
+
+    client.create_ticketer(project_uuid, ticketer_definition)
+
+    client._make_request.assert_called_once_with(
+        method="POST",
+        endpoint="api/v1/ticketers",
+        json_data={
+            "project_uuid": project_uuid,
+            "ticketer_definition": ticketer_definition["ticketers"][0],
+        },
+    )
+
+
+def test_create_ticketer_with_token_refresh_sends_config_as_strings(client, mocker):
+    """Token refresh config must be a compact JSON string in the create payload."""
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 201
+    mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "org support"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    project_uuid = "test-project-uuid"
+    refresh_config = (
+        '{"when":{"match":"any","status_codes":[401]},"url":"https://host/oauth/token",'
+        '"headers":{"Content-Type":"application/x-www-form-urlencoded"}}'
+    )
+    ticketer_definition = {
+        "ticketers": [
+            {
+                "name": "org support",
+                "ticketer_type": "generic",
+                "config": {
+                    "base_url": "https://example.com",
+                    "api_token": "test-api-token",
+                    "webhook_secret": "test-webhook-secret",
+                    "token_refresh_enabled": "true",
+                    "token_refresh_type": "refresh",
+                    "refresh_token": "rt-secret",
+                    "token_refresh_config": refresh_config,
+                },
+            }
+        ]
+    }
+
+    client.create_ticketer(project_uuid, ticketer_definition)
+
+    sent = client._make_request.call_args.kwargs["json_data"]["ticketer_definition"]["config"]
+    assert sent["token_refresh_enabled"] == "true"
+    assert sent["token_refresh_type"] == "refresh"
+    assert isinstance(sent["token_refresh_config"], str)
+    assert json.loads(sent["token_refresh_config"])["url"] == "https://host/oauth/token"
+    assert all(isinstance(value, str) for value in sent.values())
+
+
+def test_list_ticketers_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {"results": []}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    client.list_ticketers("test-project-uuid")
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/ticketers")
+
+
+def test_get_ticketer_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "ticketer-uuid", "name": "n"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    client.get_ticketer("test-project-uuid", "ticketer-uuid")
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/ticketers/ticketer-uuid")
+
+
+def test_update_ticketer_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "ticketer-uuid"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    definition = {"ticketers": [{"name": "n", "ticketer_type": "generic", "config": {"base_url": "https://x", "api_token": "t"}}]}
+    client.update_ticketer("test-project-uuid", "ticketer-uuid", definition)
+    client._make_request.assert_called_once_with(
+        method="PUT",
+        endpoint="api/v1/ticketers/ticketer-uuid",
+        json_data={"project_uuid": "test-project-uuid", "ticketer_definition": definition["ticketers"][0]},
+    )
+
+
+def test_delete_ticketer_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.status_code = 204
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+    client.delete_ticketer("test-project-uuid", "ticketer-uuid")
+    client._make_request.assert_called_once_with(method="DELETE", endpoint="api/v1/ticketers/ticketer-uuid")
+
+
+def test_list_ticketers_request_error(client, mocker):
+    error_message = "Failed to list ticketers in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=500),
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.list_ticketers("test-project-uuid")
+
+    assert "Failed to list ticketers" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_get_ticketer_request_error(client, mocker):
+    error_message = "Ticketer was not found"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=404),
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.get_ticketer("test-project-uuid", "ticketer-uuid")
+
+    assert "Failed to get ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_update_ticketer_no_ticketers_in_definition(client):
+    with pytest.raises(ValueError) as exc_info:
+        client.update_ticketer("test-project-uuid", "ticketer-uuid", {})
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_update_ticketer_empty_ticketers_array(client):
+    with pytest.raises(ValueError) as exc_info:
+        client.update_ticketer("test-project-uuid", "ticketer-uuid", {"ticketers": []})
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_update_ticketer_request_error(client, mocker):
+    error_message = "Failed to update ticketer in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=400),
+    )
+    definition = {
+        "ticketers": [
+            {
+                "name": "n",
+                "ticketer_type": "generic",
+                "config": {"base_url": "https://x", "api_token": "t"},
+            }
+        ]
+    }
+
+    with pytest.raises(RequestError) as exc_info:
+        client.update_ticketer("test-project-uuid", "ticketer-uuid", definition)
+
+    assert "Failed to update ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_delete_ticketer_request_error(client, mocker):
+    error_message = "Ticketer was not found"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=404),
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.delete_ticketer("test-project-uuid", "ticketer-uuid")
+
+    assert "Failed to delete ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_create_ticketer_no_ticketers_in_definition(client):
+    """Test ticketer creation with no ticketers in definition."""
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {}
+
+    with pytest.raises(ValueError) as exc_info:
+        client.create_ticketer(project_uuid, ticketer_definition)
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_create_ticketer_empty_ticketers_array(client):
+    """Test ticketer creation with empty ticketers array."""
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {"ticketers": []}
+
+    with pytest.raises(ValueError) as exc_info:
+        client.create_ticketer(project_uuid, ticketer_definition)
+
+    assert "No ticketers found in definition" in str(exc_info.value)
+
+
+def test_create_ticketer_request_error(client, mocker):
+    """Test ticketer creation with request error."""
+    error_message = "Failed to create ticketer in Flows"
+    mocker.patch.object(
+        client,
+        "_make_request",
+        side_effect=RequestError(message=error_message, status_code=400),
+    )
+
+    project_uuid = "test-project-uuid"
+    ticketer_definition = {
+        "ticketers": [
+            {
+                "name": "org support",
+                "ticketer_type": "generic",
+                "config": {
+                    "base_url": "https://example.com",
+                    "api_token": "test-api-token",
+                    "webhook_secret": "test-webhook-secret",
+                },
+            }
+        ]
+    }
+
+    with pytest.raises(RequestError) as exc_info:
+        client.create_ticketer(project_uuid, ticketer_definition)
+
+    assert "Failed to create ticketer" in str(exc_info.value)
+    assert error_message in str(exc_info.value)
+
+
+def test_make_request_uses_detail_when_message_is_missing(client, mocker):
+    """FastAPI HTTPException bodies only carry 'detail'."""
+    error_resp = mocker.MagicMock()
+    error_resp.status_code = 404
+    error_resp.json.return_value = {"detail": "Channel not found"}
+    client.session.request = mocker.MagicMock(return_value=error_resp)
+
+    with pytest.raises(RequestError) as excinfo:
+        client._make_request("GET", "api/v1/channels/some-uuid")
+
+    assert excinfo.value.message == "Channel not found"
+    assert excinfo.value.status_code == 404
+
+
+def test_list_channels_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = [{"uuid": "channel-uuid", "name": "Test Channel"}]
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    result = client.list_channels(channel_type="WAC", exclude_wpp_demo=True)
+
+    assert result == [{"uuid": "channel-uuid", "name": "Test Channel"}]
+    client._make_request.assert_called_once_with(
+        method="GET",
+        endpoint="api/v1/channels",
+        params={"channel_type": "WAC", "exclude_wpp_demo": "true"},
+    )
+
+
+def test_list_channels_without_filters_sends_no_params(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = []
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    client.list_channels()
+
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/channels", params=None)
+
+
+def test_list_channels_request_error(client, mocker):
+    mocker.patch.object(client, "_make_request", side_effect=RequestError(message="Forbidden", status_code=403))
+
+    with pytest.raises(RequestError) as exc_info:
+        client.list_channels()
+
+    assert "Failed to list channels: Forbidden" in str(exc_info.value)
+
+
+def test_get_channel_success(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "channel-uuid"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    result = client.get_channel("channel-uuid")
+
+    assert result == {"uuid": "channel-uuid"}
+    client._make_request.assert_called_once_with(method="GET", endpoint="api/v1/channels/channel-uuid")
+
+
+def test_get_channel_request_error(client, mocker):
+    mocker.patch.object(
+        client, "_make_request", side_effect=RequestError(message="Channel not found", status_code=404)
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.get_channel("channel-uuid")
+
+    assert "Failed to get channel: Channel not found" in str(exc_info.value)
+
+
+def test_update_channel_sends_only_given_fields(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "channel-uuid", "name": "Renamed"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    result = client.update_channel("channel-uuid", name="Renamed", config={"extra": "1"})
+
+    assert result == {"uuid": "channel-uuid", "name": "Renamed"}
+    client._make_request.assert_called_once_with(
+        method="PATCH",
+        endpoint="api/v1/channels/channel-uuid",
+        json_data={"name": "Renamed", "config": {"extra": "1"}},
+    )
+
+
+def test_update_channel_sends_address_only(client, mocker):
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"uuid": "channel-uuid"}
+    mocker.patch.object(client, "_make_request", return_value=mock_response)
+
+    client.update_channel("channel-uuid", address="+5511999999999")
+
+    client._make_request.assert_called_once_with(
+        method="PATCH",
+        endpoint="api/v1/channels/channel-uuid",
+        json_data={"address": "+5511999999999"},
+    )
+
+
+def test_update_channel_request_error(client, mocker):
+    mocker.patch.object(client, "_make_request", side_effect=RequestError(message="Invalid", status_code=400))
+
+    with pytest.raises(RequestError) as exc_info:
+        client.update_channel("channel-uuid", name="Renamed")
+
+    assert "Failed to update channel: Invalid" in str(exc_info.value)
+
+
+def test_delete_channel_success(client, mocker):
+    mocker.patch.object(client, "_make_request", return_value=mocker.MagicMock())
+
+    assert client.delete_channel("channel-uuid") is None
+    client._make_request.assert_called_once_with(method="DELETE", endpoint="api/v1/channels/channel-uuid")
+
+
+def test_delete_channel_request_error(client, mocker):
+    mocker.patch.object(
+        client, "_make_request", side_effect=RequestError(message="Channel not found", status_code=404)
+    )
+
+    with pytest.raises(RequestError) as exc_info:
+        client.delete_channel("channel-uuid")
+
+    assert "Failed to delete channel: Channel not found" in str(exc_info.value)

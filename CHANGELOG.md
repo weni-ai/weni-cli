@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.10.0] - 2026-10-27
+
+### Added
+
+- Add `weni channel list`, `get`, `update`, and `delete` to manage channels in the selected project ([#183](https://github.com/weni-ai/weni-cli/pull/183)) ([**@marcellhenrique**](https://github.com/marcellhenrique))
+- `list` prints channels with UUID, name, type, address, and active status, and can filter by type or hide the WhatsApp demo channel
+- `get` shows channel details and config; values whose keys contain `token`, `secret`, `password`, or `key` are displayed as `****` unless `--show-secrets` is passed
+- `update` changes the name, address, or config; config keys from a YAML or JSON file are merged into the stored config
+- `delete` deactivates the channel, asking for confirmation unless `--yes` is passed
+
 ## [3.9.0] - 2026-10-16
 
 ### Added

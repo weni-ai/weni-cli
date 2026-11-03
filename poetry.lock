@@ -1757,14 +1757,14 @@ dev = ["bandit", "black", "flake8", "isort", "mkdocs", "mkdocs-click", "mkdocs-m
 
 [[package]]
 name = "weni-agents-toolkit"
-version = "2.9.0a1"
+version = "2.11.0a0"
 description = ""
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "weni_agents_toolkit-2.9.0a1-py3-none-any.whl", hash = "sha256:2ee88eea9cc409e5d2b2f3ae182ba47cd957c5f0429aee22bd7fd5cbed130542"},
-    {file = "weni_agents_toolkit-2.9.0a1.tar.gz", hash = "sha256:107a81a7c2fe3afbb4c5a5d6562ebde11c691f005d2dca5cf70d41509d0145de"},
+    {file = "weni_agents_toolkit-2.11.0a0-py3-none-any.whl", hash = "sha256:cd950cecc75314751a5fe1f8c6027b890b1b11b1c3733862d4caf44bff3c774b"},
+    {file = "weni_agents_toolkit-2.11.0a0.tar.gz", hash = "sha256:3db752049412430d9b3a9b82345133a0ab03c13b3319e0f201930a3f4e4ac07b"},
 ]
 
 [package.dependencies]
@@ -1792,4 +1792,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "97b215313391e0b6eb7d41d40fba6c219133f9c4a5e1c96abeee3ef90eeae8ef"
+content-hash = "5405f59145765a831a12e3f362faaf8f476e338dd0e1167e45de97c5fd5cdc28"

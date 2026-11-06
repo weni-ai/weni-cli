@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.10.1] - 2026-11-06
+
+### Added
+
+- Bumping Toolkit to version 2.10.1, and CLI to version 3.10.1 ([#184](https://github.com/weni-ai/weni-cli/pull/184)
+[**@marcellhenrique**](https://github.com/marcellhenrique))
+
 ## [3.10.0] - 2026-10-27
 
 ### Added

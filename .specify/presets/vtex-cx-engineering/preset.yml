@@ -1,0 +1,42 @@
+schema_version: "1.0"
+
+preset:
+  id: "vtex-cx-engineering"
+  name: "VTEX CX Engineering SDD"
+  version: "1.1.0"
+  description: >-
+    Turns /speckit.specify into the Engineering Spec of the VTEX CX Golden Path:
+    it inherits from exactly one Product Spec pinned by commit/tag, or opens with
+    its own origin section when the change has no Product Spec, describes the
+    how inside that service, and is bound by the repository constitution.
+  author: "VTEX CX Engineering"
+  repository: "https://github.com/weni-ai/vtex-cx-engineering-constitutions"
+
+requires:
+  speckit_version: ">=1.0.13"
+
+provides:
+  templates:
+    - type: "command"
+      name: "speckit.specify"
+      file: "commands/speckit.specify.md"
+      description: "Engineering Spec with an origin gate (pinned Product Spec or declared absence) and the constitution as a binding input"
+
+    - type: "template"
+      name: "spec-template"
+      file: "templates/spec-template.md"
+      strategy: "replace"
+      description: "Engineering Spec template: inheritance or origin section plus the technical sections of the service"
+
+    - type: "template"
+      name: "plan-template"
+      file: "templates/plan-additions.md"
+      strategy: "append"
+      description: "Adds inheritance, peak load, observability and rollout to the core plan template"
+
+tags:
+  - "vtex-cx"
+  - "engineering"
+  - "sdd"
+  - "traceability"
+  - "governance"
